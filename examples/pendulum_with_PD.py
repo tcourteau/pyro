@@ -5,13 +5,13 @@ Created on Sat Mar  5 19:03:23 2016
 @author: alex
 """
 
-from AlexRobotics.dynamic import simple2DOF    as RD2
+from AlexRobotics.dynamic import simple1DOF    as RD1
 from AlexRobotics.control import linear        as RCL
 
 import matplotlib.pyplot as plt
 
 # Define dynamic system
-pendulum  =  RD2.Pendulum()
+pendulum  =  RD1.Pendulum()
 m = 1
 l = 1
 g = 9.8

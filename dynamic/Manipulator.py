@@ -6,17 +6,21 @@ Created on Tue Nov 10 13:09:20 2015
 """
 
 import matplotlib.animation as animation
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 
-from DynamicSystem import *
+from AlexRobotics.dynamic import DynamicSystem as RDDS
 
-class Manipulator( DynamicSystem ) :
+
+class Manipulator( RDDS.DynamicSystem ) :
     """ 2DOF Manipulator Class """
     
     
     ############################
     def __init__(self, n = 4 , m = 2 ):
         
-        DynamicSystem.__init__(self, n , m )
+        RDDS.DynamicSystem.__init__(self, n , m )
         
         self.state_label = ['Angle 1','Angle 2','Speed 1','Speed 2']
         self.input_label = ['Torque 1','Torque 2']
@@ -246,6 +250,7 @@ class Manipulator( DynamicSystem ) :
         
         return fig , ax, line
         
+        
     #############################
     def show_jaco(self, q ):
         """ Plot figure of configuration q """
@@ -296,16 +301,16 @@ class Manipulator( DynamicSystem ) :
         
         
         # Integrate EoM
-        self.S    = Simulation( self , tf , n )
-        self.S.x0 = x0
+        self.Sim    = RDDS.Simulation( self , tf , n )
+        self.Sim.x0 = x0
         
-        self.S.compute()
+        self.Sim.compute()
         
         # Compute pts localization
         self.PTS = np.zeros((3,2,n))
         
         for i in xrange(n):
-            self.PTS[:,:,i] = self.fwd_kinematic( self.S.x_sol_CL[i,0:2] ) # Forward kinematic
+            self.PTS[:,:,i] = self.fwd_kinematic( self.Sim.x_sol_CL[i,0:2] ) # Forward kinematic
             
             
         # figure

@@ -357,16 +357,23 @@ class Simulation:
         self.plots = plots
         
     ##############################
-    def plot_CL(self, show = True ):
-        """ 
-        No arguments
-        
+    def plot_CL(self, plot = 'All' , show = True ):
+        """
         Create a figure with trajectories for all states and control inputs
+        plot = 'All'
+        plot = 'x'
+        plot = 'u'        
         
         """
         
-        l = self.DS.m + self.DS.n
-        
+        # Number of subplots
+        if plot == 'All':
+            l = self.DS.m + self.DS.n
+        elif plot == 'x':
+            l = self.DS.n
+        elif plot == 'u':
+            l = self.DS.m
+            
         simfig , plots = plt.subplots(l, sharex=True,figsize=(4, 3),dpi=300, frameon=True)
         
         simfig.canvas.set_window_title('Closed loop trajectory')
@@ -374,17 +381,23 @@ class Simulation:
         #matplotlib.rc('xtick', labelsize=10)
         #matplotlib.rc('ytick', labelsize=10)
         
-        # For all states
-        for i in xrange( self.DS.n ):
-            plots[i].plot( self.t , self.x_sol_CL[:,i] , 'b')
-            plots[i].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=5)
-            plots[i].grid(True)
+        j = 0 # plot index
         
-        # For all inputs
-        for i in xrange( self.DS.m ):
-            plots[i + self.DS.n].plot( self.t , self.u_sol_CL[:,i] , 'r')
-            plots[i + self.DS.n].set_ylabel(self.DS.input_label[i] + '\n' + self.DS.input_units[i] , fontsize=5)
-            plots[i + self.DS.n].grid(True)
+        if plot == 'All' or plot == 'x':
+            # For all states
+            for i in xrange( self.DS.n ):
+                plots[j].plot( self.t , self.x_sol_CL[:,i] , 'b')
+                plots[j].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=5)
+                plots[j].grid(True)
+                j = j + 1
+            
+        if plot == 'All' or plot == 'u':
+            # For all inputs
+            for i in xrange( self.DS.m ):
+                plots[j].plot( self.t , self.u_sol_CL[:,i] , 'r')
+                plots[j].set_ylabel(self.DS.input_label[i] + '\n' + self.DS.input_units[i] , fontsize=5)
+                plots[j].grid(True)
+                j = j + 1
                
         plots[l-1].set_xlabel('Time [sec]', fontsize=5)
         
