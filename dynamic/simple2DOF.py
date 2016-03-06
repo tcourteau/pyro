@@ -5,9 +5,16 @@ Created on Fri Aug 07 14:56:36 2015
 @author: agirard
 """
 
-from DynamicSystem import *
+import numpy as np
+from AlexRobotics.dynamic import DynamicSystem as RDDS
 
-class MassSpringDamper( DynamicSystem ) :
+'''
+#################################################################
+##################          MassSpringDamper             ########
+#################################################################
+'''
+
+class MassSpringDamper( RDDS.DynamicSystem ) :
     """ Mass-spring-damper """
     
     ############################
@@ -16,7 +23,7 @@ class MassSpringDamper( DynamicSystem ) :
         n = 2   # number of states
         m = 1   # number of inputs
         
-        DynamicSystem.__init__(self, n , m )
+        RDDS.DynamicSystem.__init__(self, n , m )
     
     #############################
     def setparams(self, m = 1 , b = 1 , k = 1):
@@ -51,14 +58,13 @@ class MassSpringDamper( DynamicSystem ) :
         return dx
 
 
+'''
+#################################################################
+##################          Pendumlum                    ########
+#################################################################
+'''
 
-
-
-
-
-
-
-class Pendulum( DynamicSystem ) :
+class Pendulum( RDDS.DynamicSystem ) :
     """ Pendulum """
     
         ############################
@@ -67,7 +73,7 @@ class Pendulum( DynamicSystem ) :
         n = 2   # number of states
         m = 1   # number of inputs
         
-        DynamicSystem.__init__(self, n , m )
+        RDDS.DynamicSystem.__init__(self, n , m )
         
         self.state_label = ['Position [rad]','Speed [rad/sec]']
         self.input_label = ['Torque [Nm]']
@@ -103,11 +109,6 @@ class Pendulum( DynamicSystem ) :
         dx[1] = ( u[0] - self.m * self.g * self.l * np.sin( x[0] ) ) / ( self.m * self.l**2 )
         
         return dx
-        
-        
-        
-        
-        
         
         
 

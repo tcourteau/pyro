@@ -10,6 +10,7 @@ from AlexRobotics.control import linear        as RCL
 
 import matplotlib.pyplot as plt
 
+
 # Define dynamic system
 double_integrator = RDDS.DynamicSystem()
 
