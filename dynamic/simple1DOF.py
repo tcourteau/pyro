@@ -79,9 +79,9 @@ class Pendulum( RDDS.DynamicSystem ) :
         self.input_label = ['Torque [Nm]']
     
     #############################
-    def setparams(self, m = 1 , g = 9.8 , l = 1 ):
+    def setparams(self, m = 1. , g = 9.8 , l = 1. ):
         """ """
-        self.m = m
+        self.M = m
         self.l = l
         self.g = g
     
@@ -106,7 +106,7 @@ class Pendulum( RDDS.DynamicSystem ) :
         # x[0]: position x[1]: speed
         
         dx[0] = x[1]
-        dx[1] = ( u[0] - self.m * self.g * self.l * np.sin( x[0] ) ) / ( self.m * self.l**2 )
+        dx[1] = ( u[0] - self.M * self.g * self.l * np.sin( x[0] ) ) / ( self.M * self.l**2 )
         
         return dx
         
