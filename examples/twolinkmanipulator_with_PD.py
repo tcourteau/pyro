@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Define dynamic system
-R  =  M.Manipulator()
+R  =  M.TwoLinkManipulator()
 
 # Define controller
 kp = np.array([30,15])

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 # Define dynamic system
 pendulum  =  RD1.Pendulum()
-m = 0.1
+m = 0.5
 l = 1
 g = 9.8
 pendulum.setparams( m , g , l )
@@ -22,10 +22,12 @@ pendulum.setparams( m , g , l )
 cost_function = 'quadratic'
 ValueIterationAlgo     = DPO.ValueIteration1DOF( pendulum , cost_function )
 
+path = 'data/'
+
 ValueIterationAlgo.first_step()
-ValueIterationAlgo.load_data( cost_function + 'pendulum' )
+ValueIterationAlgo.load_data( path + cost_function + 'pendulum' )
 ValueIterationAlgo.compute_steps(100)
-ValueIterationAlgo.save_data( cost_function + 'pendulum' ) 
+ValueIterationAlgo.save_data( path + cost_function + 'pendulum' ) 
 
 # Plot Value Iteration Results
 ValueIterationAlgo.plot_raw()
@@ -36,11 +38,10 @@ ValueIterationAlgo.assign_interpol_controller()
 # Ploting a trajectory
 u_OL = [0]
 x0   = [-6,-2]
-tf   = 10
+tf   = 25
 pendulum.phase_plane_trajectory( u_OL , x0 , tf , True , True , True, True )
 
 # Time plot
-pendulum.Sim.plot_OL()
 pendulum.Sim.plot_CL()
 
 # Hold figures alive
