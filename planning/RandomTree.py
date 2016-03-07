@@ -28,7 +28,7 @@ class RRT:
         self.Nodes.append( Node( self.start , sys.ubar  , None ) )
         
         # Params
-        self.dt  = 0.5
+        self.dt  = 0.1
         self.INF = 10000
         self.eps = 0.05
         
@@ -76,7 +76,9 @@ class RRT:
         min_distance = self.INF
         
         for u in self.U:
-            x_next = closest_node.x + self.DS.fc( closest_node.x , np.array([u]) ) * self.dt
+            if self.DS.m == 1:
+                u = np.array([u])
+            x_next = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
             node   = Node( x_next , u , closest_node )
             d = node.distanceTo( x_target )
             if d < min_distance:
@@ -94,6 +96,7 @@ class RRT:
         new_node  = self.select_control_input( x_random , node_near )
         
         self.Nodes.append( new_node )
+        
         
     ############################
     def compute_steps(self , n , plot = False ):    

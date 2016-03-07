@@ -6,14 +6,17 @@ Created on Sun Mar  6 15:27:04 2016
 """
 
 from AlexRobotics.planning import RandomTree    as RPRT
+from AlexRobotics.dynamic  import DynamicSystem as RDDS
 from AlexRobotics.dynamic  import Manipulator   as M
 
 import numpy as np
 
-R  =  M.OneLinkManipulator()
+R  =  M.TwoLinkManipulator()
 
-x_start = np.array([0,0])
+x_start = np.array([-3,0,-3,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-RRT.compute_steps(1000,True)
+RRT.U = np.array([[10,0],[0,0],[-10,0],[0,10],[0,-10],[10,10],[-10,-10]])
+
+RRT.compute_steps(10000,True)
