@@ -9,6 +9,7 @@ from AlexRobotics.planning import RandomTree    as RPRT
 from AlexRobotics.dynamic  import Manipulator   as M
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 R  =  M.OneLinkManipulator()
 
@@ -31,9 +32,13 @@ RRT.find_path_to_goal( x_goal )
 R.ctl = RRT.trajectory_controller
 
 # Plot
-tf = RRT.time_to_goal+1
-n = int( (RRT.time_to_goal+1) / RRT.dt )
+tf = RRT.time_to_goal + 5
+n = int( tf / RRT.dt )
 R.plotAnimation( x_start , tf , n )
 R.phase_plane_trajectory([0],x_start,tf,True,False,False,True)
 RRT.plot_2D_Tree()
 R.Sim.plot_CL()
+
+
+# Hold figures alive
+plt.show()

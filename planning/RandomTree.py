@@ -120,6 +120,8 @@ class RRT:
     def find_path_to_goal(self, x_goal ):
         """ """
         
+        self.x_goal = x_goal
+        
         succes   = False
         
         no_nodes = 0
@@ -252,13 +254,16 @@ class RRT:
             inputs = self.solution[1][0]
             u_bar  = np.array( [ inputs[i] ] )
             
-            # No action pass trajectory time
-            if t > self.time_to_goal:
-                u_bar = self.DS.ubar
-            
             # Find associated state and compute error
             states   = self.solution[0]
             x_target = states[:,i]
+            
+            # No action pass trajectory time
+            if t > self.time_to_goal:
+                u_bar = self.DS.ubar
+                x_target = self.x_goal
+            
+            
             error    = x_target - x
             
             # Error feedback (works only for 1 DOF)
