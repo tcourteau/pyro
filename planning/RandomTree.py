@@ -5,6 +5,8 @@ Created on Sun Mar  6 15:09:12 2016
 @author: alex
 """
 
+from AlexRobotics.control import linear        as RCL
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -22,15 +24,20 @@ class RRT:
         
         self.DS = sys          # Dynamic system class
         
-        self.start = x_start  # origin of the graph
+        self.x_start = x_start  # origin of the graph
         
         self.Nodes = []
-        self.Nodes.append( Node( self.start , sys.ubar  , None ) )
+        self.start_node = Node( self.x_start , sys.ubar  , None )
+        self.Nodes.append( self.start_node )
+        
+        self.solution = None
         
         # Params
-        self.dt  = 0.1
+        self.dt  = 0.05
         self.INF = 10000
-        self.eps = 0.05
+        self.eps = 0.2
+        
+        self.alpha = 0.9  # prob of random exploration
         
         self.discretizeactions()
         
@@ -107,7 +114,162 @@ class RRT:
         if plot:
             self.plot_2D_Tree()
     
-    
+           
+        
+    ############################
+    def find_path_to_goal(self, x_goal ):
+        """ """
+        
+        succes   = False
+        
+        no_nodes = 0
+        
+        while not succes:
+            
+            # Exploration:
+            if np.random.rand() > self.alpha :
+                x_random = x_goal
+            else:
+                x_random  = self.rand_state()
+                
+            # Expansion
+            node_near = self.nearest_neighbor( x_random )
+            new_node  = self.select_control_input( x_random , node_near )
+            
+            self.Nodes.append( new_node )
+            
+            # Distance to goal
+            d = new_node.distanceTo( x_goal )
+            
+            # Print
+            no_nodes = no_nodes + 1
+            #print '\nNumber of Nodes = ', no_nodes
+            
+            # Succes?
+            if d < self.eps:
+                succes = True
+                self.goal_node = new_node
+                
+            # Tree reset
+            if no_nodes == 2000:
+                print '\nSearch Fail: Reseting Tree'
+                no_nodes = 0
+                self.Nodes = []
+                self.Nodes.append( self.start_node )
+                
+        
+        print '\nSucces!!!!: Path to goal found'
+        
+        
+        # Compute Path
+        self.compute_path_to_goal()
+        
+                
+    ############################
+    def compute_path_to_goal(self):
+        """ """
+        
+        node = self.goal_node
+        
+        t      = 0
+        
+        x_list = []
+        u_list = []
+        t_list = []
+        
+        self.path_node_list = []
+        self.path_node_list.append( node )
+        
+        while node.distanceTo( self.x_start ) > self.eps:
+            
+            self.path_node_list.append( node )
+            
+            x_list.append( node.x )
+            u_list.append( node.u )
+            t_list.append( t )
+            
+            t = t - self.dt
+            
+            # Previous Node
+            node  = node.P 
+        
+        # Arrange Time array
+        t = np.array( t_list )
+        t = t - t.min()
+        t = np.flipud( t )
+        self.time_to_goal = t.max()
+        
+        # Arrange Input array
+        u = np.array( u_list ).T
+        u = np.fliplr( u )
+        
+        # Arrange State array
+        x = np.array( x_list ).T
+        x = np.fliplr( x )
+            
+        self.solution = [ x , u , t ]
+        
+        
+    ############################
+    def open_loop_controller(self, x , t ):
+        """ feedback law """
+        
+        if self.solution == None:
+            
+            u = self.DS.ubar
+            
+            return u
+        
+        else:
+            
+            # Find time index
+            times = self.solution[2]
+            i = (np.abs(times - t)).argmin()
+            
+            # Find associated control input
+            inputs = self.solution[1][0]
+            u      = np.array( [ inputs[i] ] )
+            
+            return u
+            
+    ############################
+    def trajectory_controller(self, x , t ):
+        """ feedback law """
+        
+        if self.solution == None:
+            
+            u = self.DS.ubar
+            
+            return u
+        
+        else:
+            
+            # Find time index
+            times = self.solution[2]
+            i = (np.abs(times - t)).argmin()
+            
+            # Find associated control input
+            inputs = self.solution[1][0]
+            u_bar  = np.array( [ inputs[i] ] )
+            
+            # No action pass trajectory time
+            if t > self.time_to_goal:
+                u_bar = self.DS.ubar
+            
+            # Find associated state and compute error
+            states   = self.solution[0]
+            x_target = states[:,i]
+            error    = x_target - x
+            
+            # Error feedback (works only for 1 DOF)
+            kp = 50
+            kd = 10
+            K  = np.array([ kp , kd ])
+            
+            return u_bar + np.dot( K , error )
+            
+                
+                
     ############################
     def plot_2D_Tree(self):
         """ """
@@ -126,6 +288,11 @@ class RRT:
         for node in self.Nodes:
             if not(node.P==None):
                 line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'o-')
+                
+        if not self.solution == None:
+            for node in self.path_node_list:
+                if not(node.P==None):
+                    line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'r')
         
         
         plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=6)
@@ -135,8 +302,7 @@ class RRT:
         plt.grid(True)
         plt.tight_layout()
         plt.show()
-        
-    
+                        
     
         
         
