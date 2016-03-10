@@ -26,8 +26,9 @@ class RRT:
         
         self.x_start = x_start  # origin of the graph
         
-        self.Nodes = []
         self.start_node = Node( self.x_start , sys.ubar  , None )
+        
+        self.Nodes = []
         self.Nodes.append( self.start_node )
         
         self.solution = None
@@ -37,7 +38,13 @@ class RRT:
         self.INF = 10000
         self.eps = 0.2
         
-        self.alpha = 0.9  # prob of random exploration
+        self.goal_radius          = 2        
+        self.alpha                = 0.9    # prob of random exploration
+        self.max_nodes            = 25000  # maximum number of nodes
+        self.max_distance_compute = 500    # maximum number of nodes to check distance
+        
+        self.traj_ctl_kp          = 25
+        self.traj_ctl_kd          = 2
         
         self.discretizeactions()
         
@@ -66,7 +73,7 @@ class RRT:
         closest_node = None
         min_distance = self.INF
         
-        if len(self.Nodes) < 501:
+        if len(self.Nodes) < self.max_distance_compute + 1 :
             # Brute force        
             for node in self.Nodes:
                 d = node.distanceTo( x_target )
@@ -75,8 +82,8 @@ class RRT:
                     closest_node = node
         
         else:
-            # Check only last 500 nodes
-            for i in xrange(500):
+            # Check only last X nodes
+            for i in xrange(self.max_distance_compute):
                 node = self.Nodes[ len(self.Nodes) - i - 1 ]
                 d = node.distanceTo( x_target )
                 if d < min_distance:
@@ -160,14 +167,14 @@ class RRT:
             #print '\nNumber of Nodes = ', no_nodes
             
             # Succes?
-            if d < self.eps:
+            if d < self.goal_radius:
                 succes = True
                 self.goal_node = new_node
                 
             # Tree reset
-            if no_nodes == 25000:
+            if no_nodes == self.max_nodes:
                 print '\nSearch Fail: Reseting Tree'
-                self.plot_2D_Tree()
+                #self.plot_2D_Tree()
                 no_nodes = 0
                 self.Nodes = []
                 self.Nodes.append( self.start_node )
@@ -276,21 +283,18 @@ class RRT:
                 u_bar = self.DS.ubar
                 x_target = self.x_goal
             
-            
             error    = x_target - x
             
-            # Error feedback (works only for 1 DOF)
+            # Error feedback
             if self.DS.n == 2:
-                kp    = 50
-                kd    = 10
-                K     = np.array([ kp , kd ])
+                """ 1 DOF manipulator """
+                K     = np.array([ self.traj_ctl_kp , self.traj_ctl_kd ])
                 u_fdb = np.dot( K , error )
                 
             elif self.DS.n == 4:
-                kp     = 50
-                kd     = 10
-                u1     = np.dot( np.array([ kp , 0  , kd ,  0 ]) , error ) 
-                u2     = np.dot( np.array([ 0  , kp ,  0 , kd ]) , error ) 
+                """ 2 DOF manipulator """
+                u1     = np.dot( np.array([ self.traj_ctl_kp , 0  , self.traj_ctl_kd ,  0 ]) , error ) 
+                u2     = np.dot( np.array([ 0  , self.traj_ctl_kp ,  0 , self.traj_ctl_kd ]) , error ) 
                 u_fdb  = np.array([ u1 , u2 ])
                 
             else:

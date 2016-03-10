@@ -36,8 +36,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         self.state_units = ['[rad]','[rad]','[rad/sec]','[rad/sec]']
         self.input_units = ['[Nm]','[Nm]']
         
-        self.x_ub = np.array([ 10, 10, 10, 10])    # States Upper Bounds
-        self.x_lb = np.array([-10,-10,-10,-10])    # States Lower Bounds
+        self.x_ub = np.array([ 6, 6, 6, 6])    # States Upper Bounds
+        self.x_lb = np.array([-6,-6,-6,-6])    # States Lower Bounds
         
         tmax = 1
         
@@ -337,7 +337,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval=25, blit=True, init_func=self.__ani_init__)
         
         if save:
-            self.ani.save( file_name + '.mp4' , writer = 'ffmpeg' )
+            self.ani.save( file_name + '.mp4' , writer = 'mencoder' )
             
         plt.show()
         
@@ -606,7 +606,7 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval=25, blit=True, init_func=self.__ani_init__)
         
         if save:
-            self.ani.save( file_name + '.mp4' , writer = 'ffmpeg' )
+            self.ani.save( file_name + '.mp4' , writer = 'mencoder' )
             
         plt.show()
         
