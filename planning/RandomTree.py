@@ -66,11 +66,23 @@ class RRT:
         closest_node = None
         min_distance = self.INF
         
-        for node in self.Nodes:
-            d = node.distanceTo( x_target )
-            if d < min_distance:
-                min_distance = d
-                closest_node = node
+        if len(self.Nodes) < 501:
+            # Brute force        
+            for node in self.Nodes:
+                d = node.distanceTo( x_target )
+                if d < min_distance:
+                    min_distance = d
+                    closest_node = node
+        
+        else:
+            # Check only last 500 nodes
+            for i in xrange(500):
+                node = self.Nodes[ len(self.Nodes) - i - 1 ]
+                d = node.distanceTo( x_target )
+                if d < min_distance:
+                    min_distance = d
+                    closest_node = node
+            
                 
         return closest_node
         
@@ -153,7 +165,7 @@ class RRT:
                 self.goal_node = new_node
                 
             # Tree reset
-            if no_nodes == 2000:
+            if no_nodes == 25000:
                 print '\nSearch Fail: Reseting Tree'
                 self.plot_2D_Tree()
                 no_nodes = 0
@@ -268,11 +280,23 @@ class RRT:
             error    = x_target - x
             
             # Error feedback (works only for 1 DOF)
-            kp = 50
-            kd = 10
-            K  = np.array([ kp , kd ])
+            if self.DS.n == 2:
+                kp    = 50
+                kd    = 10
+                K     = np.array([ kp , kd ])
+                u_fdb = np.dot( K , error )
+                
+            elif self.DS.n == 4:
+                kp     = 50
+                kd     = 10
+                u1     = np.dot( np.array([ kp , 0  , kd ,  0 ]) , error ) 
+                u2     = np.dot( np.array([ 0  , kp ,  0 , kd ]) , error ) 
+                u_fdb  = np.array([ u1 , u2 ])
+                
+            else:
+                u_fdb = 0
             
-            return u_bar + np.dot( K , error )
+            return u_bar + u_fdb
             
                 
                 
