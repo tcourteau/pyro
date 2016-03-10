@@ -155,6 +155,7 @@ class RRT:
             # Tree reset
             if no_nodes == 2000:
                 print '\nSearch Fail: Reseting Tree'
+                self.plot_2D_Tree()
                 no_nodes = 0
                 self.Nodes = []
                 self.Nodes.append( self.start_node )

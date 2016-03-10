@@ -18,7 +18,7 @@ tmax = 10
 R.u_ub = np.array([ tmax])      # Control Upper Bounds
 R.u_lb = np.array([-tmax])      # Control Lower Bounds
 
-x_start = np.array([-3.10,0])
+x_start = np.array([-3.0,0])
 x_goal  = np.array([0,0])
 
 RRT = RPRT.RRT( R , x_start )
