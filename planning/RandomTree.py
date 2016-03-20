@@ -36,15 +36,15 @@ class RRT:
         # Params
         self.dt  = 0.05
         self.INF = 10000
-        self.eps = 0.2
+        self.eps = 0.1
         
-        self.goal_radius          = 2        
+        self.goal_radius          = 0.2        
         self.alpha                = 0.9    # prob of random exploration
         self.max_nodes            = 25000  # maximum number of nodes
         self.max_distance_compute = 500    # maximum number of nodes to check distance
         
         self.traj_ctl_kp          = 25
-        self.traj_ctl_kd          = 2
+        self.traj_ctl_kd          = 10
         
         self.discretizeactions()
         
@@ -200,7 +200,6 @@ class RRT:
         t_list = []
         
         self.path_node_list = []
-        self.path_node_list.append( node )
         
         while node.distanceTo( self.x_start ) > self.eps:
             
@@ -271,8 +270,11 @@ class RRT:
             i = (np.abs(times - t)).argmin()
             
             # Find associated control input
-            inputs = self.solution[1][0]
-            u_bar  = np.array( [ inputs[i] ] )
+            if self.DS.m == 1:
+                inputs = self.solution[1][0]
+                u_bar  = np.array( [ inputs[i] ] )
+            else:
+                u_bar = self.solution[1][:,i]
             
             # Find associated state and compute error
             states   = self.solution[0]
@@ -280,7 +282,7 @@ class RRT:
             
             # No action pass trajectory time
             if t > self.time_to_goal:
-                u_bar = self.DS.ubar
+                u_bar    = self.DS.ubar
                 x_target = self.x_goal
             
             error    = x_target - x
@@ -291,16 +293,31 @@ class RRT:
                 K     = np.array([ self.traj_ctl_kp , self.traj_ctl_kd ])
                 u_fdb = np.dot( K , error )
                 
+                if self.DS.m == 1:
+                    u_ctl    = u_bar + u_fdb
+                else:
+                    u_ctl    = u_bar + np.array([0,0])
+                    u_ctl[0] = u_ctl[0] + u_fdb
+                
             elif self.DS.n == 4:
                 """ 2 DOF manipulator """
                 u1     = np.dot( np.array([ self.traj_ctl_kp , 0  , self.traj_ctl_kd ,  0 ]) , error ) 
                 u2     = np.dot( np.array([ 0  , self.traj_ctl_kp ,  0 , self.traj_ctl_kd ]) , error ) 
                 u_fdb  = np.array([ u1 , u2 ])
                 
+                if self.DS.m == 2:
+                    u_ctl    = u_bar + u_fdb
+                else:
+                    u_ctl    = u_bar + np.zeros(self.DS.m)
+                    u_ctl[0] = u_ctl[0] + u1
+                    u_ctl[1] = u_ctl[1] + u2
+                
             else:
-                u_fdb = 0
+                u_ctl = 0
+                
+            #print u_bar, u_fdb, u_ctl
             
-            return u_bar + u_fdb
+            return u_ctl
             
                 
                 
