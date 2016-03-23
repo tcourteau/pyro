@@ -20,7 +20,7 @@ x_goal  = np.array([0,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-T = 5
+T = 10
 
 RRT.U = np.array([[T,0,0],[0,0,0],[-T,0,0],[0,T,0],[0,-T,0],[T,T,0],[-T,-T,0],[-T,T,0],[T,-T,0],
                   [T,0,1],[0,0,1],[-T,0,1],[0,T,1],[0,-T,1],[T,T,1],[-T,-T,1],[-T,T,1],[T,-T,1],
@@ -43,7 +43,7 @@ R.ctl = RRT.trajectory_controller
 
 # Plot
 RRT.traj_ctl_kp   = 50
-RRT.traj_ctl_kd   = 20
+RRT.traj_ctl_kd   = 10
 tf                = RRT.time_to_goal + 5
 R.plotAnimation( x_start , tf )
 R.phase_plane_trajectory([0,0,3],x_start,tf,True,False,False,True)

@@ -26,7 +26,7 @@ path = 'data/'
 
 ValueIterationAlgo.first_step()
 ValueIterationAlgo.load_data( path + cost_function + 'pendulum' )
-ValueIterationAlgo.compute_steps(100)
+ValueIterationAlgo.compute_steps(1)
 ValueIterationAlgo.save_data( path + cost_function + 'pendulum' ) 
 
 # Plot Value Iteration Results
