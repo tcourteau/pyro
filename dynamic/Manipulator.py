@@ -343,6 +343,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         return self.PTS
         
+        
+        
     def __ani_init__(self):
         self.line.set_data([], [])
         self.time_text.set_text('')
@@ -350,6 +352,17 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
     
     
     def __animate__(self,i):
+        thisx = self.PTS[:,0,i]
+        thisy = self.PTS[:,1,i]
+    
+        self.line.set_data(thisx, thisy)
+        self.time_text.set_text(self.time_template % (i*0.05))
+        return self.line, self.time_text
+        
+    def __animateStop__(self,i):
+        
+        if i > 198: # To close window
+            plt.close()
         thisx = self.PTS[:,0,i]
         thisy = self.PTS[:,1,i]
     
@@ -599,8 +612,6 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         self.line, = self.ax.plot([], [], 'o-', lw=2)
         self.time_template = 'time = %.1fs'
         self.time_text = self.ax.text(0.05, 0.9, '', transform=self.ax.transAxes)
-            
-        
 
                     
         self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval=25, blit=True, init_func=self.__ani_init__)
@@ -626,7 +637,17 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         self.time_text.set_text(self.time_template % (i*0.05))
         return self.line, self.time_text
         
-       
+    def __animateStop__(self,i):
+        
+        if i > 198: # To close window
+            plt.close()
+        thisx = self.PTS[:,0,i]
+        thisy = self.PTS[:,1,i]
+    
+        self.line.set_data(thisx, thisy)
+        self.time_text.set_text(self.time_template % (i*0.05))
+        return self.line, self.time_text
+        
         
 
 

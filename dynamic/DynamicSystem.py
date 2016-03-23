@@ -292,14 +292,17 @@ class PhasePlot:
 class Simulation:
     """ Time simulation of a dynamic system  """
     ############################
-    def __init__(self, DynamicSystem , tf = 10 , n = 10001 ):
+    def __init__(self, DynamicSystem , tf = 10 , n = 10001 , solver = 'ode' ):
         
         self.DS = DynamicSystem
         self.t0 = 0
         self.tf = tf
-        self.n  = n
+        self.n  = int(n)
+        self.dt = ( tf + 0.0 ) / ( n - 1 )
         
         self.x0 = np.zeros( self.DS.n )
+        
+        self.solver = solver
         
     ##############################
     def compute(self):
@@ -307,18 +310,38 @@ class Simulation:
         
         self.t  = np.linspace( self.t0 , self.tf , self.n )
         
+        if self.solver == 'ode':
         
-        self.x_sol_OL = odeint( self.DS.fc_OpenLoop   , self.x0 , self.t)
-        self.x_sol_CL = odeint( self.DS.fc_ClosedLoop , self.x0 , self.t)
-        
-        # Compute control inputs
-        
-        self.u_sol_CL   = np.zeros(( self.n , self.DS.m ))
-        
-        for i in xrange(self.n):
+            self.x_sol_OL = odeint( self.DS.fc_OpenLoop   , self.x0 , self.t)
+            self.x_sol_CL = odeint( self.DS.fc_ClosedLoop , self.x0 , self.t)
             
-            self.u_sol_CL[i,:] = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
-        
+            # Compute control inputs
+            
+            self.u_sol_CL   = np.zeros(( self.n , self.DS.m ))
+            
+            for i in xrange(self.n):
+                
+                self.u_sol_CL[i,:] = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
+                
+        elif self.solver == 'euler':
+            
+            self.x_sol_OL = np.zeros((self.n,self.DS.n))
+            self.x_sol_CL = np.zeros((self.n,self.DS.n))
+            self.u_sol_CL = np.zeros((self.n,self.DS.m))
+            
+            # Initial State    
+            self.x_sol_OL[0,:] = self.x0
+            self.x_sol_CL[0,:] = self.x0
+            
+            for i in xrange(self.n):
+                
+                self.u_sol_CL[i,:]   = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
+                
+                if i+1<self.n:
+                    self.x_sol_CL[i+1,:] = self.DS.fd( self.x_sol_CL[i,:] , self.u_sol_CL[i,:] , self.dt )
+                    self.x_sol_OL[i+1,:] = self.DS.fd( self.x_sol_CL[i,:] , self.DS.ubar       , self.dt )
+
+            
     
     ##############################
     def plot_OL(self, show = True ):
