@@ -23,7 +23,7 @@ QLearningAlgo.first_step()
 x0 = np.array( [ -3 , 0 ] )
 QLearningAlgo.x0 = x0
 
-QLearningAlgo.training( 5000 , True , False )
+QLearningAlgo.training( 25000 , True , True )
 
 QLearningAlgo.plot_J()
 
