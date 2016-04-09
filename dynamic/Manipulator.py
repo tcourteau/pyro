@@ -242,6 +242,29 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         return dx
         
         
+    ##############################
+    def e_kinetic(self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """ Compute kinetic energy of manipulator """  
+        
+        e_k = 0.5 * np.dot( dq , np.dot( self.H( q ) , dq ) )
+        
+        return e_k
+        
+        
+    ##############################
+    def e_potential(self, q = np.zeros(2) ):
+        """ Compute potential energy of manipulator """  
+        
+        [c1,s1,c2,s2,c12,s12] = self.trig( q )
+        
+        g1 = (self.m1 * self.lc1 + self.m2 * self.l1 ) * self.g
+        g2 = self.m2 * self.lc2 * self.g
+        
+        e_p = g1 * c1 + g2 * c12        
+        
+        return e_p
+        
+        
     #############################
     def show(self, q):
         """ Plot figure of configuration q """
@@ -660,6 +683,8 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
 
 if __name__ == "__main__":     
     """ MAIN TEST """
-    pass
+    
+    
+    R = TwoLinkManipulator()
 
             
