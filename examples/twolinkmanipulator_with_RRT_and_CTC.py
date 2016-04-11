@@ -5,8 +5,9 @@ Created on Sun Mar  6 15:27:04 2016
 @author: alex
 """
 
-from AlexRobotics.planning import RandomTree    as RPRT
-from AlexRobotics.dynamic  import Manipulator   as M
+from AlexRobotics.planning import RandomTree     as RPRT
+from AlexRobotics.dynamic  import Manipulator    as M
+from AlexRobotics.control  import ComputedTorque as CTC
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ x_goal  = np.array([0,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-T = 10 # torque
+T = 5 # torque
 
 RRT.U = np.array([[T,0],[0,0],[-T,0],[0,T],[0,-T],[T,T],[-T,-T],[-T,T],[T,-T]])
 
@@ -31,10 +32,9 @@ RRT.max_solution_time     = 25
 RRT.find_path_to_goal( x_goal )
 
 # Assign controller
-#R.ctl = RRT.open_loop_controller
-R.ctl = RRT.trajectory_controller
-RRT.traj_ctl_kp   = 50
-RRT.traj_ctl_kd   = 10
+CTC_controller     = CTC.ComputedTorqueController( R )
+CTC_controller.load_trajectory( RRT.solution )
+R.ctl              = CTC_controller.ctl
 
 # Plot
 tf = RRT.time_to_goal + 5

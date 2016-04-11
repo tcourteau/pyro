@@ -28,6 +28,8 @@ class ComputedTorqueController:
         self.goal        = np.zeros( R.n )
         self.traj_loaded = False
         self.ctl         = self.fixed_goal_ctl
+        
+        # Or load a solution: self.solution  = [ x , u , t , dx ]
     
     
     ############################
@@ -39,7 +41,6 @@ class ComputedTorqueController:
         """
         
         pass
-    
     
         
     ############################
@@ -81,7 +82,7 @@ class ComputedTorqueController:
     def fixed_goal_ctl( self , x , t = 0 ):
         """ 
         
-        Given desired fixed state and actual state, compute torques
+        Given desired fixed goal state and actual state, compute torques
         
         """
         
@@ -92,6 +93,76 @@ class ComputedTorqueController:
         ddq_r = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
         F     = self.computed_torque( ddq_r , x )
+        
+        return F
+        
+        
+    ############################
+    def load_trajectory( self , solution  ):
+        """ 
+        
+        Load Open-Loop trajectory solution to use as reference trajectory
+        
+        """
+        
+        self.solution = solution
+        
+        q   = solution[0][0:2,:]
+        dq  = solution[0][2:4,:]
+        ddq = solution[3][2:4,:]
+        t   = solution[2]
+        
+        self.traj = [ ddq , dq , q , t ]
+        
+        self.max_time = t.max()
+        
+        # assign new controller
+        self.ctl = self.traj_following_ctl
+        
+    
+    ############################
+    def get_traj( self , t  ):
+        """ 
+        
+        Find closest point on the trajectory
+        
+        """
+        
+        if t < self.max_time:
+            
+            # Find closet index
+            times = self.traj[3]
+            i = (np.abs(times - t)).argmin()
+            
+            # Load trajectory
+            ddq = self.traj[0][:,i]
+            dq  = self.traj[1][:,i]
+            q   = self.traj[2][:,i]
+            
+        else:
+            
+            # Fixed goal
+            ddq = np.zeros(2)
+            dq  = self.goal[2:4]
+            q   = self.goal[0:2]
+            
+        
+        return ddq , dq , q
+        
+    
+    ############################
+    def traj_following_ctl( self , x , t ):
+        """ 
+        
+        Given desired loaded trajectory and actual state, compute torques
+        
+        """
+        
+        ddq_d , dq_d , q_d = self.get_traj( t )
+
+        ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
+        
+        F                  = self.computed_torque( ddq_r , x )
         
         return F
         

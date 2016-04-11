@@ -251,9 +251,10 @@ class RRT:
         
         t      = 0
         
-        x_list = []
-        u_list = []
-        t_list = []
+        x_list  = []
+        u_list  = []
+        t_list  = []
+        dx_list = []
         
         self.path_node_list = []
         
@@ -266,13 +267,15 @@ class RRT:
             u_list.append( node.u     )
             t_list.append( node.P.t   )
             
+            dx_list.append( self.DS.fc( node.P.x , node.u )  ) # state derivative
+            
+            
             # Previous Node
             node  = node.P 
         
         # Arrange Time array
         t = np.array( t_list )
         t = np.flipud( t )
-        
         
         # Arrange Input array
         u = np.array( u_list ).T
@@ -281,10 +284,14 @@ class RRT:
         # Arrange State array
         x = np.array( x_list ).T
         x = np.fliplr( x )
+        
+        # Arrange State Derivative array
+        dx = np.array( dx_list ).T
+        dx = np.fliplr( dx )
             
         # Save solution
         self.time_to_goal = t.max()
-        self.solution        = [ x , u , t ]
+        self.solution        = [ x , u , t , dx ]
         self.solution_length = len( self.path_node_list )
         
 
