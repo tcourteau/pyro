@@ -27,12 +27,13 @@ RRT.U = np.array([[T,0,0],[0,0,0],[-T,0,0],[0,T,0],[0,-T,0],[T,T,0],[-T,-T,0],[-
                   [T,0,2],[0,0,2],[-T,0,2],[0,T,2],[0,-T,2],[T,T,2],[-T,-T,2],[-T,T,2],[T,-T,2],
                   [T,0,3],[0,0,3],[-T,0,3],[0,T,3],[0,-T,3],[T,T,3],[-T,-T,3],[-T,T,3],[T,-T,3]])
 
-#RRT.U = np.array([[5,0,3],[0,0,3],[-5,0,3],[0,5,3],[0,-5,3],[5,5,3],[-5,-5,3],[-5,5,3],[5,-5,3]])
+#RRT.U = np.array([[T,0,3],[0,0,3],[-T,0,3],[0,T,3],[0,-T,3],[T,T,3],[-T,-T,3],[-T,T,3],[T,-T,3]])
 
 
-RRT.dt           = 0.1
-RRT.goal_radius  = 1
-RRT.max_nodes    = 50000
+RRT.dt                    = 0.1
+RRT.goal_radius           = 0.5
+RRT.max_nodes             = 20000
+RRT.max_solution_time     = 8
 
 #RRT.compute_steps(1000,True)
 RRT.find_path_to_goal( x_goal )
@@ -45,7 +46,7 @@ R.ctl = RRT.trajectory_controller
 RRT.traj_ctl_kp   = 50
 RRT.traj_ctl_kd   = 10
 tf                = RRT.time_to_goal + 5
-R.plotAnimation( x_start , tf )
+R.plotAnimation( x_start , tf , int( tf / 0.05 ) , solver = 'euler' )
 R.phase_plane_trajectory([0,0,3],x_start,tf,True,False,False,True)
 RRT.plot_2D_Tree()
 R.Sim.plot_CL('x')

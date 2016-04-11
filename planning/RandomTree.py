@@ -26,7 +26,7 @@ class RRT:
         
         self.x_start = x_start  # origin of the graph
         
-        self.start_node = Node( self.x_start , sys.ubar  , None )
+        self.start_node = Node( self.x_start , sys.ubar , 0  , None )
         
         self.Nodes = []
         self.Nodes.append( self.start_node )
@@ -42,11 +42,14 @@ class RRT:
         self.alpha                = 0.9    # prob of random exploration
         self.max_nodes            = 25000  # maximum number of nodes
         self.max_distance_compute = 500    # maximum number of nodes to check distance
+        self.max_solution_time    = 10     # won"t look for solution taking longuer than that
         
         self.traj_ctl_kp          = 25
         self.traj_ctl_kd          = 10
         
         self.discretizeactions()
+        
+        self.randomized_input      = False
         
         
         #############################
@@ -65,6 +68,21 @@ class RRT:
         
         return x_random
         
+    ############################
+    def rand_input(self):    
+        """ Sample a random state """
+        
+        n_options = len( self.U )
+        j         = np.random.randint(0,n_options)
+        
+        u         = self.U[j]
+        
+        # correct for 1 input case
+        if self.DS.m == 1:
+                u = np.array([u])
+        
+        return u
+        
         
     ############################
     def nearest_neighbor(self, x_target ):    
@@ -78,8 +96,9 @@ class RRT:
             for node in self.Nodes:
                 d = node.distanceTo( x_target )
                 if d < min_distance:
-                    min_distance = d
-                    closest_node = node
+                    if node.t < self.max_solution_time:
+                        min_distance = d
+                        closest_node = node
         
         else:
             # Check only last X nodes
@@ -87,8 +106,9 @@ class RRT:
                 node = self.Nodes[ len(self.Nodes) - i - 1 ]
                 d = node.distanceTo( x_target )
                 if d < min_distance:
-                    min_distance = d
-                    closest_node = node
+                    if node.t < self.max_solution_time:
+                        min_distance = d
+                        closest_node = node
             
                 
         return closest_node
@@ -98,18 +118,35 @@ class RRT:
     def select_control_input(self, x_target , closest_node ):    
         """ Sample a random state """
         
-        new_node     = None
-        min_distance = self.INF
         
-        for u in self.U:
-            if self.DS.m == 1:
-                u = np.array([u])
-            x_next = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
-            node   = Node( x_next , u , closest_node )
-            d = node.distanceTo( x_target )
-            if d < min_distance:
-                min_distance = d
-                new_node     = node
+        # Select a random control input
+        if self.randomized_input :
+            
+            u          = self.rand_input()
+            x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
+            t_next     = closest_node.t + self.dt
+            new_node   = Node( x_next , u , t_next  , closest_node )
+        
+        # Pick control input that bring the sys close to random point
+        else:
+            
+            new_node     = None
+            min_distance = self.INF
+            
+            for u in self.U:
+                
+                if self.DS.m == 1:
+                    u = np.array([u])
+                    
+                x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
+                t_next     = closest_node.t + self.dt
+                node       = Node( x_next , u , t_next  , closest_node )
+                
+                d = node.distanceTo( x_target )
+                
+                if d < min_distance:
+                    min_distance = d
+                    new_node     = node
                 
         return new_node
         
@@ -118,10 +155,18 @@ class RRT:
     def one_step(self):    
         """ """
         x_random  = self.rand_state()
-        node_near = self.nearest_neighbor( x_random )
-        new_node  = self.select_control_input( x_random , node_near )
         
-        self.Nodes.append( new_node )
+        # If random point is a valid state
+        if True:
+            node_near = self.nearest_neighbor( x_random )
+            
+            # if a valid neighbor was found
+            if not node_near == None:
+                new_node  = self.select_control_input( x_random , node_near )
+                
+                # if there is a valid control input
+                if not new_node == None:
+                    self.Nodes.append( new_node )
         
         
     ############################
@@ -149,15 +194,25 @@ class RRT:
             
             # Exploration:
             if np.random.rand() > self.alpha :
+                # Try to converge to goal
                 x_random = x_goal
+                self.randomized_input = False
             else:
+                # Random exploration
                 x_random  = self.rand_state()
+                self.randomized_input = True
+
+            # If random point is a valid state
+            if True:
+                node_near = self.nearest_neighbor( x_random )
                 
-            # Expansion
-            node_near = self.nearest_neighbor( x_random )
-            new_node  = self.select_control_input( x_random , node_near )
-            
-            self.Nodes.append( new_node )
+                # if a valid neighbor was found
+                if not node_near == None:
+                    new_node  = self.select_control_input( x_random , node_near )
+                    
+                    # if there is a valid control input
+                    if not new_node == None:
+                        self.Nodes.append( new_node )
             
             # Distance to goal
             d = new_node.distanceTo( x_goal )
@@ -361,10 +416,11 @@ class Node:
     """ node of the graph """
     
     ############################
-    def __init__(self, x , u , parent ):
+    def __init__(self, x , u , t , parent ):
         
         self.x = x  # Node coordinates in the state space
         self.u = u  # Control inputs used to get there
+        self.t = t  # Time when arriving at x
         self.P = parent # Previous node
         
     
