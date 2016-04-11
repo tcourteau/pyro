@@ -20,7 +20,7 @@ x_goal  = np.array([0,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-T = 10
+T = 12
 
 RRT.U = np.array([[T,0,0],[0,0,0],[-T,0,0],[0,T,0],[0,-T,0],[T,T,0],[-T,-T,0],[-T,T,0],[T,-T,0],
                   [T,0,1],[0,0,1],[-T,0,1],[0,T,1],[0,-T,1],[T,T,1],[-T,-T,1],[-T,T,1],[T,-T,1],
@@ -40,17 +40,18 @@ RRT.find_path_to_goal( x_goal )
 
 # Assign controller
 #R.ctl = RRT.open_loop_controller
-R.ctl = RRT.trajectory_controller
-
-# Plot
+R.ctl             = RRT.trajectory_controller
 RRT.traj_ctl_kp   = 50
 RRT.traj_ctl_kd   = 10
-tf                = RRT.time_to_goal + 5
-R.plotAnimation( x_start , tf , int( tf / 0.05 ) , solver = 'euler' )
-R.phase_plane_trajectory([0,0,3],x_start,tf,True,False,False,True)
-RRT.plot_2D_Tree()
-R.Sim.plot_CL('x')
+
+# Plot
+tf = RRT.time_to_goal + 5
+n  = int( np.round( tf / 0.1 ) ) + 1
+R.plotAnimation( x_start , tf , n , solver = 'euler' )
+R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
+#R.phase_plane_trajectory([0,0,3],x_start,tf,True,False,False,True)
+RRT.plot_2D_Tree()
 
 # Hold figures alive
 plt.show()

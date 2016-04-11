@@ -26,7 +26,7 @@ class RRT:
         
         self.x_start = x_start  # origin of the graph
         
-        self.start_node = Node( self.x_start , sys.ubar , 0  , None )
+        self.start_node = Node( self.x_start , None , 0  , None )
         
         self.Nodes = []
         self.Nodes.append( self.start_node )
@@ -256,22 +256,21 @@ class RRT:
         
         self.path_node_list = []
         
+        # Until node = start_node
         while node.distanceTo( self.x_start ) > self.eps:
             
             self.path_node_list.append( node )
             
-            x_list.append( node.x )
-            u_list.append( node.u )
-            t_list.append( t )
-            
-            t = t - self.dt
+            x_list.append( node.P.x   )
+            u_list.append( node.u     )
+            t_list.append( node.P.t   )
             
             # Previous Node
             node  = node.P 
+            
         
         # Arrange Time array
         t = np.array( t_list )
-        t = t - t.min()
         t = np.flipud( t )
         self.time_to_goal = t.max()
         
