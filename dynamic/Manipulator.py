@@ -607,12 +607,12 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
   
     
     #############################
-    def plotAnimation(self, x0 = np.array([0,0]) , tf = 10 , n = 201 ,  save = False , file_name = 'RobotSim' ):
+    def plotAnimation(self, x0 = np.array([0,0]) , tf = 10 , n = 201 ,  solver = 'ode' , save = False , file_name = 'RobotSim' ):
         """ Simulate and animate robot """
         
         
         # Integrate EoM
-        self.Sim    = RDDS.Simulation( self , tf , n )
+        self.Sim    = RDDS.Simulation( self , tf , n  , solver  )
         self.Sim.x0 = x0
         
         self.Sim.compute()

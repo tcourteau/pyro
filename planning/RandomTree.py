@@ -6,6 +6,7 @@ Created on Sun Mar  6 15:09:12 2016
 """
 
 from AlexRobotics.control import linear        as RCL
+from AlexRobotics.dynamic import DynamicSystem as DS
 
 import numpy as np
 import matplotlib
@@ -267,12 +268,11 @@ class RRT:
             
             # Previous Node
             node  = node.P 
-            
         
         # Arrange Time array
         t = np.array( t_list )
         t = np.flipud( t )
-        self.time_to_goal = t.max()
+        
         
         # Arrange Input array
         u = np.array( u_list ).T
@@ -282,7 +282,24 @@ class RRT:
         x = np.array( x_list ).T
         x = np.fliplr( x )
             
-        self.solution = [ x , u , t ]
+        # Save solution
+        self.time_to_goal = t.max()
+        self.solution        = [ x , u , t ]
+        self.solution_length = len( self.path_node_list )
+        
+
+    ############################
+    def plot_open_loop_solution(self):
+        """ """
+        
+        self.OL_SIM = DS.Simulation( self.DS , self.time_to_goal , self.solution_length )
+        
+        self.OL_SIM.t        = self.solution[2].T
+        self.OL_SIM.x_sol_CL = self.solution[0].T
+        self.OL_SIM.u_sol_CL = self.solution[1].T
+        
+        self.OL_SIM.plot_CL('x') 
+        self.OL_SIM.plot_CL('u')
         
         
     ############################
@@ -302,10 +319,18 @@ class RRT:
             i = (np.abs(times - t)).argmin()
             
             # Find associated control input
-            inputs = self.solution[1][0]
-            u      = np.array( [ inputs[i] ] )
+            if self.DS.m == 1:
+                inputs = self.solution[1][0]
+                u_bar  = np.array( [ inputs[i] ] )
+            else:
+                u_bar = self.solution[1][:,i]
             
-            return u
+            # No action pass trajectory time
+            if t > self.time_to_goal:
+                u_bar    = self.DS.ubar
+    
+            return u_bar
+            
             
     ############################
     def trajectory_controller(self, x , t ):

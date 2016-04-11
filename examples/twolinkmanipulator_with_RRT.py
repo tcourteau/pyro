@@ -18,11 +18,14 @@ x_goal  = np.array([0,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-RRT.U = np.array([[5,0],[0,0],[-5,0],[0,5],[0,-5],[5,5],[-5,-5],[-5,5],[5,-5]])
+T = 5 # torque
 
-RRT.dt           = 0.1
-RRT.goal_radius  = 1
-RRT.max_nodes    = 50000
+RRT.U = np.array([[T,0],[0,0],[-T,0],[0,T],[0,-T],[T,T],[-T,-T],[-T,T],[T,-T]])
+
+RRT.dt                    = 0.1
+RRT.goal_radius           = 0.5
+RRT.max_nodes             = 25000
+RRT.max_solution_time     = 25
 
 #RRT.compute_steps(1000,True)
 RRT.find_path_to_goal( x_goal )
@@ -30,15 +33,17 @@ RRT.find_path_to_goal( x_goal )
 # Assign controller
 #R.ctl = RRT.open_loop_controller
 R.ctl = RRT.trajectory_controller
-
-# Plot
 RRT.traj_ctl_kp   = 50
 RRT.traj_ctl_kd   = 10
-tf                = RRT.time_to_goal + 5
-R.plotAnimation( x_start , tf )
-R.phase_plane_trajectory([0,0],x_start,tf,True,False,False,True)
+
+# Plot
+tf = RRT.time_to_goal + 5
+n  = int( np.round( tf / 0.05 ) ) + 1
+R.plotAnimation( x_start , tf  , n )
+R.Sim.plot_CL('x') 
+R.Sim.plot_CL('u')
+R.phase_plane_trajectory([0,0],x_start,tf,True,True,True,True)
 RRT.plot_2D_Tree()
-R.Sim.plot_CL()
 
 # Hold figures alive
 plt.show()
