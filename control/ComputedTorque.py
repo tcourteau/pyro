@@ -7,7 +7,11 @@ Created on Sat Mar  5 14:59:30 2016
 
 from AlexRobotics.dynamic import Manipulator   as M
 
+
+from scipy.interpolate import interp1d
+
 import numpy as np
+
 
 '''
 ################################################################################
@@ -22,7 +26,9 @@ class ComputedTorqueController:
         
         self.R    = R  # Model of the robot used by the controller
         
-        self.lam  = 0.7
+        # Params
+        self.w0   = 10
+        self.zeta = 0.7 
         
         # default is fixed goal at zero
         self.goal        = np.zeros( R.n )
@@ -30,6 +36,9 @@ class ComputedTorqueController:
         self.ctl         = self.fixed_goal_ctl
         
         # Or load a solution: self.solution  = [ x , u , t , dx ]
+        
+        #self.traj_ref_pts = 'closest'
+        self.traj_ref_pts = 'interpol'
     
     
     ############################
@@ -73,7 +82,7 @@ class ComputedTorqueController:
         q_e   = q  -  q_d
         dq_e  = dq - dq_d
         
-        ddq_r = ddq_d - 2 * self.lam * dq_e - self.lam ** 2 * q_e
+        ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
         
         return ddq_r
         
@@ -119,6 +128,11 @@ class ComputedTorqueController:
         # assign new controller
         self.ctl = self.traj_following_ctl
         
+        # Create interpol functions
+        self.q   = interp1d(t,q)
+        self.dq  = interp1d(t,dq)
+        self.ddq = interp1d(t,ddq)
+        
     
     ############################
     def get_traj( self , t  ):
@@ -128,16 +142,25 @@ class ComputedTorqueController:
         
         """
         
-        if t < self.max_time:
+        if t < self.max_time - 0.1 :
             
-            # Find closet index
-            times = self.traj[3]
-            i = (np.abs(times - t)).argmin()
+            if self.traj_ref_pts == 'interpol':
             
-            # Load trajectory
-            ddq = self.traj[0][:,i]
-            dq  = self.traj[1][:,i]
-            q   = self.traj[2][:,i]
+                # Load trajectory
+                q     = self.q(   t )
+                dq    = self.dq(  t )
+                ddq   = self.ddq( t )          
+            
+            elif self.traj_ref_pts == 'closest':
+            
+                # Find closet index
+                times = self.traj[3]
+                i     = (np.abs(times - t)).argmin() + 1
+                
+                # Load trajectory
+                ddq = self.traj[0][:,i]
+                dq  = self.traj[1][:,i]
+                q   = self.traj[2][:,i]
             
         else:
             
