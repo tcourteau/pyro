@@ -527,15 +527,13 @@ class QLearning1DOF:
         self.rho    = 0.1        
         self.w_quad = np.array([ 0.01 , 0.01 , self.rho * 0.01 ])
         
-        
-        
         print('Qlearning Algo:')
         
         # Predefined cost params
         if cost == 'time':
             
             print('Minimium time optimization')
-            self.g    = self.g_timekukkuk
+            self.g    = self.g_time
             self.h    = self.h_quad
             self.Nu0  = 3
             self.INF  = 6
@@ -814,7 +812,7 @@ class QLearning1DOF:
         
         dt      = 0.05
         plot    = False
-        n_plot  = 1000.
+        n_plot  = 200.
         n_print = 10.
         
         for i in xrange( n_trial ):
