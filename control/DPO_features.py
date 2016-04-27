@@ -54,7 +54,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         #########################
         
         self.dt   = 0.1       # time discretization
-        self.tf   = 10
+        self.tf   = 25
         
         self.INF  = 10         #  default large cost
         self.max_error = [0.2,0.2]  # Value of epsilon
@@ -298,7 +298,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         
         dt      = 0.05
         plot    = False
-        n_plot  = 5.
+        n_plot  = 20.
         n_print = 1.
         
         for i in xrange( n_trial ):

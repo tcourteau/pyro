@@ -19,15 +19,17 @@ R.u_ub = np.array([ 5])
 cost_function     = 'time'
 A                 = DPO.TD_Greedy_1DOF_Features( R , cost_function )
 
-A.W = np.array([1,0.1,0])
+A.W          = np.array([1,0.1,0])
+A.x0         = np.array([-3,0])
+A.max_error  = np.array([0.01,0.01])
 
 
 A.plot_J_hat()
 
-A.training( 100 , True , False )
+A.training( 200 , True , True )
 
 A.plot_J_hat()
 
-R.plotAnimation( A.x0 , tf = 25 , n = 201 ,  solver = 'euler' )
-
+R.plotAnimation( [ 2 ,0] , tf = 10 , n = 2001 ,  solver = 'euler' )
 R.Sim.plot_CL()
+R.Sim.plot_OL()
