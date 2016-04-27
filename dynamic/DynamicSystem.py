@@ -339,7 +339,7 @@ class Simulation:
                 
                 if i+1<self.n:
                     self.x_sol_CL[i+1,:] = self.DS.fd( self.x_sol_CL[i,:] , self.u_sol_CL[i,:] , self.dt )
-                    self.x_sol_OL[i+1,:] = self.DS.fd( self.x_sol_CL[i,:] , self.DS.ubar       , self.dt )
+                    self.x_sol_OL[i+1,:] = self.DS.fd( self.x_sol_OL[i,:] , self.DS.ubar       , self.dt )
 
             
     
