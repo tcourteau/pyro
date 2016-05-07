@@ -26,10 +26,10 @@ A.max_error  = np.array([0.01,0.01])
 
 A.plot_J_hat()
 
-A.training( 200 , True , True )
+A.training( 100 , random = False , show = False )
 
 A.plot_J_hat()
 
-R.plotAnimation( [ 2 ,0] , tf = 10 , n = 2001 ,  solver = 'euler' )
+R.plotAnimation( [ 2 ,0] , tf = 10 , n = 201 ,  solver = 'euler' )
 R.Sim.plot_CL()
 R.Sim.plot_OL()
