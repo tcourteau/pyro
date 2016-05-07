@@ -432,6 +432,37 @@ class Simulation:
         
         self.fig   = simfig
         self.plots = plots
+        
+        
+    #############################
+    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = True , PP_OL = False ):
+        """ """
+        
+        y1 = 0 
+        y2 = 1
+        
+        # Quiver
+        self.PP = PhasePlot( self.DS , y1 , y2 , PP_OL , PP_CL )
+        self.PP.u = self.DS.ubar
+        self.PP.compute()
+        self.PP.plot()
+        
+        #Simulation loading
+        xs_OL = self.x_sol_OL
+        xs_CL = self.x_sol_CL
+        
+        # Phase trajectory OL
+        if traj_OL:
+            plt.plot(xs_OL[:,0], xs_OL[:,1], 'b-') # path
+            plt.plot([xs_OL[0,0]], [xs_OL[0,1]], 'o') # start
+            plt.plot([xs_OL[-1,0]], [xs_OL[-1,1]], 's') # end
+        
+        # Phase trajectory CL
+        if traj_CL:
+            plt.plot(xs_CL[:,0], xs_CL[:,1], 'r-') # path
+            plt.plot([xs_CL[-1,0]], [xs_CL[-1,1]], 's') # end
+        
+        plt.tight_layout()
 
         
 

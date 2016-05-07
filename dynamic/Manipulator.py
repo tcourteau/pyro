@@ -368,10 +368,10 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         self.time_template = 'time = %.1fs'
         self.time_text = self.ax.text(0.05, 0.9, '', transform=self.ax.transAxes)
             
-        
-
+        inter = int( n / 8. )
+        #interval=25 with n=201
                     
-        self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval=25, blit=True, init_func=self.__ani_init__)
+        self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, blit=True, init_func=self.__ani_init__)
         
         if save:
             self.ani.save( file_name + '.mp4' , writer = 'mencoder' )
@@ -684,8 +684,10 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         self.time_template = 'time = %.1fs'
         self.time_text = self.ax.text(0.05, 0.9, '', transform=self.ax.transAxes)
 
+        inter = int( n / 8. )
+        #interval=25 with n=201
                     
-        self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval=25, blit=True, init_func=self.__ani_init__)
+        self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter , blit=True, init_func=self.__ani_init__)
         
         if save:
             self.ani.save( file_name + '.mp4' , writer = 'mencoder' )
