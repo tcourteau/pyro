@@ -66,7 +66,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         
         # Quadratic cost
         self.rho    = 0.1        
-        self.w_quad = np.array([ 0.01 , 0.01 , self.rho * 0.01 ])
+        self.w_quad = np.array([ 0.1 , 0.01 , self.rho * 0.01 ])
         
         print('Reinforcement learning TD greedy with linear features:')
         
@@ -414,6 +414,96 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         plt.colorbar()
         plt.grid(True)
         plt.tight_layout()
+        
+        
+
+       
+'''
+################################################################################
+'''
+
+
+class TD_Greedy_hybrid_1DOF_Features( TD_Greedy_1DOF_Features ):
+    """ Dynamic programming for 1 DOF, with features design for manipulator class """
+    
+    ############################
+    def __init__(self, sys , cost = 'time' , experiment_name = 'data' ):
+        
+        TD_Greedy_1DOF_Features.__init__(self, sys , cost , experiment_name )
+        
+
+    #############################
+    def discretizeactions(self):
+        
+        self.Nu0 = 3
+        
+        self.U = np.zeros([self.Nu0 * 2 , 2])
+        
+        # Continuous options
+        Uc   = np.linspace( self.DS.u_lb[0]  , self.DS.u_ub[0]  , self.Nu0  )
+        self.U[0:self.Nu0,0]  = Uc
+        self.U[self.Nu0:,0]   = Uc
+        
+        # Discrete options
+        self.U[0:self.Nu0,1]  = 1 # Gear #1
+        self.U[self.Nu0:,1]   = 5 # Gear #2
+        
+        
+    ##############################
+    def exploration_ctl( self , x = np.array([0,0]) , t = 0 ):
+        """ Random or Optimal CTL """
+        
+        u = np.zeros( self.DS.m  )
+        
+        
+        if np.random.uniform(0,1) < self.eps:
+            
+            # Current optimal behavior
+            u = self.greedy_policy( x , t )
+        
+        else:
+            
+            # Random exploration
+            random_index = int(np.random.uniform( 0 , self.Nu0 ))
+            u            = self.U[ random_index ]         
+            
+        return u
+        
+    ##############################
+    def greedy_policy( self , x = np.array([0,0]) , t = 0 ):
+        """ Optimal (so-far ) CTL """
+        
+        Q_list = np.zeros( self.Nu0 * 2 )
+        
+        # for all possible actions
+        for k in xrange( self.Nu0 * 2 ):
+            
+            u = self.U[k]
+            
+            if self.DS.m == 1:
+                u = np.array( [ u ] )
+            
+            # Compute next state for all inputs
+            x_next = self.DS.fc( x , u ) * self.dt + x
+            
+            # validity of the options
+            x_ok = self.DS.isavalidstate( x_next )
+            u_ok = self.DS.isavalidinput( x , u  )
+
+            if x_ok and u_ok:
+                J_next    = self.j_hat( x_next )
+                Q_list[k] = self.g( x , u ) + self.gamma * J_next
+            else:
+                Q_list[k] = self.INF
+        
+        k_star = Q_list.argmin()
+        
+        u = self.U[ k_star ]
+            
+        if self.DS.m == 1:
+            u = np.array( [ u ] )
+            
+        return u
             
     
         

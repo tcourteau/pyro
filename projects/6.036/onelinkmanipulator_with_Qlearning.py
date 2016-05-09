@@ -22,8 +22,8 @@ QLearningAlgo     = DPO.QLearning1DOF( R , cost_function )
 path = 'data/'
 name = 'R1_Qlearning' + cost_function 
 
-n_steps = 1000
-#n_steps = 200
+#n_steps = 50000
+n_steps = 1
 
 QLearningAlgo.first_step()
 QLearningAlgo.load_data( name )
