@@ -20,8 +20,8 @@ ValueIterationAlgo     = DPO.ValueIteration1DOF( R , cost_function )
 path = 'data/'
 name = path + 'R1' + cost_function 
 
-#n_steps = 1
-n_steps = 200
+n_steps = 1
+#n_steps = 200
 
 ValueIterationAlgo.first_step()
 ValueIterationAlgo.load_data( name )
@@ -29,8 +29,9 @@ ValueIterationAlgo.compute_steps( n_steps )
 ValueIterationAlgo.save_data( name ) 
 
 # Plot Value Iteration Results
-ValueIterationAlgo.plot_J_nice( 1.5 )
 ValueIterationAlgo.plot_raw()
+ValueIterationAlgo.plot_J_nice( 1.5 )
+
 
 # Assign Controller
 ValueIterationAlgo.assign_interpol_controller() 

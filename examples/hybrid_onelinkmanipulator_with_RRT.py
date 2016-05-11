@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 R  =  HM.HybridOneLinkManipulator()
-R.ubar = np.array([0.0,8])
+R.ubar = np.array([0.0,1])
 
 x_start = np.array([-3.0,0])
 x_goal  = np.array([0,0])
@@ -40,7 +40,8 @@ tf = RRT.time_to_goal + 5
 n = int( tf / 0.05 ) +1
 R.plotAnimation( x_start , tf , n , solver = 'euler' )
 R.Sim.plot_CL()
-R.phase_plane_trajectory([0,8],x_start,tf,True,False,False,True)
+#R.phase_plane_trajectory([0,1],x_start,tf,True,False,False,True)
+R.Sim.phase_plane_trajectory(True,False,False,True)
 RRT.plot_2D_Tree()
 
 

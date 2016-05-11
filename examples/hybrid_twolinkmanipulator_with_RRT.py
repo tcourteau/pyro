@@ -39,15 +39,15 @@ RRT.max_solution_time     = 12
 RRT.find_path_to_goal( x_goal )
 
 # Assign controller
-#R.ctl             = RRT.open_loop_controller
-R.ctl             = RRT.trajectory_controller # PD Joint controller
+R.ctl             = RRT.open_loop_controller
+#R.ctl             = RRT.trajectory_controller # PD Joint controller
 RRT.traj_ctl_kp   = 20
 RRT.traj_ctl_kd   = 10
 
 # Plot
 tf = RRT.time_to_goal + 5
 n  = int( np.round( tf / 0.05 ) ) + 1
-R.plotAnimation( x_start , tf , n , solver = 'euler' )
+R.plotAnimation( x_start , tf , n , solver = 'ode' ) # , save = True , file_name = 'output' )
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
 #R.phase_plane_trajectory([0,0,3],x_start,tf,True,False,False,True)

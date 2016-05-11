@@ -22,19 +22,20 @@ QLearningAlgo     = DPO.QLearning1DOF( R , cost_function )
 path = 'data/'
 name = 'R1_Qlearning' + cost_function 
 
-#n_steps = 10000
-n_steps = 1
 
 QLearningAlgo.first_step()
 QLearningAlgo.load_data( name )
 
-x0 = np.array( [ 3 , 0 ] )
+x0 = np.array( [ -3 , 0 ] )
 QLearningAlgo.x0 = x0
 
-QLearningAlgo.training( n_steps , True , True )
+QLearningAlgo.training( 1 , False , False )
 
-QLearningAlgo.save_data( name )
 
-QLearningAlgo.plot_J()
-
-R.plotAnimation( x0 )
+#QLearningAlgo.plot_J()
+QLearningAlgo.plot_raw_nice(3)
+#R.plotAnimation( x0 )
+#R.Sim.plot_CL()
+#
+#tf   = 10
+#R.plotAnimation( x0 , tf , n = 201 ,  solver = 'ode' , save = True , file_name = name  )
