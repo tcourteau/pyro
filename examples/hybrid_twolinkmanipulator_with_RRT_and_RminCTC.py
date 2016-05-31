@@ -32,11 +32,11 @@ RRT.U = np.array([[T,0,0],[0,0,0],[-T,0,0],[0,T,0],[0,-T,0],[T,T,0],[-T,-T,0],[-
 #RRT.U = np.array([[T,0,2],[0,0,2],[-T,0,2],[0,T,2],[0,-T,2],[T,T,2],[-T,-T,2],[-T,T,2],[T,-T,2]])
 #RRT.U = np.array([[T,0,3],[0,0,3],[-T,0,3],[0,T,3],[0,-T,3],[T,T,3],[-T,-T,3],[-T,T,3],[T,-T,3]])
 #RRT.U = np.array([[T,0,0],[0,0,0],[-T,0,0],[0,T,0],[0,-T,0],[T,T,0],[-T,-T,0],[-T,T,0],[T,-T,0]])
-RRT.U = np.array([[0,T,0],[0,0,0],[0,-T,0]])
+#RRT.U = np.array([[0,T,0],[0,0,0],[0,-T,0]])
 
 
 RRT.dt                    = 0.2
-RRT.goal_radius           = 0.5
+RRT.goal_radius           = 0.4
 RRT.max_nodes             = 20000
 RRT.max_solution_time     = 20
 
