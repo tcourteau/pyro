@@ -9,16 +9,22 @@ from AlexRobotics.dynamic import Manipulator    as M
 from AlexRobotics.control import ComputedTorque as CTC
 
 import matplotlib.pyplot as plt
-import numpy as np
+
+
+""" Define system """
 
 # Define dynamic system
 R  =  M.TwoLinkManipulator()
 
 # Define controller
 CTC_controller     = CTC.ComputedTorqueController( R )
+CTC_controller.w0  = 1
 
 # Asign feedback law to the dynamic system
 R.ctl = CTC_controller.ctl
+
+
+""" Simulation and plotting """
 
 # Ploting a trajectory
 x0   = [3,-1,0,0]

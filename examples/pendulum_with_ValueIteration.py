@@ -10,13 +10,14 @@ from AlexRobotics.control import DPO           as DPO
 
 import matplotlib.pyplot as plt
 
+""" Define system """
+
 # Define dynamic system
 pendulum  =  RD1.Pendulum()
 m = 0.5
 l = 1
 g = 9.8
 pendulum.setparams( m , g , l )
-
 
 # Define controller
 cost_function = 'quadratic'
@@ -34,6 +35,8 @@ ValueIterationAlgo.plot_raw()
 
 # Assign Controller
 ValueIterationAlgo.assign_interpol_controller() 
+
+""" Simulation and plotting """
 
 # Ploting a trajectory
 u_OL = [0]

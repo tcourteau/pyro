@@ -11,6 +11,8 @@ from AlexRobotics.control import linear        as RCL
 import matplotlib.pyplot as plt
 import numpy as np
 
+""" Define system """
+
 # Define dynamic system
 R  =  M.TwoLinkManipulator()
 
@@ -21,6 +23,8 @@ PD_controller     = RCL.PD_nDOF( kp , kd )
 
 # Asign feedback law to the dynamic system
 R.ctl = PD_controller.u
+
+""" Simulation and plotting """
 
 # Ploting a trajectory
 x0   = [-2,-2,0,0]

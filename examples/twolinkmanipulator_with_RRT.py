@@ -11,6 +11,8 @@ from AlexRobotics.dynamic  import Manipulator   as M
 import numpy as np
 import matplotlib.pyplot as plt
 
+""" Define system """
+
 R  =  M.TwoLinkManipulator()
 
 x_start = np.array([3,0,0,0])
@@ -20,10 +22,8 @@ RRT = RPRT.RRT( R , x_start )
 
 T = 12 # torque
 
-#RRT.U = np.array([[T,0],[0,0],[-T,0],[0,T],[0,-T],[T,T],[-T,-T],[-T,T],[T,-T]])
-
-# Acrobot problem
-RRT.U = np.array([[0,T],[0,-T],[0,0]])
+RRT.U = np.array([[T,0],[0,0],[-T,0],[0,T],[0,-T],[T,T],[-T,-T],[-T,T],[T,-T]])
+#RRT.U = np.array([[0,T],[0,-T],[0,0]]) # Acrobot problem
 
 RRT.dt                    = 0.1
 RRT.goal_radius           = 0.8
@@ -38,6 +38,8 @@ RRT.find_path_to_goal( x_goal )
 R.ctl = RRT.trajectory_controller
 RRT.traj_ctl_kp   = 50
 RRT.traj_ctl_kd   = 10
+
+""" Simulation and plotting """
 
 # Plot
 tf = RRT.time_to_goal + 5

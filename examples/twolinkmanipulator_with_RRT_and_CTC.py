@@ -12,6 +12,8 @@ from AlexRobotics.control  import ComputedTorque as CTC
 import numpy as np
 import matplotlib.pyplot as plt
 
+""" Define system """
+
 R  =  M.TwoLinkManipulator()
 
 x_start = np.array([3,0,0,0])
@@ -24,9 +26,9 @@ T = 10 # torque
 RRT.U = np.array([[T,0],[0,0],[-T,0],[0,T],[0,-T],[T,T],[-T,-T],[-T,T],[T,-T]])
 
 RRT.dt                    = 0.1
-RRT.goal_radius           = 0.5
+RRT.goal_radius           = 0.8
 RRT.max_nodes             = 15000
-RRT.max_solution_time     = 12
+RRT.max_solution_time     = 10
 
 #RRT.compute_steps(1000,True)
 RRT.find_path_to_goal( x_goal )
@@ -44,6 +46,8 @@ CTC_controller.traj_ref_pts = 'closest'
 #R.ctl = RRT.trajectory_controller
 #RRT.traj_ctl_kp   = 25
 #RRT.traj_ctl_kd   = 10
+
+""" Simulation and plotting """
 
 # Plot
 tf = RRT.time_to_goal + 5

@@ -10,6 +10,7 @@ from AlexRobotics.control import linear        as RCL
 
 import matplotlib.pyplot as plt
 
+""" Define system """
 
 # Define dynamic system
 double_integrator = RDDS.DynamicSystem()
@@ -22,7 +23,7 @@ PD_controller     = RCL.PD( kp , kd )
 # Asign feedback law to the dynamic system
 double_integrator.ctl = PD_controller.u
 
-# Simulation and plotting
+""" Simulation and plotting """
 
 # Phase plot
 PP = RDDS.PhasePlot( double_integrator )
