@@ -30,7 +30,7 @@ A.training( 50 , random = True , show = False )
 
 A.plot_J_hat()
 
-R.plotAnimation( [ 2 ,0] , tf = 10 , n = 2001 ,  solver = 'euler' )
+R.plotAnimation( [ 2 ,0] , tf = 10 , n = 201 ,  solver = 'euler' )
 R.Sim.plot_CL()
 R.Sim.plot_OL()
 R.Sim.phase_plane_trajectory()

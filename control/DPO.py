@@ -42,7 +42,7 @@ class ValueIteration1DOF:
         
         # Quadratic cost
         self.rho    = 1        
-        self.w_quad = np.array([ 0.01 , 0.01 , self.rho * 0.01 ])
+        self.w_quad = np.array([ 0.02 , 0.01 , self.rho * 0.01 ])
         
         
         # Predefined cost params
@@ -483,8 +483,6 @@ class ValueIteration1DOF:
         
         
         
-        
-        
        
 '''
 ################################################################################
@@ -812,8 +810,8 @@ class QLearning1DOF:
         
         dt      = 0.05
         plot    = False
-        n_plot  = 200.
-        n_print = 10.
+        n_plot  = 1000.
+        n_print = 100.
         
         for i in xrange( n_trial ):
             
@@ -1085,6 +1083,7 @@ class QLearning1DOF:
         
         self.assign_interpol_controller()
         
+        
     ################################
     def save_data(self, name = 'DP_data'):
         """ Save optimal controller policy and cost to go """
@@ -1098,7 +1097,280 @@ class QLearning1DOF:
         np.save( folder + name + '_u0' , self.u0_policy     )
         np.save( folder + name + '_Q'  , self.Q             )
 
+
+
+       
+'''
+################################################################################
+'''
+
+
+class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) : 
+
+
+    ############################
+    def __init__( self , sys , cost = 'time'  )    :
         
+        ValueIteration1DOF.__init__( self, sys , cost )
+        
+        
+        
+    #############################
+    def discretizeactions(self):
+        
+        self.U = np.zeros([self.Nu0 * 2 , 2])
+        
+        # Continuous options
+        Uc   = np.linspace( self.DS.u_lb[0]  , self.DS.u_ub[0]  , self.Nu0  )
+        self.U[0:self.Nu0,0]  = Uc
+        self.U[self.Nu0:,0]   = Uc
+        
+        # Discrete options
+        self.U[0:self.Nu0,1]  = 1 # Gear #1
+        self.U[self.Nu0:,1]   = 5 # Gear #2
+        
+        
+        
+    ##############################
+    def first_step(self):
+        """ initial evaluation of cost-to-go """
+        
+        self.discretizespace()
+        self.discretizeactions()
+        
+        self.gridsize = ( self.Nx0 , self.Nx1 )
+        
+        
+        self.J             = np.zeros( self.gridsize )
+        self.action_policy = np.zeros( self.gridsize )
+        self.u0_policy     = np.zeros( self.gridsize )
+        self.u1_policy     = np.zeros( self.gridsize )
+        self.Jnew          = np.zeros( self.gridsize )
+        self.Jplot         = np.zeros( self.gridsize )
+        
+        # Approximation
+        self.u0_policy_a   = np.zeros( self.gridsize )
+        self.u1_policy_a   = np.zeros( self.gridsize )
+        
+        
+        # Evaluation lookup tables
+        self.X_ok          = np.zeros( ( self.Nx0 , self.Nx1 , self.Nu0 * 2 ) )        
+        self.U_ok          = np.zeros( ( self.Nx0 , self.Nx1 , self.Nu0 * 2 ) )
+        self.X_next        = np.zeros( ( self.Nx0 , self.Nx1 , self.Nu0 * 2 , 2 ) ) # lookup table for dynamic
+        
+        
+        # Initial evaluation
+        
+        for i in xrange(self.Nx0):
+            for j in xrange(self.Nx1):
+                
+                x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
+                
+                # Compute cost of initial states
+                self.J[i,j] = self.h( x )
+                
+                for k in xrange( self.Nu0 * 2 ):
+                    
+                    u = self.U[k] 
+                    
+                    # Compute next state for all inputs
+                    x_next = self.DS.fc( x , u ) * self.dt + x
+                    
+                    # validity of the options
+                    x_ok = self.DS.isavalidstate(x_next)
+                    u_ok = self.DS.isavalidinput(x,u)
+                    
+                    self.X_next[i,j,k,:] = x_next
+                    self.U_ok[i,j,k]     = u_ok
+                    self.X_ok[i,j,k]     = x_ok
+                    
+                    
+                    
+    ###############################
+    def compute_step(self):
+        """ One step of value iteration """
+        
+        # Get interpolation of current cost space
+        J_interpol = interpol2D( self.X[0] , self.X[1] , self.J , bbox=[None, None, None, None], kx=1, ky=1,)
+        
+        for i in xrange(self.Nx0):
+            for j in xrange(self.Nx1):
+                
+                # Actual state vector
+                x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
+                #print x
+                
+                # One steps costs
+                Q = np.zeros( self.Nu0 * 2 ) 
+                
+                for k in xrange( self.Nu0 * 2 ):
+                    
+                    # Current u vector to test
+                    u =  self.U[k]            
+                    
+                    # Compute possibles futur states
+                    x_next = self.X_next[i,j,k]  #x_next = self.DS.fc( x , u ) * self.dt + x
+                                        
+                    # validity of the options
+                    #x_ok = self.DS.isavalidstate(x_next)
+                    #u_ok = self.DS.isavalidinput(x,u)
+                    x_ok = self.X_ok[i,j,k]
+                    u_ok = self.U_ok[i,j,k]
+                    
+                    # If the current option is allowable
+                    if x_ok and u_ok:
+                        
+                        J_next = J_interpol( x_next[0] , x_next[1] )
+                        
+                        # Cost-to-go of a given action
+                        #print x,u,self.g( x , u ) , J_next[0,0]
+                        Q[k] = self.g( x , u ) + J_next[0,0]
+                        
+                    else:
+                        # Not allowable states or inputs/states combinations
+                        Q[k] = self.INF
+                        
+                    #print x,u,x_next,C[k]
+                        
+                self.Jnew[i,j]          = Q.min()
+                self.action_policy[i,j] = Q.argmin()
+                self.u0_policy[i,j]     = self.U[ self.action_policy[i,j] ][0]
+                self.u1_policy[i,j]     = self.U[ self.action_policy[i,j] ][1]
+                
+                # Impossible situation
+                if self.Jnew[i,j] > (self.INF-1) :
+                    self.action_policy[i,j]      = -1
+                    self.u0_policy[i,j]          =  0
+                    self.u1_policy[i,j]          =  1
+                
+        
+        delta = self.J - self.Jnew
+        j_max     =self.Jnew.max()
+        delta_max = delta.max()
+        delta_min = delta.min()
+        print 'Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min
+        
+        self.J = self.Jnew.copy()
+        
+        
+    ################################
+    def assign_interpol_controller(self):
+        """ controller from optimal actions """
+        
+        self.b_u0 = interpol2D( self.X[0] , self.X[1] , self.u0_policy , bbox=[None, None, None, None], kx=1, ky=1,)
+        self.b_u1 = interpol2D( self.X[0] , self.X[1] , self.u1_policy , bbox=[None, None, None, None], kx=1, ky=1,)
+        
+        self.DS.ctl = self.feedback_law_interpol
+        
+        
+        
+    ################################
+    def feedback_law_interpol(self, x , t = 0 ):
+        """ controller from optimal actions """
+        
+        u = np.zeros( self.DS.m )
+        
+        u[0] = self.b_u0( x[0] , x[1] )
+        u[1] = np.round( self.b_u1( x[0] , x[1] ) )
+        
+        return u
+        
+        
+    ################################
+    def load_data(self, name = 'DP_data'):
+        """ Save optimal controller policy and cost to go """
+        
+        # Dyan prog data
+        self.X              = np.load( name + '_X'  + '.npy' )
+        self.J              = np.load( name + '_J'  + '.npy' )
+        self.action_policy  = np.load( name + '_a'  + '.npy' )
+        self.u0_policy      = np.load( name + '_u0' + '.npy' )
+        self.u1_policy      = np.load( name + '_u1' + '.npy' )
+        
+        self.assign_interpol_controller()
+        
+        
+        
+    ################################
+    def save_data(self, name = 'DP_data'):
+        """ Save optimal controller policy and cost to go """
+        
+        # Dyan prog data
+        np.save( name + '_X'  , self.X             )
+        np.save( name + '_J'  , self.J             )
+        np.save( name + '_a'  , self.action_policy )
+        np.save( name + '_u0' , self.u0_policy     )
+        np.save( name + '_u1' , self.u1_policy     )
+        
+        
+        
+        
+    ################################
+    def plot_raw_nice(self, maxJ = 10):
+        """ print graphic """
+        
+        xname = self.DS.state_label[0] + ' ' + self.DS.state_units[0]
+        yname = self.DS.state_label[1] + ' ' + self.DS.state_units[1]
+        
+        ## Saturation function for cost
+        for i in xrange(self.Nx0):
+            for j in xrange(self.Nx1):
+                if self.J[i,j] >= maxJ :
+                    self.Jplot[i,j] = maxJ
+                else:
+                    self.Jplot[i,j] = self.J[i,j]
+        
+        ###################    
+        
+        fs = 10
+        
+        self.fig1 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
+        self.fig1.canvas.set_window_title('Cost-to-go')
+        self.ax1  = self.fig1.add_subplot(1,1,1)
+        
+        plt.ylabel(yname, fontsize = fs)
+        plt.xlabel(xname, fontsize = fs)
+        self.im1 = plt.pcolormesh( self.X[0] , self.X[1] , self.Jplot.T )
+        plt.axis([self.DS.x_lb[0] , self.DS.x_ub[0], self.DS.x_lb[1] , self.DS.x_ub[1]])
+        plt.colorbar()
+        plt.grid(True)
+        plt.tight_layout()       
+        
+        self.fig2 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
+        self.fig2.canvas.set_window_title('Optimal action index')
+        
+        plt.ylabel(yname, fontsize = fs)
+        plt.xlabel(xname, fontsize = fs)
+        self.im2 = plt.pcolormesh( self.X[0] , self.X[1] , self.action_policy.T )
+        plt.axis([self.DS.x_lb[0] , self.DS.x_ub[0], self.DS.x_lb[1] , self.DS.x_ub[1]])
+        plt.colorbar()
+        plt.grid(True)
+        plt.tight_layout()
+        
+        self.fig3 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
+        self.fig3.canvas.set_window_title('Optimal Policy for u[0]')
+        
+        plt.ylabel(yname, fontsize = fs)
+        plt.xlabel(xname, fontsize = fs)
+        self.im3 = plt.pcolormesh( self.X[0] , self.X[1] , self.u0_policy.T )
+        plt.axis([self.DS.x_lb[0] , self.DS.x_ub[0], self.DS.x_lb[1] , self.DS.x_ub[1]])
+        plt.colorbar()
+        plt.grid(True)
+        plt.tight_layout()
+        
+        self.fig4 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
+        self.fig4.canvas.set_window_title('Optimal Policy for u[1]')
+        
+        plt.ylabel(yname, fontsize = fs)
+        plt.xlabel(xname, fontsize = fs)
+        self.im4 = plt.pcolormesh( self.X[0] , self.X[1] , self.u1_policy.T )
+        plt.axis([self.DS.x_lb[0] , self.DS.x_ub[0], self.DS.x_lb[1] , self.DS.x_ub[1]])
+        plt.colorbar()
+        plt.grid(True)
+        plt.tight_layout()
+        
+        
+    
         
         
 '''

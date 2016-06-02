@@ -374,7 +374,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, blit=True, init_func=self.__ani_init__)
         
         if save:
-            self.ani.save( file_name + '.mp4' , writer = 'mencoder' )
+            self.ani.save( file_name + '.mp4' ) # , writer = 'mencoder' )
             
         plt.show()
         
@@ -690,7 +690,7 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter , blit=True, init_func=self.__ani_init__)
         
         if save:
-            self.ani.save( file_name + '.mp4' , writer = 'mencoder' )
+            self.ani.save( file_name + '.mp4' ) #, writer = 'mencoder' )
             
         plt.show()
         
