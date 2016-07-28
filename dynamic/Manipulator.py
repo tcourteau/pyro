@@ -836,11 +836,18 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         # Inertia
         self.m1 = 1
-        self.I1 = 1
         self.m2 = 1
-        self.I2 = 1
         self.m3 = 1
-        self.I3 = 1
+        
+        self.I1z = 1
+        
+        self.I2x = 1
+        self.I2y = 1
+        self.I2z = 1
+        
+        self.I3x = 1
+        self.I3y = 1
+        self.I3z = 1
         
         # Gravity
         self.g = 9.81
@@ -932,23 +939,94 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
     def H(self, q = np.zeros(3)):
         """ Inertia matrix """  
         
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        # variable to match the book notation
+        
+        m1 = self.m1
+        m2 = self.m2
+        m3 = self.m3
+        
+        Iz1 = self.I1z
+        Ix2 = self.I2x
+        Iy2 = self.I2y
+        Iz2 = self.I2z
+        Ix3 = self.I3x
+        Iy3 = self.I3y
+        Iz3 = self.I3z
+        
+        l1 = self.l2
+        r1 = self.lc2
+        l2 = self.l3
+        r2 = self.lc3
+        
+        
         H = np.zeros((3,3))
         
         # TODO
-        H[0,0] = 1
-        H[1,1] = 1
-        H[2,2] = 1
+        H[0,0] = Iy2 * s2 **2 + Iy3 * s23 **2 + Iz1 + Iz2 * c2 **2 + Iz3 * c23 **2 + m2 * ( r1 * c2 ) **2 + m3 * ( l1 * c2 + r2 * c23 ) **2
+        H[0,1] = 0
+        H[0,2] = 0
+        H[1,0] = 0
+        H[1,1] = Ix2 + Ix3 + m3 * l1 **2 + m2 * r1 **2 + m3 * r2 **2 + 2 * m3 *l1 * r2 * c3
+        H[1,2] = Ix3 + m3 * r2 **2 + m3 * l1 * r2 * c3
+        H[2,0] = 0
+        H[2,1] = H[1,2]
+        H[2,2] = Ix3 + m3 * r2 ** 2
         
         return H
         
         
     ##############################
     def C(self, q = np.zeros(3) ,  dq = np.zeros(3) ):
-        """ Corriolis Matrix """  
+        """ Corriolis Matrix """ 
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        # variable to match the book notation
+        
+        m1 = self.m1
+        m2 = self.m2
+        m3 = self.m3
+        
+        Iz1 = self.I1z
+        Ix2 = self.I2x
+        Iy2 = self.I2y
+        Iz2 = self.I2z
+        Ix3 = self.I3x
+        Iy3 = self.I3y
+        Iz3 = self.I3z
+        
+        l1 = self.l2
+        r1 = self.lc2
+        l2 = self.l3
+        r2 = self.lc3
+        
+        
+        T112 = ( Iy2 - Iz2 - m2 * r1 **2 ) * c2 * s2 + ( Iy3 - Iz3 ) * c23 * s23 - m3 * ( l1 * c2 + r2 * c23 ) * ( l1 * s2 + r2 * s23 )
+        T113 = ( Iy3 - Iz3 ) * c23 * s23 - m3 * r2 * s23 * ( l1 * c2 + r2 * c23 )
+        T121 = T112
+        T131 = T113
+        T211 = ( Iz2 - Iy2 + m2 * r1 **2 ) * c2 * s2 + ( Iz3 - Iy3 ) * c23 * s23 + m3 * ( l1 * c2 + r2 * c23 ) * ( l1 * s2 + r2 * s23 )
+        T223 = - l1 * m3 * r2 * s3
+        T232 = T223
+        T233 = T223
+        T311 = ( Iz3 - Iy3 ) * c23 * s23 + m3 * r2 * s23 * ( l1 * c2 + r2 * c23 )
+        T322 = l1 * m3 * r2 * s3
                 
         C = np.zeros((3,3))
         
-        # TODO
+        C[0,0] = T112 * dq[1] + T113 * dq[2]
+        C[0,1] = T121 * dq[0]
+        C[0,2] = T131 * dq[0]
+        
+        C[1,0] = T211 * dq[0]
+        C[1,1] = T223 * dq[2]
+        C[1,2] = T232 * dq[1] + T233 * dq[2]
+        
+        C[2,0] = T311 * dq[0]
+        C[2,1] = T322 * dq[1]
+        C[2,2] = 0 
         
         return C
         
@@ -1002,7 +1080,14 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         from mpl_toolkits.mplot3d import Axes3D
         fig = plt.figure()
         ax = fig.gca(projection='3d')
-        line = ax.plot( pts[:,0], pts[:,1], pts[:,2], 'o-', self.lw )         
+        line = ax.plot( pts[:,0], pts[:,1], pts[:,2], 'o-' )   
+        # Setting the axes properties
+        ax.set_xlim3d([ - self.lw / 2. , self.lw / 2. ])
+        ax.set_xlabel('X')
+        ax.set_ylim3d([- self.lw / 2. , self.lw / 2.])
+        ax.set_ylabel('Y')
+        ax.set_zlim3d([- self.lw / 2. , self.lw / 2.])
+        ax.set_zlabel('Z')
         plt.show()
         
         
@@ -1021,7 +1106,6 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.PTS = np.zeros(( self.n_pts , self.dim_pts , n ))
         
         for i in xrange(n):
-            
             [ q , dq ]      = self.x2q(  self.Sim.x_sol_CL[i,:]  )
             self.PTS[:,:,i] = self.fwd_kinematic( q )  # Forward kinematic
             
@@ -1030,9 +1114,9 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
 
         self.fig = plt.figure()
         self.ax = p3.Axes3D(self.fig)
-        self.line = self.ax.plot( self.PTS[:,0,0], self.PTS[:,1,0], self.PTS[:,2,0], 'o-', self.lw )[0]
+        self.line = self.ax.plot( self.PTS[:,0,0], self.PTS[:,1,0], self.PTS[:,2,0], 'o-' )[0]
         self.time_template = 'time = %.1fs'
-        self.time_text = self.ax.text(0.05, 0.9, 0, '', transform=self.ax.transAxes)
+        self.time_text = self.ax.text(0, 0, 0, '', transform=self.ax.transAxes)
         
         inter = int( n / 4. )        
         
@@ -1061,7 +1145,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         thisy = self.PTS[:,1,i]
         thisz = self.PTS[:,2,i]
     
-        #self.line.set_data(thisx, thisy, thisz)
+        #self.line.set_data(thisx, thisy, thisz) # not working for 3D
         self.line.set_data(thisx, thisy)
         self.line.set_3d_properties(thisz)
         
