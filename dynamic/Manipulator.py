@@ -30,6 +30,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         RDDS.DynamicSystem.__init__(self, n , m )
         
+        self.dof = 2 # number of degree of freedoms
+        
         self.state_label = ['Angle 1','Angle 2','Speed 1','Speed 2']
         self.input_label = ['Torque 1','Torque 2']
         
@@ -229,6 +231,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         """
         
+        # Old 2-dof only version
+        """
         dx = np.zeros(self.n) # State derivative vector
         
         q  = x[0:2]
@@ -238,8 +242,39 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         dx[0:2] = dq
         dx[2:4] = ddq
+        """
+        
+        # New n-dof version
+        
+        [ q , dq ] = self.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
+        
+        ddq = self.ddq( q , dq , u ) # compute state derivative 
+        
+        dx = self.q2x( dq , ddq )    # from angle and speeds diff (dq,ddq) to state vector diff (dx)
         
         return dx
+        
+        
+    #############################
+    def x2q( self, x = np.zeros(4) ):
+        """ from state vector (x) to angle and speeds (q,dq) """
+        
+        q  = x[ 0        : self.dof ]
+        dq = x[ self.dof : self.n   ]
+        
+        return [ q , dq ]
+        
+        
+    #############################
+    def q2x( self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """ from angle and speeds (q,dq) to state vector (x) """
+        
+        x = np.zeros( self.n )
+        
+        x[ 0        : self.dof ] = q
+        x[ self.dof : self.n   ] = dq
+        
+        return x
         
         
     ##############################
@@ -269,8 +304,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
     def energy_values(self, x = np.zeros(4)  ):
         """ Compute energy values of manipulator """ 
         
-        q  = x[0:2]
-        dq = x[2:4]
+        [ q , dq ] = self.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         e_k = self.e_kinetic( q , dq )
         e_p = self.e_potential( q )
@@ -755,6 +789,8 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         RDDS.DynamicSystem.__init__(self, n , m )
         
+        self.dof = 3 # number of degree of freedoms
+        
         self.state_label = ['Angle 1','Angle 2','Angle 3','Speed 1','Speed 2','Speed 3']
         self.input_label = ['Torque 1','Torque 2','Torque 3']
         
@@ -913,6 +949,62 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         return J
         
+        
+        
+    ##############################
+    def H(self, q = np.zeros(3)):
+        """ Inertia matrix """  
+        
+        H = np.zeros((3,3))
+        
+        # TODO
+        H[0,0] = 1
+        H[1,1] = 1
+        H[2,2] = 1
+        
+        return H
+        
+    ##############################
+    def C(self, q = np.zeros(3) ,  dq = np.zeros(3) ):
+        """ Corriolis Matrix """  
+                
+        C = np.zeros((3,3))
+        
+        # TODO
+        
+        return C
+        
+    ##############################
+    def D(self, q = np.zeros(3) ,  dq = np.zeros(3) ):
+        """ Damping Matrix """  
+               
+        D = np.zeros((3,3))
+        
+        D[0,0] = self.d1
+        D[1,1] = self.d2
+        D[2,2] = self.d3
+        
+        return D
+        
+    ##############################
+    def G(self, q = np.zeros(2) ):
+        """Gravity forces """  
+        
+        G = np.zeros(2)
+        
+        # TODO
+        
+        return G
+        
+    ##############################
+    def e_potential(self, q = np.zeros(2) ):
+        """ Compute potential energy of manipulator """  
+               
+        e_p = 0
+        
+        # TODO
+        
+        return e_p
         
 
 
