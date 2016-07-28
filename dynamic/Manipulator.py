@@ -724,6 +724,198 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
 
 
+
+
+'''
+#################################################################
+##################       3DOF Manipulator Class          ########
+#################################################################
+'''
+
+
+
+class ThreeLinkManipulator( TwoLinkManipulator ) :
+    """
+    3DOF Manipulator Class 
+    -------------------------------
+    
+    base:     revolute arround z
+    shoulder: revolute arround y
+    elbow:    revolute arround y
+    
+    see Example 4.3 in
+    http://www.cds.caltech.edu/~murray/books/MLS/pdf/mls94-manipdyn_v1_2.pdf
+    
+    
+    """
+    
+    
+    ############################
+    def __init__(self, n = 6 , m = 3 ):
+        
+        RDDS.DynamicSystem.__init__(self, n , m )
+        
+        self.state_label = ['Angle 1','Angle 2','Angle 3','Speed 1','Speed 2','Speed 3']
+        self.input_label = ['Torque 1','Torque 2','Torque 3']
+        
+        self.state_units = ['[rad]','[rad]','[rad]','[rad/sec]','[rad/sec]','[rad/sec]']
+        self.input_units = ['[Nm]','[Nm]','[Nm]']
+        
+        self.x_ub = np.array([ 6, 6, 6, 6, 6, 6])    # States Upper Bounds
+        self.x_lb = np.array([-6,-6,-6,-6,-6,-6])    # States Lower Bounds
+        
+        tmax = 1
+        
+        self.u_ub = np.array([ tmax, tmax, tmax])      # Control Upper Bounds
+        self.u_lb = np.array([-tmax,-tmax,-tmax])      # Control Lower Bounds
+        
+        # Default State and inputs        
+        self.xbar = np.zeros(n)
+        self.ubar = np.array([0,0,0])
+        
+        self.setparams()
+        
+        
+    #############################
+    def setparams(self):
+        """ Set model parameters here """
+        
+        # Kinematic
+        self.l1  = 1 
+        self.l2  = 1
+        self.l3  = 1
+        self.lc1 = 1
+        self.lc2 = 1
+        self.lc3 = 1
+        
+        #Inertia
+        self.m1 = 1
+        self.I1 = 1
+        self.m2 = 1
+        self.I2 = 1
+        self.m3 = 1
+        self.I3 = 1
+        
+        # Gravity
+        self.g = 9.81
+        
+        # Joint damping
+        self.d1 = 1
+        self.d2 = 1
+        self.d3 = 1
+        
+        
+    ##############################
+    def trig(self, q = np.zeros(3) ):
+        """ Compute cos and sin """
+        
+        c1  = np.cos( q[0] )
+        s1  = np.sin( q[0] )
+        c2  = np.cos( q[1] )
+        s2  = np.sin( q[1] )
+        c3  = np.cos( q[2] )
+        s3  = np.sin( q[2] )
+        c12 = np.cos( q[0] + q[1] )
+        s12 = np.sin( q[0] + q[1] )
+        c23 = np.cos( q[2] + q[1] )
+        s23 = np.sin( q[2] + q[1] )
+        
+        return [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23]
+        
+        
+    ##############################
+    def fwd_kinematic(self, q = np.zeros(3) ):
+        """ Compute [x;y;z] end effector position given angles q """
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        # Three robot points
+        
+        #Base of the robot
+        p0 = [0,0,0]
+        
+        #Shperical point 
+        p1 = [ 0, 0, self.l1 ]
+        
+        #elbow
+        z2 = self.l1 - self.l2 * s2
+        
+        r2 = self.l2 * c2
+        x2 = r2 * c1
+        y2 = r2 * s1
+        
+        p2 = [ x2, y2, z2 ]
+        
+        # end-effector
+        z3 = self.l1 - self.l2 * s2 - self.l3 * s23
+        
+        r3 = self.l2 * c2 + self.l3 * c23
+        x3 = r3 * c1
+        y3 = r3 * s1
+        
+        p3 = [ x3, y3, z3 ]
+        
+        return np.array([p0,p1,p2,p3])
+        
+        
+    #############################
+    def show(self, q, plane = 'xy' ):
+        """ Plot figure of configuration q """
+        
+        pts = self.fwd_kinematic( q )
+        lw=(self.l1+self.l2+self.l3)
+        
+        if plane == '3D':
+            
+            #import matplotlib as mpl
+            from mpl_toolkits.mplot3d import Axes3D
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            line = ax.plot( pts[:,0], pts[:,1], pts[:,2], 'o-', lw)         
+            plt.show()
+            
+        else:
+        
+            fig = plt.figure()
+            ax = fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
+            ax.grid()
+            
+            if plane == 'xy':
+                line = ax.plot( pts[:,0], pts[:,1], 'o-', lw )
+            elif plane == 'xz':
+                line = ax.plot( pts[:,0], pts[:,2], 'o-', lw )
+            elif plane == 'yz':
+                line = ax.plot( pts[:,1], pts[:,2], 'o-', lw )
+            else:
+                pass
+            
+            plt.show()
+            
+            #return fig , ax, line
+            
+    ##############################
+    def jacobian_endeffector(self, q = np.zeros(3)):
+        """ Compute jacobian of end-effector """
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        J = np.zeros((3,3))
+        
+        J[0,0] =  -( self.l2 * c2 + self.l3 * c23 ) * s1
+        J[0,1] =  -( self.l2 * s2 + self.l3 * s23 ) * c1
+        J[0,2] =  - self.l3 * s23 * c1
+        J[1,0] =   ( self.l2 * c2 + self.l3 * c23 ) * c1
+        J[1,1] =  -( self.l2 * s2 + self.l3 * s23 ) * s1
+        J[1,2] =  - self.l3 * s23 * s1
+        J[2,0] =  0
+        J[2,1] =  -( self.l2 * c2 + self.l3 * c23 )
+        J[2,2] =  - self.l3 * c23
+        
+        return J
+        
+        
+
+
 '''
 #################################################################
 ##################          Main                         ########
@@ -735,7 +927,9 @@ if __name__ == "__main__":
     """ MAIN TEST """
     
     
-    R2 = TwoLinkManipulator()
+    
     R1 = OneLinkManipulator()
+    R2 = TwoLinkManipulator()
+    R3 = ThreeLinkManipulator()
 
             
