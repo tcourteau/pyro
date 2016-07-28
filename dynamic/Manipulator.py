@@ -30,8 +30,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         RDDS.DynamicSystem.__init__(self, n , m )
         
-        self.dof = 2 # number of degree of freedoms
-        
+        self.dof     = 2 # number of degree of freedoms
+                
         self.state_label = ['Angle 1','Angle 2','Speed 1','Speed 2']
         self.input_label = ['Torque 1','Torque 2']
         
@@ -52,6 +52,11 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         self.setparams()
         
+        # Ploting param
+        self.n_pts        = 3 # number of pts to plot on the manipulator 
+        self.dim_pts      = 2 # number of dimension for each pts 
+        self.axis_to_plot = [0,1]
+        
         
     #############################
     def setparams(self):
@@ -71,6 +76,9 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         self.d1 = 1
         self.d2 = 1
+        
+        # Total length
+        self.lw  = (self.l1+self.l2)
         
         
     ##############################
@@ -93,7 +101,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
-        # Three robot points
+        # Three robot points in plane
         
         x0 = 0
         y0 = 0
@@ -318,12 +326,12 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         """ Plot figure of configuration q """
         
         fig = plt.figure()
-        ax = fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
+        ax = fig.add_subplot(111, autoscale_on=False, xlim=(-self.lw, self.lw), ylim=(-self.lw, self.lw))
         ax.grid()
         
         pts = self.fwd_kinematic( q )
         
-        line = ax.plot( pts[:,0], pts[:,1], 'o-', lw=(self.l1+self.l2) )
+        line = ax.plot( pts[:, self.axis_to_plot[0] ], pts[:, self.axis_to_plot[1] ], 'o-', self.lw )
         
         plt.show()
         
@@ -359,7 +367,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         #print theta,V1,V2,s[0],s[1]
         if plotvector:
-            line1 = ax.plot( (pts[2,0],pts[2,0]+V1[0]), (pts[2,1],pts[2,1]+V1[1]), '-')
+            line1 = ax.plot( (pts[2,0],pts[2,0]+V1[0]), (pts[2,1],pts[2,1]+V1[1]), '-' )
             line2 = ax.plot( (pts[2,0],pts[2,0]+V2[0]), (pts[2,1],pts[2,1]+V2[1]), '-' )
         
         e = matplotlib.patches.Ellipse(xy=(pts[2,0],pts[2,1]), width=s[0]+0.01, height=s[1]+0.01, angle=theta)
@@ -386,10 +394,12 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         self.Sim.compute()
         
         # Compute pts localization
-        self.PTS = np.zeros((3,2,n))
+        self.PTS = np.zeros(( self.n_pts , self.dim_pts , n ))
         
         for i in xrange(n):
-            self.PTS[:,:,i] = self.fwd_kinematic( self.Sim.x_sol_CL[i,0:2] ) # Forward kinematic
+            
+            [ q , dq ]      = self.x2q(  self.Sim.x_sol_CL[i,:]  )
+            self.PTS[:,:,i] = self.fwd_kinematic( q )  # Forward kinematic
             
             
         # figure
@@ -423,8 +433,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
     
     
     def __animate__(self,i):
-        thisx = self.PTS[:,0,i]
-        thisy = self.PTS[:,1,i]
+        thisx = self.PTS[:, self.axis_to_plot[0] ,i]
+        thisy = self.PTS[:, self.axis_to_plot[1] ,i]
     
         self.line.set_data(thisx, thisy)
         self.time_text.set_text(self.time_template % (i*0.05))
@@ -434,8 +444,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         if i > 198: # To close window
             plt.close()
-        thisx = self.PTS[:,0,i]
-        thisy = self.PTS[:,1,i]
+        thisx = self.PTS[:, self.axis_to_plot[0] ,i]
+        thisy = self.PTS[:, self.axis_to_plot[1] ,i]
     
         self.line.set_data(thisx, thisy)
         self.time_text.set_text(self.time_template % (i*0.05))
@@ -692,14 +702,11 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
     def plotAnimation(self, x0 = np.array([0,0]) , tf = 10 , n = 201 ,  solver = 'ode' , save = False , file_name = 'RobotSim' ):
         """ Simulate and animate robot """
         
-        
         # Integrate EoM
         self.Sim    = RDDS.Simulation( self , tf , n  , solver  )
         self.Sim.x0 = x0
         
         self.Sim.compute()
-        
-        
         
         # Compute pts localization
         self.PTS = np.zeros((2,2,n))
@@ -707,9 +714,7 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         for i in xrange(n):
             self.PTS[:,:,i] = self.fwd_kinematic( self.Sim.x_sol_CL[i,0] ) # Forward kinematic
             
-            
-        # figure
-            
+        # Figure            
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
         self.ax.grid()
@@ -789,7 +794,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         RDDS.DynamicSystem.__init__(self, n , m )
         
-        self.dof = 3 # number of degree of freedoms
+        self.dof = 3      # Number of degree of freedoms
         
         self.state_label = ['Angle 1','Angle 2','Angle 3','Speed 1','Speed 2','Speed 3']
         self.input_label = ['Torque 1','Torque 2','Torque 3']
@@ -800,7 +805,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.x_ub = np.array([ 6, 6, 6, 6, 6, 6])    # States Upper Bounds
         self.x_lb = np.array([-6,-6,-6,-6,-6,-6])    # States Lower Bounds
         
-        tmax = 1
+        tmax = 1 # Max torque
         
         self.u_ub = np.array([ tmax, tmax, tmax])      # Control Upper Bounds
         self.u_lb = np.array([-tmax,-tmax,-tmax])      # Control Lower Bounds
@@ -810,6 +815,11 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.ubar = np.array([0,0,0])
         
         self.setparams()
+        
+        # Ploting param
+        self.n_pts   = 4 # number of pts to plot on the manipulator 
+        self.dim_pts = 3 # number of dimension for each pts 
+        self.axis_to_plot = [0,1]  # axis to plot for 2D plot
         
         
     #############################
@@ -824,7 +834,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.lc2 = 1
         self.lc3 = 1
         
-        #Inertia
+        # Inertia
         self.m1 = 1
         self.I1 = 1
         self.m2 = 1
@@ -839,6 +849,9 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.d1 = 1
         self.d2 = 1
         self.d3 = 1
+        
+        # Total length
+        self.lw  = (self.l1+self.l2+self.l3)
         
         
     ##############################
@@ -867,13 +880,13 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         # Three robot points
         
-        #Base of the robot
+        # Base of the robot
         p0 = [0,0,0]
         
-        #Shperical point 
+        # Shperical point 
         p1 = [ 0, 0, self.l1 ]
         
-        #elbow
+        # Elbow
         z2 = self.l1 - self.l2 * s2
         
         r2 = self.l2 * c2
@@ -882,7 +895,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         p2 = [ x2, y2, z2 ]
         
-        # end-effector
+        # End-effector
         z3 = self.l1 - self.l2 * s2 - self.l3 * s23
         
         r3 = self.l2 * c2 + self.l3 * c23
@@ -893,42 +906,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         return np.array([p0,p1,p2,p3])
         
-        
-    #############################
-    def show(self, q, plane = 'xy' ):
-        """ Plot figure of configuration q """
-        
-        pts = self.fwd_kinematic( q )
-        lw=(self.l1+self.l2+self.l3)
-        
-        if plane == '3D':
-            
-            #import matplotlib as mpl
-            from mpl_toolkits.mplot3d import Axes3D
-            fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            line = ax.plot( pts[:,0], pts[:,1], pts[:,2], 'o-', lw)         
-            plt.show()
-            
-        else:
-        
-            fig = plt.figure()
-            ax = fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
-            ax.grid()
-            
-            if plane == 'xy':
-                line = ax.plot( pts[:,0], pts[:,1], 'o-', lw )
-            elif plane == 'xz':
-                line = ax.plot( pts[:,0], pts[:,2], 'o-', lw )
-            elif plane == 'yz':
-                line = ax.plot( pts[:,1], pts[:,2], 'o-', lw )
-            else:
-                pass
-            
-            plt.show()
-            
-            #return fig , ax, line
-            
+                    
     ##############################
     def jacobian_endeffector(self, q = np.zeros(3)):
         """ Compute jacobian of end-effector """
@@ -950,7 +928,6 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         return J
         
         
-        
     ##############################
     def H(self, q = np.zeros(3)):
         """ Inertia matrix """  
@@ -964,6 +941,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         return H
         
+        
     ##############################
     def C(self, q = np.zeros(3) ,  dq = np.zeros(3) ):
         """ Corriolis Matrix """  
@@ -973,6 +951,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         # TODO
         
         return C
+        
         
     ##############################
     def D(self, q = np.zeros(3) ,  dq = np.zeros(3) ):
@@ -986,15 +965,21 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         return D
         
+        
     ##############################
     def G(self, q = np.zeros(2) ):
         """Gravity forces """  
         
-        G = np.zeros(2)
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
         
-        # TODO
+        G = np.zeros(3)
+        
+        G[0] = 0
+        G[1] = -(self.m2 * self.g * self.lc2 + self.m3 * self.g * self.l2 ) * c2 - self.m3 * self.g * self.lc3 * c23
+        G[2] = - self.m3 * self.g * self.lc3 * c23
         
         return G
+        
         
     ##############################
     def e_potential(self, q = np.zeros(2) ):
@@ -1005,6 +990,83 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         # TODO
         
         return e_p
+        
+        
+    ###############################
+    def show_3D(self, q ):
+        """ Plot figure of configuration q """
+        
+        pts = self.fwd_kinematic( q )
+                
+        #Import matplotlib as mpl
+        from mpl_toolkits.mplot3d import Axes3D
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        line = ax.plot( pts[:,0], pts[:,1], pts[:,2], 'o-', self.lw )         
+        plt.show()
+        
+        
+        
+    #############################
+    def plot3DAnimation(self, x0 = np.array([0,0,0,0,0,0]) , tf = 10 , n = 201 ,  solver = 'ode' , save = False , file_name = 'RobotSim' ):
+        """ Simulate and animate robot """
+        
+        # Integrate EoM
+        self.Sim    = RDDS.Simulation( self , tf , n  , solver  )
+        self.Sim.x0 = x0
+        
+        self.Sim.compute()
+
+        # Compute pts localization
+        self.PTS = np.zeros(( self.n_pts , self.dim_pts , n ))
+        
+        for i in xrange(n):
+            
+            [ q , dq ]      = self.x2q(  self.Sim.x_sol_CL[i,:]  )
+            self.PTS[:,:,i] = self.fwd_kinematic( q )  # Forward kinematic
+            
+        #Import matplotlib as mpl
+        import mpl_toolkits.mplot3d.axes3d as p3
+
+        self.fig = plt.figure()
+        self.ax = p3.Axes3D(self.fig)
+        self.line = self.ax.plot( self.PTS[:,0,0], self.PTS[:,1,0], self.PTS[:,2,0], 'o-', self.lw )[0]
+        self.time_template = 'time = %.1fs'
+        self.time_text = self.ax.text(0.05, 0.9, 0, '', transform=self.ax.transAxes)
+        
+        inter = int( n / 4. )        
+        
+        # Setting the axes properties
+        self.ax.set_xlim3d([ - self.lw / 2. , self.lw / 2. ])
+        self.ax.set_xlabel('X')
+        self.ax.set_ylim3d([- self.lw / 2. , self.lw / 2.])
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlim3d([- self.lw / 2. , self.lw / 2.])
+        self.ax.set_zlabel('Z')
+        self.ax.set_title('3D Robot Animation')
+                    
+        self.ani = animation.FuncAnimation( self.fig, self.__animate_3D__, n, interval=inter, blit=False )
+                    
+        
+        if save:
+            self.ani.save( file_name + '.mp4' ) #, writer = 'mencoder' )
+            
+        plt.show()
+        
+        return self.PTS
+        
+    
+    def __animate_3D__(self,i):
+        thisx = self.PTS[:,0,i]
+        thisy = self.PTS[:,1,i]
+        thisz = self.PTS[:,2,i]
+    
+        #self.line.set_data(thisx, thisy, thisz)
+        self.line.set_data(thisx, thisy)
+        self.line.set_3d_properties(thisz)
+        
+        self.time_text.set_text(self.time_template % (i*0.05))
+        return self.line, self.time_text
         
 
 
@@ -1017,8 +1079,6 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
 
 if __name__ == "__main__":     
     """ MAIN TEST """
-    
-    
     
     R1 = OneLinkManipulator()
     R2 = TwoLinkManipulator()
