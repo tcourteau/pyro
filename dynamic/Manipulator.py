@@ -819,7 +819,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         # Ploting param
         self.n_pts   = 4 # number of pts to plot on the manipulator 
         self.dim_pts = 3 # number of dimension for each pts 
-        self.axis_to_plot = [0,1]  # axis to plot for 2D plot
+        self.axis_to_plot = [0,2]  # axis to plot for 2D plot
         
         
     #############################

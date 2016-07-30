@@ -38,22 +38,24 @@ class PD:
 class PD_nDOF:
     """ Feedback law  """
     ############################
-    def __init__( self , kp , kd , q_d = 0 , dq_d = 0):
+    def __init__( self , kp , kd , q_d = np.array([None]) , dq_d = np.array([None]) ):
         """ 
         Independant joint PD controller for a manipulator
         """
         
-        self.n  = kp.size
-        self.kp = kp
-        self.kd = kd
+        self.dof = kp.size          # NUMBER OF dof
+        self.n   = self.dof * 2     # number of states
+        self.kp  = kp
+        self.kd  = kd
         
-        if q_d == 0:
-            self.q_d = np.zeros(self.n)
+        # Set to zero vector of good length if setpoint is undefined
+        if q_d[0] == None:
+            self.q_d = np.zeros( self.dof )
         else:
             self.q_d = q_d
             
-        if dq_d == 0:
-            self.dq_d = np.zeros(self.n)
+        if dq_d[0] == None:
+            self.dq_d = np.zeros( self.dof )
         else:
             self.dq_d = dq_d
     
@@ -62,12 +64,12 @@ class PD_nDOF:
     def u( self , x , t = 0 ):
         """ 
         u = f( x , t ) 
-        x = [ position ; speed ]
+        x = [ position ; speed ]  state must be defined this way
         
         """
         
-        q  = x[0:2]
-        dq = x[2:4]
+        q  = x[  0        : self.dof ]
+        dq = x[  self.dof : self.n   ]
         
         u  =   self.kp * ( self.q_d - q ) + self.kd *  ( self.dq_d - dq ) 
         
