@@ -60,8 +60,11 @@ class ComputedTorqueController:
         
         """
         
-        q  = x[0:2]
-        dq = x[2:4]
+        #q  = x[0:2]
+        #dq = x[2:4]
+        
+        # New n-DoF version
+        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         F = self.R.F( q , dq , ddq_r ) # Generalized force necessarly
         
@@ -76,8 +79,11 @@ class ComputedTorqueController:
         
         """
         
-        q  = x[0:2]
-        dq = x[2:4]
+        #q  = x[0:2]
+        #dq = x[2:4]
+        
+        # New n-DoF version
+        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         q_e   = q  -  q_d
         dq_e  = dq - dq_d
@@ -95,9 +101,12 @@ class ComputedTorqueController:
         
         """
         
-        ddq_d = np.zeros(2)
-        dq_d  = self.goal[2:4]
-        q_d   = self.goal[0:2]
+        ddq_d = np.zeros( self.R.dof )
+        #dq_d  = self.goal[2:4]
+        #q_d   = self.goal[0:2]
+        
+        # New n-DoF version
+        [ q_d , dq_d ] = self.R.x2q( self.goal )   # from state vector (x) to angle and speeds (q,dq)
 
         ddq_r = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
