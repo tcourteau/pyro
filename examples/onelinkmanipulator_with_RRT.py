@@ -23,19 +23,24 @@ x_goal  = np.array([0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-RRT.goal_radius = 1
+RRT.dt                    = 0.1
+RRT.goal_radius           = 0.3
+RRT.max_nodes             = 5000
+RRT.max_solution_time     = 5
 
 #RRT.compute_steps(1000,True)
 RRT.find_path_to_goal( x_goal )
 
 # Assign controller
 #R.ctl = RRT.open_loop_controller
-R.ctl = RRT.trajectory_controller
+R.ctl             = RRT.trajectory_controller
+RRT.traj_ctl_kp   = 25
+RRT.traj_ctl_kd   = 10
 
 # Plot
 tf = RRT.time_to_goal + 5
-n = int( tf / RRT.dt )
-R.plotAnimation( x_start , tf , n )
+n = int( tf / 0.05 ) + 1
+R.plotAnimation( x_start , tf , n , solver = 'euler' )
 R.phase_plane_trajectory([0],x_start,tf,True,False,False,True)
 RRT.plot_2D_Tree()
 R.Sim.plot_CL()

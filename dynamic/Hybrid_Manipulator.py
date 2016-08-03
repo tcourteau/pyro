@@ -240,3 +240,16 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         
         return dx
         
+        
+    ##############################
+    def e_kinetic(self, q = np.zeros(2) , dq = np.zeros(2) , u3 = 0 ):
+        """ Compute kinetic energy of manipulator """  
+        
+        R = self.R[ int(u3) ]
+        
+        Ha = self.H( q ) + np.dot( R , np.dot( R , self.Ia ) )        
+        
+        e_k = 0.5 * np.dot( dq , np.dot( Ha , dq ) )
+        
+        return e_k
+        

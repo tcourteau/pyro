@@ -10,6 +10,8 @@ from AlexRobotics.control import DPO           as DPO
 
 import matplotlib.pyplot as plt
 
+""" Define system """
+
 # Define dynamic system
 R  =  M.OneLinkManipulator()
 
@@ -27,9 +29,12 @@ ValueIterationAlgo.save_data( path + 'R1' + cost_function )
 
 # Plot Value Iteration Results
 ValueIterationAlgo.plot_raw()
+ValueIterationAlgo.plot_J_nice( 2 )
 
 # Assign Controller
 ValueIterationAlgo.assign_interpol_controller() 
+
+""" Simulation and plotting """
 
 # Ploting a trajectory
 u_OL = [0]
