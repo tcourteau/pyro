@@ -22,7 +22,7 @@ from AlexRobotics.dynamic import DynamicSystem as RDDS
 
 
 class TwoLinkManipulator( RDDS.DynamicSystem ) :
-    """ 2DOF Manipulator Class """
+    """ Manipulator base-class """
     
     
     ############################
