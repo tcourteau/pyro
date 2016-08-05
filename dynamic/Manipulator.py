@@ -415,7 +415,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         inter = int( n / 8. )
         #interval=25 with n=201
            
-        # blit option crash on mac
+        # blit=True option crash on mac
         #self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, blit=True, init_func=self.__ani_init__)
         self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, init_func=self.__ani_init__)
         
@@ -729,7 +729,7 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         inter = int( n / 8. )
         #interval=25 with n=201
                     
-        # blit option crash on mac
+        # blit=True option crash on mac
         #self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter , blit=True, init_func=self.__ani_init__)
         self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, init_func=self.__ani_init__)
         
