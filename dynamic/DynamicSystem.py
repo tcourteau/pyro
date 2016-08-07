@@ -153,6 +153,22 @@ class DynamicSystem:
         
         
     #############################
+    def phase_plane(self , PP_CL = True , PP_OL = False ):
+        """ """
+        
+        y1 = 0 
+        y2 = 1
+        
+        # Quiver
+        self.PP   = PhasePlot( self , y1 , y2 , PP_OL , PP_CL )
+        
+        self.PP.compute()
+        self.PP.plot()
+        
+        plt.tight_layout()
+        
+        
+    #############################
     def isavalidstate(self , x ):
         """ check if x is in the domain """
         ans = False
@@ -451,7 +467,7 @@ class Simulation:
         xs_OL = self.x_sol_OL
         xs_CL = self.x_sol_CL
         
-        # Phase trajectory OL
+        # Phase trajectory OL' 
         if traj_OL:
             plt.plot(xs_OL[:,0], xs_OL[:,1], 'b-') # path
             plt.plot([xs_OL[0,0]], [xs_OL[0,1]], 'o') # start
