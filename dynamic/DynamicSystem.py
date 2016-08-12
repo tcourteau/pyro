@@ -99,7 +99,15 @@ class DynamicSystem:
         
     #############################
     def ctl(self, x , t ):
-        """ feedback law """
+        """ 
+        Feedback law :
+        
+        assign controller like this
+        
+        MyDynamicSystem.ctl = MyFeedbackLawFunction
+        
+        
+        """
         
         u = self.ubar
         
@@ -115,6 +123,23 @@ class DynamicSystem:
         x_next = self.fc(x,u) * dt + x
         
         return x_next
+        
+        
+    #############################
+    def phase_plane(self , PP_CL = True , PP_OL = False ):
+        """ """
+        
+        y1 = 0 
+        y2 = 1
+        
+        # Quiver
+        self.PP   = PhasePlot( self , y1 , y2 , PP_OL , PP_CL )
+        
+        self.PP.compute()
+        self.PP.plot()
+        
+        plt.tight_layout()
+        
         
         
     #############################
@@ -152,21 +177,7 @@ class DynamicSystem:
         plt.tight_layout()
         
         
-    #############################
-    def phase_plane(self , PP_CL = True , PP_OL = False ):
-        """ """
-        
-        y1 = 0 
-        y2 = 1
-        
-        # Quiver
-        self.PP   = PhasePlot( self , y1 , y2 , PP_OL , PP_CL )
-        
-        self.PP.compute()
-        self.PP.plot()
-        
-        plt.tight_layout()
-        
+
         
     #############################
     def isavalidstate(self , x ):
