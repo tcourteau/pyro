@@ -187,6 +187,35 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         
     ##############################
+    def jacobian_q0_theta0(self, q = np.zeros(3)):
+        """ 
+        Compute jacobian of link0 angular velocity vs. linear actuator velocity
+        
+        units = [meter/rad]
+        
+        validated by looking at the gradient of the integral function
+        
+        """
+        
+        [base,link1,link2] = self.trig( q )
+        
+        [ theta_0 , s0 , c0 , theta_2 , s2 , c2 , theta_3, s3 , c3 ] = base
+                
+        l3 = self.b[6]
+        l2 = self.b[3]
+        h1 = self.b[4]
+        
+        alpha = l3*c3 - h1
+        beta  = l2 ** 2 - alpha **2
+        
+        j     = l3 * c3 + alpha * l3 * s3 / np.sqrt( beta )
+        
+        return j
+        
+        
+        
+        
+    ##############################
     def H(self, q = np.zeros(3)):
         """ Inertia matrix """  
         
