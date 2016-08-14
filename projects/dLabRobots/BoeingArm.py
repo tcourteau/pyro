@@ -36,12 +36,12 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         """ Set model parameters here """
         
         # First link kinematic
-        b0  = 0.5  # 2x2 tubing length
-        b1  = 0.2  # pivot distance from 2x2 tubing base
-        b2  = 0.1  # pivot height from 2x2 tubing mid-line
-        b3  = 0.25  # rod length
-        b4  = 0.1  # pivot height from ballscrew line
-        b5  = 0.4  # total length of ballscrew
+        b0  = 0.9   # 2x2 tubing length
+        b1  = 0.12  # pivot distance from 2x2 tubing base
+        b2  = 0.11  # pivot height from 2x2 tubing mid-line
+        b3  = 0.31  # rod length
+        b4  = 0.08  # pivot height from ballscrew line
+        b5  = 0.49  # total length of ballscrew
         b6  = np.sqrt( b1 **2 + b2 **2 )  # distance between pivots on main tube
         b7  = np.arctan( b2 / b1 )         # angle difference between 
         self.b = np.array([ b0 , b1 , b2 , b3 , b4 , b5 , b6 , b7])
@@ -63,79 +63,12 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         self.d2 = 1
         self.d3 = 1
         
-        
-    ############################
-    def a0_inv_kinematic(self, q_0 = 0 ):
-        """ 
-        Inverse kinematic of first DOF 
-        -----------------------------
-        q_0 : angle of 2x2 tube w/ vertical [rad]
-        a_0 : linear displacement of ballscew nut from zero-position
-        
-        """
-        # see alex logbook for figure and variable def:
-        
-        theta_3 = self.b[7] - q_0   # angle offset
-        
-        s3 = np.sin( theta_3 )
-        c3 = np.cos( theta_3 )
-        
-        l3 = self.b[6]
-        l2 = self.b[3]
-        h1 = self.b[4]
-        
-        l1 = l3 * s3 + np.sqrt( l2 **2 - ( l3 * c3 - h1) **2 )
-        
-        a_0 = self.b[5] - l1
-        
-        return a_0
-        
-        
-    ############################
-    def compute_a0_fwd_kinematic( self , plot = False  ):
-        """ 
-        Create and interpol function for fwd kinematic 
-        -----------------------------------------------
-        Data validated using solidworks sketch tools
-        
-        """
-        
-        # Create data
-        
-        angles = np.arange( -np.pi * 0.3 , np.pi * 0.8 , 0.01)
-        linear = np.zeros( angles.size )
-        
-        # Inv kinematic
-        for i in range( angles.size ):
-            linear[i] = self.a0_inv_kinematic( angles[i] )
-            
-        self.a0_fwd_kinematic = interp1d( linear , angles )
-        # theta_0 = self.q0_fwd_kinematic( q0 )
-        
-        if plot:
-            # For validation
-            
-            linear_approx = np.arange( 0 , 0.41 , 0.01)
-            angles_approx = np.zeros( linear_approx.size )
-            
-            for i in range( linear_approx.size ):
-                angles_approx[i] = self.theta0_fwd_kinematic( linear_approx[i] )
-            
-            fig , plot = plt.subplots( 1 , sharex=True , figsize=(4, 3), dpi=300, frameon=True)
-            fig.canvas.set_window_title('First Link kinematic')
-            plt.plot( linear, angles * 180 / np.pi , 'b-')
-            plt.plot( linear_approx, angles_approx * 180 / np.pi , 'r-')
-            plot.set_xlabel( 'Linear displacement [meter]' , fontsize=5)
-            plot.set_ylabel( 'Angle 0 [deg]' , fontsize=5)
-            plot.grid(True)
-            fig.tight_layout()
-        
-        
+     
     ##############################
     def trig(self, q = np.zeros(3) ):
         """ Compute cos and sin """
         
-        theta_0 = self.a0_fwd_kinematic( q[0] )
+        theta_0 =  q[0]  # non-linear 4-bar linkage
         s0 = np.sin( theta_0 )
         c0 = np.cos( theta_0 )
         
@@ -163,14 +96,16 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         ### First DOF ### 
         [base,link1,link2] = self.trig( q )
         
+        a_0 = self.a0_inv_kinematic( q[0] ) # actuator length
+        
         p0 = [ -self.b[5] , 0 , 0 ]
         p1 = [ 0, 0, 0 ]                      # Base of 2x2 beam
-        p2 = [ q[0] - self.b[5] , 0 , 0 ]
-        p3 = [ q[0] - self.b[5] , 0 , self.b[4] ]
+        p2 = [ a_0 - self.b[5] , 0 , 0 ]
+        p3 = [ a_0 - self.b[5] , 0 , self.b[4] ]
         
         [ theta_0 , s0 , c0 , theta_2 , s2 , c2 , theta_3, s3 , c3 ] = base
         
-        p4 = [ q[0] - self.b[5] + self.b[3] * c2 , 0 , self.b[4] + self.b[3] * s2 ]
+        p4 = [ a_0 - self.b[5] + self.b[3] * c2 , 0 , self.b[4] + self.b[3] * s2 ]
         p5 = [ self.b[1] * s0 , 0 , self.b[1] * c0 ]
         p6 = [ 0 , 0 , 0 ]
         p7 = [ self.b[0] * s0 , 0 , self.b[0] * c0 ]
@@ -215,39 +150,10 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         J_a = np.eye( self.dof )  # By default, identity matrix --> actuator coord = joint coord
         
-        J_a[0,0] = self.jacobian_a0_q0( q )
+        J_a[0,0] = self.jacobian_a0_q0( q ) # non-linear 4-bar linkage
         
         return J_a
-        
-        
-    ##############################
-    def jacobian_a0_q0(self, q = np.zeros(3)):
-        """ 
-        Compute jacobian of link0 angular velocity (q_0)  vs. linear actuator velocity (a_0)
-        
-        units = [meter/rad]
-        
-        validated by looking at the gradient of the integral function
-        
-        """
-        
-        [base,link1,link2] = self.trig( q )
-        
-        [ theta_0 , s0 , c0 , theta_2 , s2 , c2 , theta_3, s3 , c3 ] = base
-                
-        l3 = self.b[6]
-        l2 = self.b[3]
-        h1 = self.b[4]
-        
-        alpha = l3*c3 - h1
-        beta  = l2 ** 2 - alpha **2
-        
-        j     = l3 * c3 + alpha * l3 * s3 / np.sqrt( beta )
-        
-        return j
-        
-        
-        
+         
         
     ##############################
     def H(self, q = np.zeros(3)):
@@ -295,7 +201,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         G = np.zeros(3)
         
-        G[0] = - 0.01 * 9.8 * 1 * s0
+        G[0] = 0#- 0.1 * 9.8 * 1 * s0
         
         return G
         
@@ -311,8 +217,98 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         return e_p
         
         
+    ############################
+    def a0_inv_kinematic(self, q_0 = 0 ):
+        """ 
+        Inverse kinematic of first DOF 
+        -----------------------------
+        q_0 : angle of 2x2 tube w/ vertical [rad]
+        a_0 : linear displacement of ballscew nut from zero-position
+        
+        """
+        # see alex logbook for figure and variable def:
+        
+        theta_3 = self.b[7] - q_0   # angle offset
+        
+        s3 = np.sin( theta_3 )
+        c3 = np.cos( theta_3 )
+        
+        l3 = self.b[6]
+        l2 = self.b[3]
+        h1 = self.b[4]
+        
+        l1 = l3 * s3 + np.sqrt( l2 **2 - ( l3 * c3 - h1) **2 )
+        
+        a_0 = self.b[5] - l1
+        
+        return a_0
         
         
+    ############################
+    def compute_a0_fwd_kinematic( self , plot = False  ):
+        """ 
+        Create and interpol function for fwd kinematic 
+        -----------------------------------------------
+        Data validated using solidworks sketch tools
+        
+        """
+        
+        # Create data
+        
+        angles = np.arange( -np.pi * 0.3 , np.pi * 0.8 , 0.01)
+        linear = np.zeros( angles.size )
+        
+        # Inv kinematic
+        for i in range( angles.size ):
+            linear[i] = self.a0_inv_kinematic( angles[i] )
+            
+        self.q0_fwd_kinematic = interp1d( linear , angles )
+        # q0 = self.q0_fwd_kinematic( a_0 )
+        
+        if plot:
+            # For validation
+            
+            linear_approx = np.arange( 0 , 0.41 , 0.01)
+            angles_approx = np.zeros( linear_approx.size )
+            
+            for i in range( linear_approx.size ):
+                angles_approx[i] = self.theta0_fwd_kinematic( linear_approx[i] )
+            
+            fig , plot = plt.subplots( 1 , sharex=True , figsize=(4, 3), dpi=300, frameon=True)
+            fig.canvas.set_window_title('First Link kinematic')
+            plt.plot( linear, angles * 180 / np.pi , 'b-')
+            plt.plot( linear_approx, angles_approx * 180 / np.pi , 'r-')
+            plot.set_xlabel( 'Linear displacement [meter]' , fontsize=5)
+            plot.set_ylabel( 'Angle 0 [deg]' , fontsize=5)
+            plot.grid(True)
+            fig.tight_layout()        
+    
+    
+    ##############################
+    def jacobian_a0_q0(self, q = np.zeros(3)):
+        """ 
+        Compute jacobian of link0 angular velocity (q_0)  vs. linear actuator velocity (a_0)
+        
+        units = [meter/rad]
+        
+        validated by looking at the gradient of the integral function
+        
+        """
+        
+        [base,link1,link2] = self.trig( q )
+        
+        [ theta_0 , s0 , c0 , theta_2 , s2 , c2 , theta_3, s3 , c3 ] = base
+                
+        l3 = self.b[6]
+        l2 = self.b[3]
+        h1 = self.b[4]
+        
+        alpha = l3*c3 - h1
+        beta  = l2 ** 2 - alpha **2
+        
+        j     = l3 * c3 + alpha * l3 * s3 / np.sqrt( beta )
+        
+        return j
 
         
 
