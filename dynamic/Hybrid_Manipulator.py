@@ -302,13 +302,25 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         """ Set model parameters here """
         
         # Gear ratio
-        self.R = [np.diag([r1,r1,r1]),np.diag([r1,r2,r1]),np.diag([r2,r1,r1]),np.diag([r2,r2,r1])]
+        self.R = [np.diag([r1,r1,r1]),np.diag([r2,r2,r1]),np.diag([r2,r1,r1]),np.diag([r2,r2,r1])]
         
         # Inertia
         self.Ia = np.diag([ja,ja,ja])
         
         # Damping (linear)
         self.Da = np.diag([ba,ba,ba])
+        
+        
+    ##############################
+    def Tlosses(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) ):
+        """ Computed torques losses given a trajectory  """  
+        
+        J_a  = self.jacobian_actuators( q )
+        dJ_a = self.jacobian_actuators_diff( q , dq )
+                
+        T = np.dot(  J_a , np.dot( self.Ia  , ddq ) + np.dot( self.Da  , dq )  ) + np.dot(  dJ_a , np.dot( self.Ia  , dq ) )
+        
+        return T
         
         
     ##############################

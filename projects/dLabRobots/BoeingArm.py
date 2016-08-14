@@ -22,24 +22,25 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         HM.HybridThreeLinkManipulator.__init__(self, n , m )
         
-        # Create interpol function
-        self.compute_a0_fwd_kinematic()
-        
         # Ploting param
         self.n_pts   = 8 # number of pts to plot on the manipulator 
         self.dim_pts = 3 # number of dimension for each pts 
         self.axis_to_plot = [0,2]  # axis to plot for 2D plot
         
+        self.setBoeingArmparams()
+        
+        # Create interpol function
+        self.compute_a0_fwd_kinematic()
         
     #############################
-    def setparams(self):
+    def setBoeingArmparams(self):
         """ Set model parameters here """
         
         # First link kinematic
         b0  = 0.9   # 2x2 tubing length
         b1  = 0.12  # pivot distance from 2x2 tubing base
         b2  = 0.11  # pivot height from 2x2 tubing mid-line
-        b3  = 0.31  # rod length
+        b3  = 0.32  # rod length
         b4  = 0.08  # pivot height from ballscrew line
         b5  = 0.49  # total length of ballscrew
         b6  = np.sqrt( b1 **2 + b2 **2 )  # distance between pivots on main tube
@@ -50,18 +51,35 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         self.lw = 1
         
         # Gear ratio
+        lead = 0.02
+        r1   = 4
+        r2   = 72
         
-        R1 = np.diag([1,1,1])
-        R2 = np.diag([10,1,1])
+        R1 = np.diag([ 2 * np.pi * r1 / lead ,1,1])
+        R2 = np.diag([ 2 * np.pi * r2 / lead ,1,1])
         
         self.R = [ R1 , R2 ]
         
-        # Dynamics
+        # Dynamics first link
         
-        # actuator viscous damping coef
-        self.d1 = 1
-        self.d2 = 1
-        self.d3 = 1
+        self.g = 9.8
+        
+        self.mc0 = 0.2              # 200g carbon tube alone
+        self.lc0 = b0 * 0.5
+        self.Ic0 = 0
+
+        # joint viscous damping coef
+        self.d1 = 0.01
+        
+        # Actuator damping coef
+        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] )
+        
+        # Actuator inertia coef
+        
+        I_m = 15 # gcm2
+
+        
+        self.Ia = np.diag( [ I_m , I_m , I_m ] ) * 0.001 * ( 0.01 **2 )
         
      
     ##############################
@@ -161,6 +179,10 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         H = np.eye(3)
         
+        # Temp 1-DoF
+        
+        H[0,0] = self.mc0 * self.lc0 ** 2 + self.Ic0 
+        
         # TODO        
         
         return H
@@ -183,8 +205,8 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         D = np.zeros((3,3))
         
         D[0,0] = self.d1
-        D[1,1] = self.d2
-        D[2,2] = self.d3
+        #D[1,1] = self.d2
+        #D[2,2] = self.d3
         
         return D
         
@@ -201,7 +223,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         G = np.zeros(3)
         
-        G[0] = 0#- 0.1 * 9.8 * 1 * s0
+        G[0] = - self.mc0 * self.g * self.lc0 * s0
         
         return G
         
@@ -254,8 +276,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         """
         
         # Create data
-        
-        angles = np.arange( -np.pi * 0.3 , np.pi * 0.8 , 0.01)
+        angles = np.arange( - 0.2 , 2.3 , 0.01)
         linear = np.zeros( angles.size )
         
         # Inv kinematic
@@ -268,11 +289,11 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         if plot:
             # For validation
             
-            linear_approx = np.arange( 0 , 0.41 , 0.01)
+            linear_approx = np.arange( 0.05 , 0.33 , 0.01)
             angles_approx = np.zeros( linear_approx.size )
             
             for i in range( linear_approx.size ):
-                angles_approx[i] = self.theta0_fwd_kinematic( linear_approx[i] )
+                angles_approx[i] = self.q0_fwd_kinematic( linear_approx[i] )
             
             fig , plot = plt.subplots( 1 , sharex=True , figsize=(4, 3), dpi=300, frameon=True)
             fig.canvas.set_window_title('First Link kinematic')
@@ -287,7 +308,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
     ##############################
     def jacobian_a0_q0(self, q = np.zeros(3)):
         """ 
-        Compute jacobian of link0 angular velocity (q_0)  vs. linear actuator velocity (a_0)
+        Compute jacobian of link0 angular velocity ( dq_0 )  vs. linear actuator velocity ( da_0 )
         
         units = [meter/rad]
         
@@ -328,6 +349,3 @@ if __name__ == "__main__":
     
     R = BoeingArm()
     
-    x0 = np.array([0,0,0,0.3,0,0])
-    
-    #R.plot3DAnimation( x0 )
