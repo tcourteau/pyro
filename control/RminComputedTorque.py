@@ -31,6 +31,86 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         
     ############################
+    def traj_following_ctl( self , x , t ):
+        """ 
+        
+        Given desired loaded trajectory and actual state, compute torques and optimal gear ratio
+        
+        """
+        
+        ddq_d , dq_d , q_d = self.get_traj( t )
+
+        ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
+        
+        u                  = self.u_star( ddq_r , x )
+        
+        return u
+        
+        
+    ############################
+    def fixed_goal_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired fixed goal state and actual state, compute torques and optimal gear ratio
+        
+        """
+        
+        ddq_d          =   np.zeros( self.R.dof )
+
+        [ q_d , dq_d ] = self.R.x2q( self.goal  )   # from state vector (x) to angle and speeds (q,dq)
+
+        ddq_r          = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
+        
+        u              = self.u_star( ddq_r , x )
+        
+        return u
+        
+        
+    ############################
+    def manual_acc_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired acc, compute torques and optimal gear ratio
+        
+        """
+
+        ddq_r          = self.ddq_manual_setpoint
+        
+        u              = self.u_star( ddq_r , x )
+        
+        return u
+        
+    
+    ############################
+    def u_star( self , ddq_r , x  ):
+        """ 
+        
+        Compute optimal u given desired accel and actual states
+        
+        """
+        
+        # Cost is Q
+        Q = np.zeros( self.n_gears )
+        
+        #for all gear ratio options
+        for i in xrange( self.n_gears ):
+            
+            T = self.computed_torque( ddq_r , x , i )
+            
+            # Cost is norm of torque
+            Q[i] = np.dot( T , T )
+            
+            
+        R_star = Q.argmin()
+            
+        T = self.computed_torque( ddq_r , x , R_star )
+        
+        u = np.append( T , R_star )
+        
+        return u
+        
+        
+    ############################
     def computed_torque( self , ddq_r , x , R ):
         """ 
         
@@ -38,8 +118,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         """
         
-        q  = x[0:2]
-        dq = x[2:4]
+        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         F = self.R.T( q , dq , ddq_r , R ) # Generalized force necessarly
         
@@ -54,8 +133,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         """
         
-        q  = x[0:2]
-        dq = x[2:4]
+        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         q_e   = q  -  q_d
         dq_e  = dq - dq_d
@@ -63,42 +141,6 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
         
         return ddq_r
-        
-        
-    ############################
-    def fixed_goal_ctl( self , x , t = 0 ):
-        """ 
-        
-        Given desired fixed goal state and actual state, compute torques and optimal gear ratio
-        
-        """
-        
-        ddq_d = np.zeros(2)
-        dq_d  = self.goal[2:4]
-        q_d   = self.goal[0:2]
-
-        ddq_r = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
-        
-        
-        # Cost is Q
-        Q = np.zeros( self.n_gears )
-        
-        #for all gear ratio options
-        for i in xrange( self.n_gears ):
-            
-            F = self.computed_torque( ddq_r , x , i )
-            
-            # Cost is norm of torque
-            Q[i] = np.dot( F , F )
-            
-            
-        R_star = Q.argmin()
-            
-        F = self.computed_torque( ddq_r , x , R_star )
-        
-        u = np.append( F , R_star )
-        
-        return u
         
         
     ############################
@@ -160,45 +202,14 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         else:
             
             # Fixed goal
-            ddq = np.zeros(2)
-            dq  = self.goal[2:4]
-            q   = self.goal[0:2]
+            ddq          =   np.zeros( self.R.dof )
+            [ q , dq ]   = self.R.x2q( self.goal  )   # from state vector (x) to angle and speeds (q,dq)
             
         
         return ddq , dq , q
         
     
-    ############################
-    def traj_following_ctl( self , x , t ):
-        """ 
-        
-        Given desired loaded trajectory and actual state, compute torques and optimal gear ratio
-        
-        """
-        
-        ddq_d , dq_d , q_d = self.get_traj( t )
 
-        ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
-        
-        # Cost is Q
-        Q = np.zeros( self.n_gears )
-        
-        #for all gear ratio options
-        for i in xrange( self.n_gears ):
-            
-            F = self.computed_torque( ddq_r , x , i )
-            
-            # Cost is norm of torque
-            Q[i] = np.dot( F , F )
-            
-            
-        R_star = Q.argmin()
-            
-        F = self.computed_torque( ddq_r , x , R_star )
-        
-        u = np.append( F , R_star )
-        
-        return u
 
         
         

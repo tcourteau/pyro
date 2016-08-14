@@ -83,7 +83,11 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def trig(self, q = np.zeros(2)):
-        """ Compute cos and sin """
+        """ 
+        Compute cos and sin usefull in other computation 
+        ------------------------------------------------
+        
+        """
         
         c1  = np.cos( q[0] )
         s1  = np.sin( q[0] )
@@ -97,27 +101,47 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def fwd_kinematic(self, q = np.zeros(2)):
-        """ Compute [x;y] end effector position given angles q """
+        """ 
+        Compute p = [x;y] positions given angles q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        - last point should be the end-effector
+        
+        """
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
-        # Three robot points in plane
+        PTS = np.zeros(( self.n_pts , self.dim_pts ))
         
-        x0 = 0
-        y0 = 0
+        PTS[0,0] = 0
+        PTS[0,1] = 0
         
-        x1 = self.l1 * s1
-        y1 = self.l1 * c1
+        PTS[1,0] = self.l1 * s1
+        PTS[1,1] = self.l1 * c1
         
-        x2 = self.l1 * s1 + self.l2 * s12
-        y2 = self.l1 * c1 + self.l2 * c12
-        
-        return np.array([[x0,y0],[x1,y1],[x2,y2]])
+        PTS[2,0] = self.l1 * s1 + self.l2 * s12
+        PTS[2,1] = self.l1 * c1 + self.l2 * c12
+                
+        return PTS
     
     
     ##############################
     def jacobian_endeffector(self, q = np.zeros(2)):
-        """ Compute jacobian of end-effector """
+        """ 
+        Compute jacobian of end-effector 
+        --------------------------------------
+
+        # Differential kinematic
+        p : end-effector position
+        q : joint coordinates
+        dp = [ J_end ] dq 
+        
+        # Virtual work
+        f_ext : force applied on end-effector
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) f_ext
+        
+        """
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -132,8 +156,60 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     ##############################
+    def jacobian_actuators(self, q = np.zeros(2) ):
+        """ 
+        Compute jacobian of acutator coordinates 
+        ----------------------------------------
+        dim( J_a ) = ( dof , dof )
+        
+        # Differential kinematic
+        a : actuator coordinates
+        q : joint coordinates
+        da = [ J_a ] dq 
+        
+        # Virtual work
+        e     : actuator efforts
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) e
+        
+        Note : This will be identity matrix for most case where actuators 
+        are coupled 1:1 at each joint.
+        
+        """
+        
+        J_a = np.eye( self.dof )  # By default, identity matrix --> actuator coord = joint coord
+        
+        return J_a
+        
+        
+    ##############################
+    def jacobian_actuators_diff(self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """ 
+        Compute time differential of actuator coordinates jacobian
+        ----------------------------------------------------------
+        dim( dJ_a ) = ( dof , dof )
+        
+        - Become necessarly in EoM computation if two condition are True:
+        -- Inertia in actuator coordinates is included
+        -- Actuator coupling is variable --> J_a = J_a( q )
+        
+        """
+        
+        dJ_a = np.zeros( ( self.dof , self.dof )  )  # By default, J is constant hence dJ = zero
+        
+        return dJ_a
+        
+        
+    ##############################
     def H(self, q = np.zeros(2)):
-        """ Inertia matrix """  
+        """ 
+        Inertia matrix of the manipulator
+        ----------------------------------
+        dim( H ) = ( dof , dof )
+        
+        such that --> Kinetic Energy = 0.5 * dq^T * H(q) * dq
+        
+        """  
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -149,7 +225,15 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def C(self, q = np.zeros(2) ,  dq = np.zeros(2) ):
-        """ Corriolis Matrix """  
+        """ 
+        Corriolis and Centrifugal Matrix 
+        ------------------------------------
+        dim( C ) = ( dof , dof )
+        
+        such that --> d H / dt =  C + C^T
+        
+        
+        """  
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -167,7 +251,17 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def D(self, q = np.zeros(2) ,  dq = np.zeros(2) ):
-        """ Damping Matrix """  
+        """ 
+        Damping Matrix  
+        -------------------------------
+        dim( D ) = ( dof , dof )
+        
+        f_d = damping force in joint coord
+        
+        f_d = D( q , dq ) * dq
+        
+        
+        """  
                
         D = np.zeros((2,2))
         
@@ -181,7 +275,15 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def G(self, q = np.zeros(2) ):
-        """Gravity forces """  
+        """
+        Gravity forces 
+        ---------------------------
+        dim( G ) = ( dof )
+        
+        compute gravitational force in joint coordinates       
+        
+        
+        """  
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -195,31 +297,84 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         return G
         
+        
+    ##############################
+    def F_ext(self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """
+        Compute External forces applied on end-effector
+        ---------------------------
+        Override this function with a specific function if the robot
+        is interacting with an external system and it will be automatically
+        included in EoM that is calling this function.
+        
+        F_ext = f( q , dq )
+                
+        """  
+        
+        # TODO should define a dimension corresponding to end-effector DoF that can be different from the robot DoF
+        F_ext = np.zeros( self.dof ) 
+        
+        return F_ext
+        
+    
+    ##############################
+    def B(self, q = np.zeros(2) ):
+        """
+        Actuator mechanical advantage Matrix
+        ---------------------------
+        dim( B ) = ( dof , dof )  --> assuming number of actuator == number of DOF
+        
+        e   : actuator efforts
+        f   : generalized force in joint coord
+        
+        f  = B( q ) * e
+    
+
+        """  
+        
+        B = self.jacobian_actuators( q ).T
+        
+        return B
+        
     
     ##############################
     def F(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2)):
         """ Computed torques given a trajectory (inverse dynamic) """  
         
-        H = self.H( q )
-        C = self.C( q , dq )
-        D = self.D( q , dq )
-        G = self.G( q )
+        H   = self.H( q )
+        C   = self.C( q , dq )
+        D   = self.D( q , dq )
+        G   = self.G( q )
+        B   = self.B( q )
         
-        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G
+        # External forces
+        J_e = self.jacobian_endeffector( q )
+        f_e = self.F_ext( q , dq )
         
-        return F
+        # Generalized forces
+        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G - np.dot( J_e.T , f_e )
+        
+        # Actuator effort
+        e = np.dot( np.linalg.inv( B ) , F )
+        
+        return e
         
         
     ##############################
-    def ddq(self, q = np.zeros(2) , dq = np.zeros(2) , F = np.zeros(2)):
+    def ddq(self, q = np.zeros(2) , dq = np.zeros(2) , e = np.zeros(2)):
         """ Computed accelerations given torques"""  
         
         H = self.H( q )
         C = self.C( q , dq )
         D = self.D( q , dq )
         G = self.G( q )
+        B = self.B( q )
         
-        ddq = np.dot( np.linalg.inv( H ) ,  ( F - np.dot( C , dq ) - np.dot( D , dq ) - G ) )
+        # External forces
+        J_e = self.jacobian_endeffector( q )
+        f_e = self.F_ext( q , dq )
+        
+        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , e ) + np.dot( J_e.T , f_e ) - np.dot( C , dq ) - np.dot( D , dq ) - G ) )
         
         return ddq
         
@@ -238,21 +393,6 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         dx : state derivative vectror n x 1
         
         """
-        
-        # Old 2-dof only version
-        """
-        dx = np.zeros(self.n) # State derivative vector
-        
-        q  = x[0:2]
-        dq = x[2:4]
-        
-        ddq = self.ddq( q , dq , u )
-        
-        dx[0:2] = dq
-        dx[2:4] = ddq
-        """
-        
-        # New n-dof version
         
         [ q , dq ] = self.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
@@ -471,6 +611,8 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
         RDDS.DynamicSystem.__init__(self, n , m )
         
+        self.dof = 1 # Number of DoF
+        
         self.state_label = ['Angle 1','Speed 1']
         self.input_label = ['Torque 1']
         
@@ -490,6 +632,11 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         self.ubar = np.array([0])
         
         self.setparams()
+        
+        # Ploting param
+        self.n_pts        = 2 # number of pts to plot on the manipulator 
+        self.dim_pts      = 2 # number of dimension for each pts 
+        self.axis_to_plot = [0,1]
         
         
     #############################
@@ -523,24 +670,44 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def fwd_kinematic(self, q = np.zeros(1) ):
-        """ Compute [x;y] end effector position given angles q """
+        """ 
+        Compute p = [x;y] positions given angles q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        - last point should be the end-effector
+        
+        """
         
         [c1,s1] = self.trig( q )
         
-        # Three robot points
+        PTS = np.zeros(( self.n_pts , self.dim_pts ))
         
-        x0 = 0
-        y0 = 0
+        PTS[0,0] = 0
+        PTS[0,1] = 0
         
-        x1 = self.l1 * s1
-        y1 = self.l1 * c1
+        PTS[1,0] = self.l1 * s1
+        PTS[1,1] = self.l1 * c1
         
-        return np.array([[x0,y0],[x1,y1]])
+        return PTS
     
     
     ##############################
     def jacobian_endeffector(self, q = np.zeros(1)):
-        """ Compute jacobian of end-effector """
+        """ 
+        Compute jacobian of end-effector 
+        --------------------------------------
+        
+        # Differential kinematic
+        p : end-effector position
+        q : joint coordinates
+        dp = [ J_end ] dq 
+        
+        # Virtual work
+        f_ext : force applied on end-effector
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) f_ext
+        
+        """
         
         [c1,s1] = self.trig( q )
         
@@ -550,6 +717,51 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         J[1] = -self.l1 * s1 
         
         return J
+        
+        
+    ##############################
+    def jacobian_actuators(self, q = np.zeros(2) ):
+        """ 
+        Compute jacobian of acutator coordinates 
+        ----------------------------------------
+        dim( J_a ) = ( dof , dof )
+        
+        # Differential kinematic
+        a : actuator coordinates
+        q : joint coordinates
+        da = [ J_a ] dq 
+        
+        # Virtual work
+        e     : actuator efforts
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) e
+        
+        Note : This will be identity matrix for most case where actuators 
+        are coupled 1:1 at each joint.
+        
+        """
+        
+        J_a = 1  # By default, identity matrix --> actuator coord = joint coord
+        
+        return J_a
+        
+        
+    ##############################
+    def jacobian_actuators_diff(self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """ 
+        Compute time differential of actuator coordinates jacobian
+        ----------------------------------------------------------
+        dim( dJ_a ) = ( dof , dof )
+        
+        - Become necessarly in EoM computation if two condition are True:
+        -- Inertia in actuator coordinates is included
+        -- Actuator coupling is variable --> J_a = J_a( q )
+        
+        """
+        
+        dJ_a = 0  # By default, J is constant hence dJ = zero
+        
+        return dJ_a
         
         
     ##############################
@@ -592,39 +804,26 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
         return G
         
+    
     ##############################
-    def e_kinetic(self, q = np.zeros(1) , dq = np.zeros(1) ):
-        """ Compute kinetic energy of manipulator """  
+    def B(self, q = np.zeros(2) ):
+        """
+        Actuator mechanical advantage Matrix
+        ---------------------------
+        dim( B ) = ( dof , dof )  --> assuming number of actuator == number of DOF
         
-        e_k = 0.5 * np.dot( dq , np.dot( self.H( q ) , dq ) )
+        e   : actuator efforts
+        f   : generalized force in joint coord
         
-        return e_k
+        f  = B( q ) * e
+    
+
+        """  
         
+        B = self.jacobian_actuators( q )
         
-    ##############################
-    def e_potential(self, q = np.zeros(2) ):
-        """ Compute potential energy of manipulator """  
+        return B
         
-        [ c1 , s1 ] = self.trig( q )
-        
-        g1 = (self.m1 * self.lc1 + self.M * self.l1 ) * self.g
-        
-        e_p = g1 * c1   
-        
-        return e_p
-        
-    ##############################
-    def energy_values(self, x = np.zeros(1)  ):
-        """ Compute energy values of manipulator """ 
-        
-        q  = x[0]
-        dq = x[1]
-        
-        e_k = self.e_kinetic( q , dq )
-        e_p = self.e_potential( q )
-        e   = e_k + e_p
-        
-        return [ e , e_k , e_p ]
         
     
     ##############################
@@ -635,22 +834,28 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         C = self.C( q , dq )
         D = self.D( q , dq )
         G = self.G( q )
+        B = self.B( q )
         
+        # Generalized forces
         F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G
         
-        return F
+        # Actuator effort
+        e = ( 1./ B ) * F 
+        
+        return e
         
         
     ##############################
-    def ddq(self, q = np.zeros(1) , dq = np.zeros(1) , F = np.zeros(1) ):
+    def ddq(self, q = np.zeros(1) , dq = np.zeros(1) , e = np.zeros(1) ):
         """ Computed accelerations given torques"""  
         
         H = self.H( q )
         C = self.C( q , dq )
         D = self.D( q , dq )
         G = self.G( q )
+        B = self.B( q )
         
-        ddq = np.dot( 1./H ,  ( F - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
+        ddq = np.dot( 1./H ,  ( np.dot( B , e ) - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
         
         return ddq
         
@@ -681,6 +886,64 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         dx[1] = ddq
         
         return dx
+        
+        
+    #############################
+    def x2q( self, x = np.zeros(2) ):
+        """ from state vector (x) to angle and speeds (q,dq) """
+        
+        q  = x[ 0 ]
+        dq = x[ 1 ]
+        
+        return [ q , dq ]
+        
+        
+    #############################
+    def q2x( self, q = np.zeros(1) , dq = np.zeros(1) ):
+        """ from angle and speeds (q,dq) to state vector (x) """
+        
+        x = np.zeros( self.n )
+        
+        x[ 0  ] = q
+        x[ 1  ] = dq
+        
+        return x
+        
+        
+    ##############################
+    def e_kinetic(self, q = np.zeros(1) , dq = np.zeros(1) ):
+        """ Compute kinetic energy of manipulator """  
+        
+        e_k = 0.5 * np.dot( dq , np.dot( self.H( q ) , dq ) )
+        
+        return e_k
+        
+        
+    ##############################
+    def e_potential(self, q = np.zeros(2) ):
+        """ Compute potential energy of manipulator """  
+        
+        [ c1 , s1 ] = self.trig( q )
+        
+        g1 = (self.m1 * self.lc1 + self.M * self.l1 ) * self.g
+        
+        e_p = g1 * c1   
+        
+        return e_p
+        
+        
+    ##############################
+    def energy_values(self, x = np.zeros(1)  ):
+        """ Compute energy values of manipulator """ 
+        
+        q  = x[0]
+        dq = x[1]
+        
+        e_k = self.e_kinetic( q , dq )
+        e_p = self.e_potential( q )
+        e   = e_k + e_p
+        
+        return [ e , e_k , e_p ]
         
         
     #############################

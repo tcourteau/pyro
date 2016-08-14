@@ -23,7 +23,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         HM.HybridThreeLinkManipulator.__init__(self, n , m )
         
         # Create interpol function
-        self.compute_q0_fwd_kinematic()
+        self.compute_a0_fwd_kinematic()
         
         # Ploting param
         self.n_pts   = 8 # number of pts to plot on the manipulator 
@@ -49,6 +49,12 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         self.lw = 1
         
+        # Gear ratio
+        
+        R1 = np.diag([1,1,1])
+        R2 = np.diag([10,1,1])
+        
+        self.R = [ R1 , R2 ]
         
         # Dynamics
         
@@ -59,17 +65,17 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         
     ############################
-    def q0_inv_kinematic(self, theta_0 = 0 ):
+    def a0_inv_kinematic(self, q_0 = 0 ):
         """ 
         Inverse kinematic of first DOF 
         -----------------------------
-        theta_0 : angle of 2x2 tube w/ vertical [rad]
-        q0      : linear displacement of ballscew nut from zero-position
+        q_0 : angle of 2x2 tube w/ vertical [rad]
+        a_0 : linear displacement of ballscew nut from zero-position
         
         """
         # see alex logbook for figure and variable def:
         
-        theta_3 = self.b[7] - theta_0   # angle offset
+        theta_3 = self.b[7] - q_0   # angle offset
         
         s3 = np.sin( theta_3 )
         c3 = np.cos( theta_3 )
@@ -80,13 +86,13 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         l1 = l3 * s3 + np.sqrt( l2 **2 - ( l3 * c3 - h1) **2 )
         
-        q0 = self.b[5] - l1
+        a_0 = self.b[5] - l1
         
-        return q0
+        return a_0
         
         
     ############################
-    def compute_q0_fwd_kinematic( self , plot = False  ):
+    def compute_a0_fwd_kinematic( self , plot = False  ):
         """ 
         Create and interpol function for fwd kinematic 
         -----------------------------------------------
@@ -101,9 +107,9 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         # Inv kinematic
         for i in range( angles.size ):
-            linear[i] = self.q0_inv_kinematic( angles[i] )
+            linear[i] = self.a0_inv_kinematic( angles[i] )
             
-        self.theta0_fwd_kinematic = interp1d( linear , angles )
+        self.a0_fwd_kinematic = interp1d( linear , angles )
         # theta_0 = self.q0_fwd_kinematic( q0 )
         
         if plot:
@@ -129,7 +135,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
     def trig(self, q = np.zeros(3) ):
         """ Compute cos and sin """
         
-        theta_0 = self.theta0_fwd_kinematic( q[0] )
+        theta_0 = self.a0_fwd_kinematic( q[0] )
         s0 = np.sin( theta_0 )
         c0 = np.cos( theta_0 )
         
@@ -172,7 +178,6 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         ### Seconde DOF ###
         #TODO
         
-        
         return np.array([p0,p1,p2,p3,p4,p5,p6,p7])
         
                     
@@ -187,9 +192,38 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         
     ##############################
-    def jacobian_q0_theta0(self, q = np.zeros(3)):
+    def jacobian_actuators(self, q = np.zeros(2) ):
         """ 
-        Compute jacobian of link0 angular velocity (theta_0)  vs. linear actuator velocity (q[0])
+        Compute jacobian of acutator coordinates 
+        ----------------------------------------
+        dim( J_a ) = ( dof , dof )
+        
+        # Differential kinematic
+        a : actuator coordinates
+        q : joint coordinates
+        da = [ J_a ] dq 
+        
+        # Virtual work
+        e     : actuator efforts
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) e
+        
+        Note : This will be identity matrix for most case where actuators 
+        are coupled 1:1 at each joint.
+        
+        """
+        
+        J_a = np.eye( self.dof )  # By default, identity matrix --> actuator coord = joint coord
+        
+        J_a[0,0] = self.jacobian_a0_q0( q )
+        
+        return J_a
+        
+        
+    ##############################
+    def jacobian_a0_q0(self, q = np.zeros(3)):
+        """ 
+        Compute jacobian of link0 angular velocity (q_0)  vs. linear actuator velocity (a_0)
         
         units = [meter/rad]
         
@@ -253,9 +287,15 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
     def G(self, q = np.zeros(2) ):
         """Gravity forces """  
         
+        [base,link1,link2] = self.trig( q )
+        
+        [ theta_0 , s0 , c0 , theta_2 , s2 , c2 , theta_3, s3 , c3 ] = base
+        
         #TODO
         
         G = np.zeros(3)
+        
+        G[0] = - 0.01 * 9.8 * 1 * s0
         
         return G
         
@@ -294,4 +334,4 @@ if __name__ == "__main__":
     
     x0 = np.array([0,0,0,0.3,0,0])
     
-    R.plot3DAnimation( x0 )
+    #R.plot3DAnimation( x0 )
