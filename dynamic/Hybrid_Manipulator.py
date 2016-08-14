@@ -169,10 +169,13 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         
         
     ##############################
-    def Tlosses(self, dq = np.zeros(2) , ddq = np.zeros(2)):
+    def Tlosses(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) ):
         """ Computed torques losses given a trajectory  """  
+        
+        J_a  = self.jacobian_actuators( q )
+        dJ_a = self.jacobian_actuators_diff( q , dq )
                 
-        T = np.dot( self.Ia  , ddq ) + np.dot( self.Da  , dq )
+        T = np.dot(  J_a , np.dot( self.Ia  , ddq ) + np.dot( self.Da  , dq )  ) + np.dot(  dJ_a , np.dot( self.Ia  , dq ) )
         
         return T
         
@@ -183,11 +186,11 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         
         R = self.R[uD]
         
-        F = self.F( q , dq , ddq )
+        e = self.F( q , dq , ddq )         # actuator efforts computed for manipulator side only
         
-        Tl = self.Tlosses( dq , ddq )
+        Tl = self.Tlosses( q , dq , ddq )  # see alex logbook : virtual effort related to motor losses (inertial and viscous rotor forces)
         
-        T = np.dot( np.linalg.inv(R) , F ) + np.dot( R , Tl ) 
+        T = np.dot( np.linalg.inv(R) , e ) + np.dot( R , Tl ) 
         
         return T
         
@@ -197,18 +200,29 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         """ Computed accelerations given actuator torques and gear ratio """  
         
         R = self.R[ int(uD) ]
+        B = np.dot( self.B( q ) , R.T   )    # Transfor to rotor space        
         
-        Ha = self.H( q ) + np.dot( R , np.dot( R , self.Ia ) )
+        H_all = self.H( q ) + np.dot( B , np.dot( self.Ia , B.T ) )
+        
+        dJ_a = self.jacobian_actuators_diff( q , dq )
         
         C  = self.C( q , dq )
+        Ca = np.dot( B , np.dot( self.Ia , np.dot( R ,  dJ_a  ) ) )
+        
         D  = self.D( q , dq )
+        Da = np.dot( B , np.dot( self.Da , B.T ) )
         
-        Ca =  C + D + np.dot( R , np.dot( R , self.Da ) )
-        
+        CD_all  =  C + D + Ca + Da
         
         G  = self.G( q )
         
-        ddq = np.dot( np.linalg.inv( Ha ) ,  ( np.dot( R , T ) - np.dot( Ca , dq ) - G ) )
+        # External forces
+        J_e = self.jacobian_endeffector( q )
+        f_e = self.F_ext( q , dq )
+        
+        
+        ddq = np.dot( np.linalg.inv( H_all ) ,  ( np.dot( B , T ) + np.dot( J_e.T , f_e ) - np.dot( CD_all , dq ) - G ) )
+
         
         return ddq
         
@@ -298,46 +312,48 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         
         
     ##############################
-    def Tlosses(self, dq = np.zeros(3) , ddq = np.zeros(3)):
-        """ Computed torques losses given a trajectory  """  
-                
-        T = np.dot( self.Ia  , ddq ) + np.dot( self.Da  , dq )
-        
-        return T
-        
-        
-    ##############################
-    def T(self, q = np.zeros(3) , dq = np.zeros(3) , ddq = np.zeros(3) , uD = 0 ):
+    def T(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) , uD = 0 ):
         """ Computed acutator torques given a trajectory and gear ratio """ 
         
         R = self.R[uD]
         
-        F = self.F( q , dq , ddq )
+        e = self.F( q , dq , ddq )         # actuator efforts computed for manipulator side only
         
-        Tl = self.Tlosses( dq , ddq )
+        Tl = self.Tlosses( q , dq , ddq )  # see alex logbook : virtual effort related to motor losses (inertial and viscous rotor forces)
         
-        T = np.dot( np.linalg.inv(R) , F ) + np.dot( R , Tl ) 
+        T = np.dot( np.linalg.inv(R) , e ) + np.dot( R , Tl ) 
         
         return T
         
         
     ##############################
-    def ddq_a(self, q = np.zeros(3) , dq = np.zeros(3) , T = np.zeros(3) , uD = 0 ):
+    def ddq_a(self, q = np.zeros(2) , dq = np.zeros(2) , T = np.zeros(2) , uD = 0 ):
         """ Computed accelerations given actuator torques and gear ratio """  
         
         R = self.R[ int(uD) ]
+        B = np.dot( self.B( q ) , R.T   )    # Transfor to rotor space        
         
-        Ha = self.H( q ) + np.dot( R , np.dot( R , self.Ia ) )
+        H_all = self.H( q ) + np.dot( B , np.dot( self.Ia , B.T ) )
+        
+        dJ_a = self.jacobian_actuators_diff( q , dq )
         
         C  = self.C( q , dq )
+        Ca = np.dot( B , np.dot( self.Ia , np.dot( R ,  dJ_a  ) ) )
+        
         D  = self.D( q , dq )
+        Da = np.dot( B , np.dot( self.Da , B.T ) )
         
-        Ca =  C + D + np.dot( R , np.dot( R , self.Da ) )
-        
+        CD_all  =  C + D + Ca + Da
         
         G  = self.G( q )
         
-        ddq = np.dot( np.linalg.inv( Ha ) ,  ( np.dot( R , T ) - np.dot( Ca , dq ) - G ) )
+        # External forces
+        J_e = self.jacobian_endeffector( q )
+        f_e = self.F_ext( q , dq )
+        
+        
+        ddq = np.dot( np.linalg.inv( H_all ) ,  ( np.dot( B , T ) + np.dot( J_e.T , f_e ) - np.dot( CD_all , dq ) - G ) )
+        
         
         return ddq
         
