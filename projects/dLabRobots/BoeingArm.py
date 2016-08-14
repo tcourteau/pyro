@@ -27,14 +27,24 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         self.dim_pts = 3 # number of dimension for each pts 
         self.axis_to_plot = [0,2]  # axis to plot for 2D plot
         
-        self.setBoeingArmparams()
+        #self.setparams()
         
         # Create interpol function
         self.compute_a0_fwd_kinematic()
         
     #############################
-    def setBoeingArmparams(self):
-        """ Set model parameters here """
+    def setparams(self):
+        
+        self.setKineticParams()
+        self.setDynamicParams()
+        self.setActuatorParams()
+        
+        print 'Loaded Boeing Arm Manipulator'
+        
+        
+    #############################
+    def setKineticParams(self):
+        """ Set kinetic parameters here """
         
         # First link kinematic
         b0  = 0.9   # 2x2 tubing length
@@ -50,6 +60,35 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         self.lw = 1
         
+    #############################
+    def setDynamicParams(self):
+        """ Set dynamic parameters here """
+
+        self.g = 9.8
+        
+        # Dynamics first link
+        self.mc0 = 0.2              # 200g carbon tube alone
+        self.lc0 = self.b[0] * 0.5
+        self.Ic0 = 0
+
+        # joint viscous damping coef
+        self.d1 = 0.01
+        
+        
+        
+    #############################
+    def setActuatorParams(self ):
+        """ Set actuators parameters here """
+        
+        # Actuator damping coef
+        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] )
+        
+        # Actuator inertia coef
+        
+        I_m = 15 # gcm2
+        
+        self.Ia = np.diag( [ I_m , I_m , I_m ] ) * 0.001 * ( 0.01 **2 )
+        
         # Gear ratio
         lead = 0.02
         r1   = 4
@@ -59,27 +98,6 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         R2 = np.diag([ 2 * np.pi * r2 / lead ,1,1])
         
         self.R = [ R1 , R2 ]
-        
-        # Dynamics first link
-        
-        self.g = 9.8
-        
-        self.mc0 = 0.2              # 200g carbon tube alone
-        self.lc0 = b0 * 0.5
-        self.Ic0 = 0
-
-        # joint viscous damping coef
-        self.d1 = 0.01
-        
-        # Actuator damping coef
-        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] )
-        
-        # Actuator inertia coef
-        
-        I_m = 15 # gcm2
-
-        
-        self.Ia = np.diag( [ I_m , I_m , I_m ] ) * 0.001 * ( 0.01 **2 )
         
      
     ##############################
