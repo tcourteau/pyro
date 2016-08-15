@@ -5,13 +5,13 @@ Created on Sun Aug 14 13:27:30 2016
 @author: agirard
 """
 
-from BoeingArm import BoeingArm as BA
+from AlexRobotics.dynamic import CustomManipulator    as CM
 
-from AlexRobotics.control  import RminComputedTorque   as RminCTC
+from AlexRobotics.control import RminComputedTorque   as RminCTC
 
 import numpy as np
 
-R = BA()
+R = CM.BoeingArm()
 
 R.mc0 = 1.0
 
