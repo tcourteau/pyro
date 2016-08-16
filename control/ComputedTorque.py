@@ -149,9 +149,9 @@ class ComputedTorqueController:
         
         self.solution = solution
         
-        q   = solution[0][0:2,:]
-        dq  = solution[0][2:4,:]
-        ddq = solution[3][2:4,:]
+        q   = solution[0][ 0          :     self.R.dof , : ]
+        dq  = solution[0][ self.R.dof : 2 * self.R.dof , : ]
+        ddq = solution[3][ self.R.dof : 2 * self.R.dof , : ]
         t   = solution[2]
         
         self.traj = [ ddq , dq , q , t ]
@@ -198,9 +198,9 @@ class ComputedTorqueController:
         else:
             
             # Fixed goal
-            ddq = np.zeros(2)
-            dq  = self.goal[2:4]
-            q   = self.goal[0:2]
+            ddq = np.zeros( self.R.dof )
+            dq  = self.goal[ self.R.dof : 2 * self.R.dof]
+            q   = self.goal[ 0          : self.R.dof    ]
             
         
         return ddq , dq , q

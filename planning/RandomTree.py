@@ -290,7 +290,7 @@ class RRT:
         dx = np.fliplr( dx )
             
         # Save solution
-        self.time_to_goal = t.max()
+        self.time_to_goal    = t.max()
         self.solution        = [ x , u , t , dx ]
         self.solution_length = len( self.path_node_list )
         

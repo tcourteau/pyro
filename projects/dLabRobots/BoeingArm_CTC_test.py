@@ -8,7 +8,7 @@ Created on Sun Aug 14 13:27:30 2016
 from AlexRobotics.dynamic import CustomManipulator    as CM
 
 from AlexRobotics.control import RminComputedTorque   as RminCTC
-
+    
 import numpy as np
 
 R = CM.BoeingArm()
