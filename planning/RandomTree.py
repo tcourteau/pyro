@@ -310,6 +310,26 @@ class RRT:
         
         
     ############################
+    def animate3D_solution(self, time_scale = 1 ):
+        """ 
+        animate robots with open loop solution
+        --------------------------------------
+        only works if self.DS is a 3D mainpulator class
+        
+        """
+        
+        self.OL_SIM = DS.Simulation( self.DS , self.time_to_goal , self.solution_length )
+        
+        self.OL_SIM.t        = self.solution[2].T
+        self.OL_SIM.x_sol_CL = self.solution[0].T
+        self.OL_SIM.u_sol_CL = self.solution[1].T
+        
+        self.DS.Sim = self.OL_SIM 
+        
+        self.DS.animate3DSim( time_scale )
+        
+        
+    ############################
     def open_loop_controller(self, x , t ):
         """ feedback law """
         
