@@ -480,7 +480,19 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         plt.show()
         
-        return fig , ax, line
+        self.fig_show  = fig
+        self.line_show = line[0]
+        self.ax_show   = ax
+        
+        #return fig , ax, line
+    
+    #############################
+    def update_show(self, q):
+        """ update figure of configuration q """
+        
+        pts = self.fwd_kinematic( q )
+        
+        self.line_show.set_data( pts[:, self.axis_to_plot[0] ], pts[:, self.axis_to_plot[1] ])
         
         
     #############################
