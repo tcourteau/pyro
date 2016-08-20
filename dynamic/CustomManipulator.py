@@ -27,9 +27,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         self.dim_pts = 3 # number of dimension for each pts 
         self.axis_to_plot = [0,2]  # axis to plot for 2D plot
         
-        #self.setparams()
-        
-        # Create interpol function
+        # Create interpol function for the 4-bar fwd kinematic
         self.compute_a0_fwd_kinematic()
         
     #############################
@@ -156,7 +154,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
     def jacobian_endeffector(self, q = np.zeros(3)):
         """ Compute jacobian of end-effector """
                 
-        J = np.zeros((3,3))
+        J = np.eye( self.dof )
         #TODO
         
         return J
@@ -189,6 +187,41 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         J_a[0,0] = self.jacobian_a0_q0( q ) # non-linear 4-bar linkage
         
         return J_a
+        
+    
+    ##############################
+    def a2q(self, a = np.zeros(3) ):
+        """ 
+        Get actuator coor from joint coor
+        ----------------------------------------------
+
+        """
+        
+        q = np.zeros( self.dof )
+        
+        q[0] = self.q0_fwd_kinematic( a[0] )  # Four bar kinematic
+        q[1] = a[1]
+        q[2] = a[2]
+        
+        
+        return q
+        
+    
+    ##############################
+    def q2a(self, q = np.zeros(3) ):
+        """ 
+        Get joint coord from actuators coor
+        ----------------------------------------
+        
+        """
+        
+        a = np.zeros( self.dof )
+        
+        a[0]  = self.a0_inv_kinematic( q[0] ) # Four bar kinematic
+        a[1]  = q[1]                          # joint revolute actuator
+        a[2]  = q[2]                          # joint revolute actuator
+        
+        return a
          
         
     ##############################
@@ -255,6 +288,11 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         # TODO
         
         return e_p
+        
+    
+    ################################################################
+    # Utility functions specific to Boeing Arm
+    ################################################################
         
         
     ############################

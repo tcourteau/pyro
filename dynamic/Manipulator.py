@@ -199,6 +199,38 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         return dJ_a
         
+    
+    ##############################
+    def a2q(self, a = np.zeros(2) ):
+        """ 
+        Get actuator coor from joint coor
+        ----------------------------------------------
+        by defaut joint coord & actuator coord are the same :
+        
+        q = a
+        
+        """
+        
+        q = a
+        
+        return q
+        
+    
+    ##############################
+    def q2a(self, q = np.zeros(2) ):
+        """ 
+        Get joint coord from actuators coor
+        ----------------------------------------
+        by defaut joint coord & actuator coord are the same :
+        
+        q = a
+        
+        """
+        
+        a = q
+        
+        return a
+        
         
     ##############################
     def H(self, q = np.zeros(2)):
@@ -335,6 +367,39 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
     # Based functions : No need to modify the next functions for custom robots
     ##########################################################################
         
+    ##############################
+    def da2dq(self, da = np.zeros(2) , q = np.zeros(2) ):
+        """ 
+        Get actuator velocities from joint velocities
+        ----------------------------------------------
+        
+        da = [ J_a( q ) ] dq
+        
+        """
+        
+        J_a = self.jacobian_actuators( q )
+        
+        dq  = np.dot( np.linalg.inv( J_a ) , da )
+        
+        return dq
+        
+    
+    ##############################
+    def dq2da(self, dq = np.zeros(2) , q = np.zeros(2) ):
+        """ 
+        Get joint velocities from actuators velocities
+        ----------------------------------------
+        
+        da = [ J_a( q ) ] dq
+        
+        """
+        
+        J_a = self.jacobian_actuators( q )
+        
+        da  = np.dot( J_a , dq )
+        
+        return da
+        
     
     ##############################
     def B(self, q = np.zeros(2) ):
@@ -467,7 +532,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     #############################
-    def show(self, q):
+    def show(self, q = np.zeros(2) ):
         """ Plot figure of configuration q """
         
         fig = plt.figure()
@@ -656,6 +721,7 @@ class OneLinkManipulator( TwoLinkManipulator ) :
     Pendulum used as exemple
     
     some base function are overloaded with the scalar version when necessarly
+    -- for instance function using np.linalg.inv 
     
     """
     
@@ -961,6 +1027,23 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         e_p = g1 * c1   
         
         return e_p
+        
+        
+    ##############################
+    def da2dq(self, da = np.zeros(1) , q = np.zeros(1) ):
+        """ 
+        Get actuator velocities from joint velocities
+        ----------------------------------------------
+        
+        da = [ J_a( q ) ] dq
+        
+        """
+        
+        J_a = self.jacobian_actuators( q )
+        
+        dq  = np.dot( 1./ J_a  , da )
+        
+        return dq
         
 
 
