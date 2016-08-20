@@ -559,6 +559,8 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         self.line_show.set_data( pts[:, self.axis_to_plot[0] ], pts[:, self.axis_to_plot[1] ])
         
+        self.fig_show.canvas.draw()
+        
         
     #############################
     def show_jaco(self, q ):
@@ -1373,6 +1375,22 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         ax.set_zlim3d([- self.lw / 2. , self.lw / 2.])
         ax.set_zlabel('Z')
         plt.show()
+        
+        self.fig_show_3D  = fig
+        self.line_show_3D = line[0]
+        self.ax_show_3D   = ax
+        
+    
+    #############################
+    def update_show_3D(self, q):
+        """ update figure of configuration q """
+        
+        pts = self.fwd_kinematic( q )
+        
+        self.line_show_3D.set_data( pts[:, 0 ], pts[:, 1 ])
+        self.line_show_3D.set_3d_properties( pts[:, 2 ] )
+        
+        self.fig_show_3D.canvas.draw()
         
         
     ##############################
