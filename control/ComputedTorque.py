@@ -136,6 +136,11 @@ class ComputedTorqueController:
         
         ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
         
+        # Save for Debug
+        self.q_e   = q_e
+        self.dq_e  = dq_e
+        self.ddq_r = ddq_r
+        
         return ddq_r
         
         

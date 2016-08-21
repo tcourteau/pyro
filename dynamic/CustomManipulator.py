@@ -70,7 +70,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         self.Ic0 = 0
 
         # joint viscous damping coef
-        self.d1 = 0.01
+        self.d1 = 0.01 
         
         
         
@@ -393,6 +393,196 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
 
 
 
+#################################################################################################################
+
+
+
+
+class TestPendulum( HM.HybridThreeLinkManipulator ) :
+    """ 3DOF Manipulator Class """
+    
+    
+    ############################
+    def __init__(self, n = 6 , m = 4 ):
+        
+        HM.HybridThreeLinkManipulator.__init__(self, n , m )
+        
+        # Ploting param
+        self.n_pts   = 2 # number of pts to plot on the manipulator 
+        self.dim_pts = 3 # number of dimension for each pts 
+        self.axis_to_plot = [0,2]  # axis to plot for 2D plot
+        
+        
+    #############################
+    def setparams(self):
+        """ Set model parameters here """
+        
+        self.l1  = 0.2
+        self.lc1 = 0.1
+        
+        self.mc1 = 0.1
+        self.Ic1 = 1
+        
+        # load
+        self.M  = 0.11
+        
+        self.g = 9.81
+        
+        self.d1 = 0
+        
+        # Total length
+        self.lw = 1
+        
+        self.setActuatorParams()
+        
+    #############################
+    def setActuatorParams(self ):
+        """ Set actuators parameters here """
+        
+        # Actuator damping coef
+        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] ) * 0.5
+        
+        # Actuator inertia coef
+        
+        I_m = 15 # gcm2
+        
+        self.Ia = np.diag( [ I_m , I_m , I_m ] ) * 0.001 * ( 0.01 **2 )
+        
+        # Gear ratio
+        r1   = 23.2 # 5.8 * 4
+        r2   = 474  # 123 * 52/18 *4/3
+        
+        #R1 = np.diag([ r1 ,1,1])
+        R1 = np.diag([ r2, 1,1])
+        R2 = np.diag([ r2 ,1,1])
+        
+        self.R = [ R1 , R2 ]
+        
+        
+    ##############################
+    def trig(self, q = np.zeros(3) ):
+        """ Compute cos and sin """
+        
+        c1  = np.cos( q[0] )
+        s1  = np.sin( q[0] )
+
+        
+        return [c1,s1]
+        
+    ##############################
+    def fwd_kinematic(self, q = np.zeros(3) ):
+        """ 
+        Compute p = [x;y;z] positions given angles q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        - last point should be the end-effector
+        
+        """
+        
+        [c1,s1] = self.trig( q )
+        
+        PTS = np.zeros(( self.n_pts , self.dim_pts ))
+        
+        PTS[0,0] = 0
+        PTS[0,2] = 0
+        
+        PTS[1,0] = self.l1 * s1
+        PTS[1,2] = self.l1 * c1
+        
+        return PTS
+        
+    ##############################
+    def jacobian_endeffector(self, q = np.zeros(1)):
+        """ 
+        Compute jacobian of end-effector 
+        --------------------------------------
+        
+        # Differential kinematic
+        p : end-effector position
+        q : joint coordinates
+        dp = [ J_end ] dq 
+        
+        # Virtual work
+        f_ext : force applied on end-effector
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) f_ext
+        
+        """
+        
+        [c1,s1] = self.trig( q )
+        
+        J = np.zeros((3,3))
+        
+        J[0] =  self.l1 * c1
+        J[2] = -self.l1 * s1 
+        
+        return J
+        
+    
+    ##############################
+    def H(self, q = np.zeros(3)):
+        """ Inertia matrix """  
+        
+        H = np.eye(3)
+        
+        # Temp 1-DoF
+        
+        H[0,0] = self.mc1 * self.lc1 ** 2 + self.M * self.l1 ** 2 + self.Ic1
+        
+        # TODO        
+        
+        return H
+        
+        
+    ##############################
+    def C(self, q = np.zeros(3) ,  dq = np.zeros(3) ):
+        """ Corriolis Matrix """ 
+                        
+        C = np.zeros((3,3))
+        
+        return C
+        
+        
+    ##############################
+    def D(self, q = np.zeros(3) ,  dq = np.zeros(3) ):
+        """ Damping Matrix """  
+               
+        D = np.zeros((3,3))
+        
+        D[0,0] = self.d1
+        #D[1,1] = self.d2
+        #D[2,2] = self.d3
+        
+        return D
+        
+        
+    ##############################
+    def G(self, q = np.zeros(2) ):
+        """Gravity forces """  
+
+        G = np.zeros(3)
+        
+        [c1,s1] = self.trig( q )
+        
+        g1 = (self.mc1 * self.lc1 + self.M * self.l1 ) * self.g
+        
+        G[0] = - g1 * s1 
+        
+        return G
+        
+        
+    ##############################
+    def e_potential(self, q = np.zeros(2) ):
+        """ Compute potential energy of manipulator """  
+               
+        e_p = 0
+        
+        # TODO
+        
+        return e_p
+
+
+
 '''
 #################################################################
 ##################          Main                         ########
@@ -403,5 +593,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    R = BoeingArm()
+    BA = BoeingArm()
+    
+    R  = TestPendulum()
     

@@ -125,22 +125,22 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         return F
         
         
-    ############################
-    def compute_ddq_r( self , ddq_d , dq_d , q_d , x ):
-        """ 
-        
-        Given desired trajectory and actual state, compute ddq_r
-        
-        """
-        
-        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
-        
-        q_e   = q  -  q_d
-        dq_e  = dq - dq_d
-        
-        ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
-        
-        return ddq_r
+#    ############################
+#    def compute_ddq_r( self , ddq_d , dq_d , q_d , x ):
+#        """ 
+#        
+#        Given desired trajectory and actual state, compute ddq_r
+#        
+#        """
+#        
+#        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
+#        
+#        q_e   = q  -  q_d
+#        dq_e  = dq - dq_d
+#        
+#        ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
+#        
+#        return ddq_r
         
         
     ############################
