@@ -32,7 +32,6 @@ class RRT:
         self.Nodes = []
         self.Nodes.append( self.start_node )
         
-        self.solution = None
         
         # Params
         self.dt  = 0.05
@@ -45,11 +44,19 @@ class RRT:
         self.max_distance_compute = 500    # maximum number of nodes to check distance
         self.max_solution_time    = 10     # won"t look for solution taking longuer than that
         
+        
+        # Traj controller
         self.traj_ctl_kp          = 25
         self.traj_ctl_kd          = 10
         
+        # Ploting
+        self.dyna_plot            = False
+        self.dyna_node_no_update  = 50
+        
         self.discretizeactions()
         
+        # Init
+        self.solution              = None
         self.randomized_input      = False
         
         
@@ -191,6 +198,10 @@ class RRT:
         
         no_nodes = 0
         
+         # Plot
+        if self.dyna_plot:
+            self.dyna_plot_init()
+        
         while not succes:
             
             # Exploration:
@@ -222,6 +233,10 @@ class RRT:
             no_nodes = no_nodes + 1
             #print '\nNumber of Nodes = ', no_nodes
             
+            # Plot
+            if self.dyna_plot:
+                self.dyna_plot_add_node( new_node )
+            
             # Succes?
             if d < self.goal_radius:
                 succes = True
@@ -241,6 +256,10 @@ class RRT:
         
         # Compute Path
         self.compute_path_to_goal()
+        
+        # Plot
+        if self.dyna_plot:
+            self.dyna_plot_solution()
         
                 
     ############################
@@ -459,7 +478,56 @@ class RRT:
         plt.grid(True)
         plt.tight_layout()
         plt.show()
-                        
+        
+    
+    ############################
+    def dyna_plot_init(self):
+        
+        self.y1axis = 0  # State to plot on y1 axis
+        self.y2axis = 1  # State to plot on y2 axis
+        
+        self.y1min = self.DS.x_lb[ self.y1axis ]
+        self.y1max = self.DS.x_ub[ self.y1axis ]
+        self.y2min = self.DS.x_lb[ self.y2axis ]
+        self.y2max = self.DS.x_ub[ self.y2axis ]
+        
+        self.phasefig = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
+        self.ax       = self.phasefig.add_subplot(111)
+        
+        plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=6)
+        plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize=6)
+        plt.xlim([ self.y1min , self.y1max ])
+        plt.ylim([ self.y2min , self.y2max ])
+        plt.grid(True)
+        plt.tight_layout()
+        
+        plt.ion()
+        
+        self.node_wait_list = 0
+        
+        
+     ############################
+    def dyna_plot_add_node(self, node ):
+        
+        if not(node.P==None):
+                line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'o-')
+                self.node_wait_list = self.node_wait_list + 1
+                
+                if self.node_wait_list == self.dyna_node_no_update:
+                    plt.pause( 0.01 )
+                    self.node_wait_list = 0
+                    
+                    
+    ############################
+    def dyna_plot_solution(self ):
+        
+        if not self.solution == None:
+            for node in self.path_node_list:
+                if not(node.P==None):
+                    line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'r')
+                    
+            plt.ioff()
+            plt.show()
     
         
         

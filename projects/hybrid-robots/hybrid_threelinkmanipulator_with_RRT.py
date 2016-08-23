@@ -31,7 +31,8 @@ RRT.U = np.array([[0,T,0,u_R],[0,0,0,u_R],[0,-T,0,u_R],[0,0,T,u_R],[0,0,-T,u_R],
 
 RRT.dt                    = 0.2
 RRT.goal_radius           = 0.8
-RRT.max_nodes             = 10000
+RRT.alpha                 = 0.5
+RRT.max_nodes             = 20000
 RRT.max_solution_time     = 12
 
 
