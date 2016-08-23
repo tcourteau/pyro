@@ -14,53 +14,63 @@ import matplotlib.pyplot as plt
 
 R  =  HM.HybridThreeLinkManipulator()
 
-R.ubar = np.array([0,0,0,3])
+R.ubar = np.array([0,0,0,0])
 
 x_start = np.array([0,0,0,0,0,0])
 x_goal  = np.array([-3,-1.5,0,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-T   = 12
-u_R = 3
+T    = 8
+u_R1 = 0
+u_R2 = 1
 
-RRT.U = np.array([[0,T,0,u_R],[0,0,0,u_R],[0,-T,0,u_R],[0,0,T,u_R],[0,0,-T,u_R],[0,T,T,u_R],[0,-T,-T,u_R],[0,-T,T,u_R],[0,T,-T,u_R],
-                  [T,T,0,u_R],[T,0,0,u_R],[T,-T,0,u_R],[T,0,T,u_R],[T,0,-T,u_R],[T,T,T,u_R],[T,-T,-T,u_R],[T,-T,T,u_R],[T,T,-T,u_R],
-                  [-T,T,0,u_R],[-T,0,0,u_R],[-T,-T,0,u_R],[-T,0,T,u_R],[-T,0,-T,u_R],[-T,T,T,u_R],[-T,-T,-T,u_R],[-T,-T,T,u_R],[-T,T,-T,u_R]])
+RRT.U = np.array([[ 0,T,0,u_R1],[ 0,0,0,u_R1],[ 0,-T,0,u_R1],[ 0,0,T,u_R1],[ 0,0,-T,u_R1],[ 0,T,T,u_R1],[ 0,-T,-T,u_R1],[ 0,-T,T,u_R1],[ 0,T,-T,u_R1],
+                  [ T,T,0,u_R1],[ T,0,0,u_R1],[ T,-T,0,u_R1],[ T,0,T,u_R1],[ T,0,-T,u_R1],[ T,T,T,u_R1],[ T,-T,-T,u_R1],[ T,-T,T,u_R1],[ T,T,-T,u_R1],
+                  [-T,T,0,u_R1],[-T,0,0,u_R1],[-T,-T,0,u_R1],[-T,0,T,u_R1],[-T,0,-T,u_R1],[-T,T,T,u_R1],[-T,-T,-T,u_R1],[-T,-T,T,u_R1],[-T,T,-T,u_R1],
+                  [ 0,T,0,u_R2],[ 0,0,0,u_R2],[ 0,-T,0,u_R2],[ 0,0,T,u_R2],[ 0,0,-T,u_R2],[ 0,T,T,u_R2],[ 0,-T,-T,u_R2],[ 0,-T,T,u_R2],[ 0,T,-T,u_R2],
+                  [ T,T,0,u_R2],[ T,0,0,u_R2],[ T,-T,0,u_R2],[ T,0,T,u_R2],[ T,0,-T,u_R2],[ T,T,T,u_R2],[ T,-T,-T,u_R2],[ T,-T,T,u_R2],[ T,T,-T,u_R2],
+                  [-T,T,0,u_R2],[-T,0,0,u_R2],[-T,-T,0,u_R2],[-T,0,T,u_R2],[-T,0,-T,u_R2],[-T,T,T,u_R2],[-T,-T,-T,u_R2],[-T,-T,T,u_R2],[-T,T,-T,u_R2]],)
 
 
-RRT.dt                    = 0.2
-RRT.goal_radius           = 0.8
-RRT.alpha                 = 0.5
-RRT.max_nodes             = 20000
-RRT.max_solution_time     = 12
+RRT.dt                    = 0.1
+RRT.goal_radius           = 1.0
+RRT.alpha                 = 0.9
+RRT.max_nodes             = 50000
+RRT.max_solution_time     = 10
 
+# Dynamic plot
+RRT.dyna_plot             = True
+RRT.dyna_node_no_update   = 1000
 
 RRT.find_path_to_goal( x_goal )
 
-RRT.animate3D_solution( 0.5 )
+#RRT.animate3D_solution( 0.5 )
 
 
 # Assign controller
-CTC_controller     = RminCTC.RminComputedTorqueController( R )
+CTC_controller      = RminCTC.RminComputedTorqueController( R )
 CTC_controller.load_trajectory( RRT.solution )
 CTC_controller.goal = x_goal
-R.ctl              = CTC_controller.ctl
+R.ctl               = CTC_controller.ctl
 
 CTC_controller.w0           = 1.0
 CTC_controller.zeta         = 0.7
 CTC_controller.traj_ref_pts = 'closest'
+CTC_controller.n_gears      = 2
 
 """ Simulation and plotting """
 
-# Plot
+# Sim
 tf = RRT.time_to_goal + 5
 n  = int( np.round( tf / 0.01 ) ) + 1
-R.plotAnimation( x_start , tf  , n , solver = 'euler' )
-#R.plot3DAnimation( x_start , tf  , n  )
+R.computeSim( x_start , tf  , n , solver = 'euler' )
+
+# Plot
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
 RRT.plot_2D_Tree()
+R.animate3DSim()
 
 # Hold figures alive
 plt.show()

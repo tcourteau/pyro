@@ -235,7 +235,7 @@ class RRT:
             
             # Plot
             if self.dyna_plot:
-                self.dyna_plot_add_node( new_node )
+                self.dyna_plot_add_node( new_node , no_nodes )
             
             # Succes?
             if d < self.goal_radius:
@@ -491,8 +491,11 @@ class RRT:
         self.y2min = self.DS.x_lb[ self.y2axis ]
         self.y2max = self.DS.x_ub[ self.y2axis ]
         
-        self.phasefig = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
-        self.ax       = self.phasefig.add_subplot(111)
+        self.phasefig  = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
+        self.ax        = self.phasefig.add_subplot(111)
+        
+        self.time_template = 'Number of nodes = %i'
+        self.time_text     = self.ax.text(0.05, 0.05, '', transform=self.ax.transAxes, fontsize=4 )
         
         plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=6)
         plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize=6)
@@ -507,11 +510,13 @@ class RRT:
         
         
      ############################
-    def dyna_plot_add_node(self, node ):
+    def dyna_plot_add_node(self, node , no_nodes ):
         
         if not(node.P==None):
                 line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'o-')
+                self.time_text.set_text(self.time_template % ( no_nodes ))
                 self.node_wait_list = self.node_wait_list + 1
+                
                 
                 if self.node_wait_list == self.dyna_node_no_update:
                     plt.pause( 0.01 )
