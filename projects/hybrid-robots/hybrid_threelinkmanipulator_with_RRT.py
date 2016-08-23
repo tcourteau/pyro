@@ -14,10 +14,17 @@ import matplotlib.pyplot as plt
 
 R  =  HM.HybridThreeLinkManipulator()
 
+R.x_ub[0] = np.pi
+R.x_ub[1] = np.pi
+R.x_ub[2] = np.pi
+R.x_lb[0] = - np.pi
+R.x_lb[1] = - np.pi
+R.x_lb[2] = - np.pi
+
 R.ubar = np.array([0,0,0,0])
 
 x_start = np.array([0,0,0,0,0,0])
-x_goal  = np.array([-3,-1.5,0,0,0,0])
+x_goal  = np.array([-3,0,-1.5,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
@@ -33,7 +40,7 @@ RRT.U = np.array([[ 0,T,0,u_R1],[ 0,0,0,u_R1],[ 0,-T,0,u_R1],[ 0,0,T,u_R1],[ 0,0
                   [-T,T,0,u_R2],[-T,0,0,u_R2],[-T,-T,0,u_R2],[-T,0,T,u_R2],[-T,0,-T,u_R2],[-T,T,T,u_R2],[-T,-T,-T,u_R2],[-T,-T,T,u_R2],[-T,T,-T,u_R2]],)
 
 
-RRT.dt                    = 0.1
+RRT.dt                    = 0.2
 RRT.goal_radius           = 1.0
 RRT.alpha                 = 0.9
 RRT.max_nodes             = 50000
