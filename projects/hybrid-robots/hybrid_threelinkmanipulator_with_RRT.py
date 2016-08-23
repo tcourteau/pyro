@@ -23,7 +23,7 @@ R.x_lb[2] = - np.pi
 
 R.ubar = np.array([0,0,0,0])
 
-x_start = np.array([0,0,0,0,0,0])
+x_start = np.array([0,0,1.5,0,0,0])
 x_goal  = np.array([-3,0,-1.5,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
