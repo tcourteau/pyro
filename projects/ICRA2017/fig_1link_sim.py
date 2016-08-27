@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 
 ReComputeTraj = False
 name_traj     = 'output/1link_sol.npy'
+state_fig     = 'output/1link_x.pdf'
+input_fig     = 'output/1link_u.pdf'
 
 
 """ Define dynamic system """
@@ -96,7 +98,7 @@ R.Sim.plots[1].set_yticks( [-3,0, 3] )
 R.Sim.plots[0].set_xticks( t_ticks )
 R.Sim.plots[1].set_xticks( t_ticks )
 R.Sim.fig.canvas.draw()
-R.Sim.fig.savefig( 'aaa.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
+R.Sim.fig.savefig( state_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
 
 
 R.Sim.plot_CL('u')
@@ -107,4 +109,4 @@ R.Sim.plots[1].set_yticks( [0,10] )
 R.Sim.plots[0].set_xticks( t_ticks )
 R.Sim.plots[1].set_xticks( t_ticks )
 R.Sim.fig.canvas.draw()
-R.Sim.fig.savefig( 'bbb.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
+R.Sim.fig.savefig( input_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
