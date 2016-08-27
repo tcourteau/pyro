@@ -9,8 +9,6 @@ from AlexRobotics.dynamic  import Hybrid_Manipulator   as HM
 from AlexRobotics.control  import ComputedTorque       as CTC
 
 
-from scipy.interpolate import interp1d
-
 import numpy as np
 
 
@@ -28,6 +26,10 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         CTC.ComputedTorqueController.__init__( self , R  )
         
         self.n_gears = 4
+        
+        self.hysteresis       = False
+        self.hys_level        = 1
+        self.last_gear_i      = 1 # Default gear
         
         
     ############################
@@ -91,36 +93,32 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         # Cost is Q
         Q = np.zeros( self.n_gears )
+        T = np.zeros( ( self.n_gears , self.R.dof ) )
         
         #for all gear ratio options
         for i in xrange( self.n_gears ):
             
-            # Special on-link case 
-            if self.R.dof == 1 :
-                R  =  self.R.R[ i ]
-                T  = self.computed_torque( ddq_r , x , R ) # -> input is directly the ratio
-            else:
-                T  = self.computed_torque( ddq_r , x , i ) # -> input is  the index
+            T[i] = self.computed_torque( ddq_r , x , self.uD(i) ) 
             
             # Cost is norm of torque
-            Q[i] = np.dot( T , T )
+            Q[i] = np.dot( T[i] , T[i] )
             
+        
+        # Optimal dsicrete mode
+        i_star = Q.argmin()
+                        
+        # Hysteresis
+        if self.hysteresis:
+            gear_shift_gain = np.linalg.norm( T[ i_star ] - T[ self.last_gear_i ] )
+            if gear_shift_gain < self.hys_level :
+                # Keep old gear ratio
+                i_star = self.last_gear_i
             
-        R_star = Q.argmin()
-            
-        # Special on-link case 
-        if self.R.dof == 1 :
-            R  =  self.R.R[ R_star ]
-            T  = self.computed_torque( ddq_r , x , R      ) # -> input is directly the ratio
-            u  = np.append( T , R      )
-        # Regular Case
-        else:
-            T  = self.computed_torque( ddq_r , x , R_star ) # -> input is the index
-            u  = np.append( T , R_star )
+        u  = np.append( T[ i_star ] , self.uD( i_star ) )
         
         return u
         
-        
+
     ############################
     def computed_torque( self , ddq_r , x , R ):
         """ 
@@ -136,89 +134,28 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         return F
         
         
-#    ############################
-#    def compute_ddq_r( self , ddq_d , dq_d , q_d , x ):
-#        """ 
-#        
-#        Given desired trajectory and actual state, compute ddq_r
-#        
-#        """
-#        
-#        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
-#        
-#        q_e   = q  -  q_d
-#        dq_e  = dq - dq_d
-#        
-#        ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
-#        
-#        return ddq_r
-#        
-#        
-#    ############################
-#    def load_trajectory( self , solution  ):
-#        """ 
-#        
-#        Load Open-Loop trajectory solution to use as reference trajectory
-#        
-#        """
-#        
-#        self.solution = solution
-#        
-#        q   = solution[0][0:2,:]
-#        dq  = solution[0][2:4,:]
-#        ddq = solution[3][2:4,:]
-#        t   = solution[2]
-#        
-#        self.traj = [ ddq , dq , q , t ]
-#        
-#        self.max_time = t.max()
-#        
-#        # assign new controller
-#        self.ctl = self.traj_following_ctl
-#        
-#        # Create interpol functions
-#        self.q   = interp1d(t,q)
-#        self.dq  = interp1d(t,dq)
-#        self.ddq = interp1d(t,ddq)
-#        
-#    
-#    ############################
-#    def get_traj( self , t  ):
-#        """ 
-#        
-#        Find closest point on the trajectory
-#        
-#        """
-#        
-#        if t < self.max_time - 0.1 :
-#            
-#            if self.traj_ref_pts == 'interpol':
-#            
-#                # Load trajectory
-#                q     = self.q(   t )
-#                dq    = self.dq(  t )
-#                ddq   = self.ddq( t )          
-#            
-#            elif self.traj_ref_pts == 'closest':
-#            
-#                # Find closet index
-#                times = self.traj[3]
-#                i     = (np.abs(times - t)).argmin() + 1
-#                
-#                # Load trajectory
-#                ddq = self.traj[0][:,i]
-#                dq  = self.traj[1][:,i]
-#                q   = self.traj[2][:,i]
-#            
-#        else:
-#            
-#            # Fixed goal
-#            ddq          =   np.zeros( self.R.dof )
-#            [ q , dq ]   = self.R.x2q( self.goal  )   # from state vector (x) to angle and speeds (q,dq)
-#            
-#        
-#        return ddq , dq , q
+    ############################
+    def uD( self , i  ):
+        """ 
         
+        Return the discrete value for the gear ratio
+        
+        1-Dof # -> input is directly the ratio
+        
+        else  # -> input is the index
+        
+        """
+        
+        if self.R.dof == 1 :
+            
+            return self.R.R[ i ]
+            
+        else:
+            
+            return i
+        
+        
+
     
 
 

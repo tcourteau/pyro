@@ -36,7 +36,7 @@ class RRT:
         # Params
         self.dt  = 0.05
         self.INF = 10000
-        self.eps = 0.1
+        self.eps = 0.001
         
         self.goal_radius          = 0.2        
         self.alpha                = 0.9    # prob of random exploration
@@ -291,6 +291,7 @@ class RRT:
             
             # Previous Node
             node  = node.P 
+            
         
         # Arrange Time array
         t = np.array( t_list )

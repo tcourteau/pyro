@@ -19,6 +19,7 @@ ReComputeTraj = False
 name_traj     = 'output/1link_sol.npy'
 state_fig     = 'output/1link_x.pdf'
 input_fig     = 'output/1link_u.pdf'
+all_fig       = 'output/1link_xu.pdf'
 
 
 """ Define dynamic system """
@@ -57,6 +58,7 @@ if ReComputeTraj:
     
     RRT.find_path_to_goal( x_goal )
     RRT.save_solution( name_traj  )
+    RRT.plot_2D_Tree()
     
 else:
     
@@ -73,40 +75,60 @@ R.ctl              = CTC_controller.ctl
 
 CTC_controller.w0           = 1.0
 CTC_controller.zeta         = 0.7
-CTC_controller.traj_ref_pts = 'closest'
 CTC_controller.n_gears      = 2
-#CTC_controller.traj_ref_pts = 'interpol'
+#CTC_controller.traj_ref_pts = 'closest'
+CTC_controller.traj_ref_pts = 'interpol'
+CTC_controller.hysteresis   = True
+CTC_controller.hys_level    = 8
 
 """ Simulation """
 
 tf = RRT.time_to_goal + 5
 
-R.computeSim( x_start , tf )  
+R.computeSim( x_start , tf , n = int( 10/0.001 ) + 1 )  
 
 """ Plot """
 
-R.animateSim()
-
-R.Sim.fontsize = 12
+R.Sim.fontsize = 10
 t_ticks = [0,5,10]
 
-# State fig
-R.Sim.plot_CL('x')
+## State fig
+#R.Sim.plot_CL('x')
+#
+#R.Sim.plots[0].set_yticks( [-4,-2,0] )
+#R.Sim.plots[1].set_yticks( [-3,0, 3] )
+#R.Sim.plots[0].set_xticks( t_ticks )
+#R.Sim.plots[1].set_xticks( t_ticks )
+#R.Sim.fig.canvas.draw()
+#R.Sim.fig.savefig( state_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
+#
+#
+#R.Sim.plot_CL('u')
+#
+#R.Sim.plots[0].set_yticks( [-5,0,5] )
+#R.Sim.plots[1].set_ylim(    -1,11 )
+#R.Sim.plots[1].set_yticks( [0,10] )
+#R.Sim.plots[0].set_xticks( t_ticks )
+#R.Sim.plots[1].set_xticks( t_ticks )
+#R.Sim.fig.canvas.draw()
+#R.Sim.fig.savefig( input_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
 
-R.Sim.plots[0].set_yticks( [-4,-2,0] )
-R.Sim.plots[1].set_yticks( [-3,0, 3] )
-R.Sim.plots[0].set_xticks( t_ticks )
-R.Sim.plots[1].set_xticks( t_ticks )
+R.Sim.plot_CL()
+
+R.Sim.plots[0].set_yticks( [-4,0] )
+R.Sim.plots[1].set_yticks( [-4,0, 4] )
+R.Sim.plots[2].set_yticks( [-8,0,8] )
+R.Sim.plots[3].set_ylim(    -1,11 )
+R.Sim.plots[3].set_yticks( [0,10] )
+R.Sim.plots[3].set_xticks( t_ticks )
 R.Sim.fig.canvas.draw()
-R.Sim.fig.savefig( state_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
+R.Sim.fig.savefig( all_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
 
+# phase plane
+R.Sim.phase_plane_trajectory(True,False,False,True)
+R.ubar = np.array([0,10])
+R.Sim.phase_plane_trajectory(True,False,False,True)
 
-R.Sim.plot_CL('u')
+R.animateSim()
 
-R.Sim.plots[0].set_yticks( [-5,0,5] )
-R.Sim.plots[1].set_ylim(    -1,11 )
-R.Sim.plots[1].set_yticks( [0,10] )
-R.Sim.plots[0].set_xticks( t_ticks )
-R.Sim.plots[1].set_xticks( t_ticks )
-R.Sim.fig.canvas.draw()
-R.Sim.fig.savefig( input_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
+plt.show()
