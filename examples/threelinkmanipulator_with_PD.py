@@ -30,7 +30,7 @@ R.ctl = PD_controller.u
 """ Simulation and plotting """
 
 # Show target config
-R.show_3D( q_d )
+#R.show_3D( q_d )
 
 # Ploting a trajectory
 x0   = [0,0,0,0,0,0]

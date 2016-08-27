@@ -27,6 +27,6 @@ CTC_controller.zeta         = 0.7
 CTC_controller.n_gears      = 2
 
 
-R.plotAnimation( x0 ) 
+R.plot3DAnimation( x0 ) 
 
 R.Sim.plot_CL('u')

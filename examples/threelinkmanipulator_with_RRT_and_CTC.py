@@ -43,10 +43,10 @@ RRT.find_path_to_goal( x_goal )
 
 
 # Assign controller
-CTC_controller     = CTC.ComputedTorqueController( R )
+CTC_controller      = CTC.ComputedTorqueController( R )
 CTC_controller.load_trajectory( RRT.solution )
 CTC_controller.goal = x_goal
-R.ctl              = CTC_controller.ctl
+R.ctl               = CTC_controller.ctl
 
 CTC_controller.w0           = 1.0
 CTC_controller.zeta         = 0.7
@@ -57,8 +57,8 @@ CTC_controller.traj_ref_pts = 'closest'
 # Plot
 tf = RRT.time_to_goal + 5
 n  = int( np.round( tf / 0.01 ) ) + 1
-R.plotAnimation( x_start , tf  , n , solver = 'euler' )
-#R.plot3DAnimation( x_start , tf  , n  )
+#R.plotAnimation( x_start , tf  , n   )
+R.plot3DAnimation( x_start , tf  , n  )
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
 RRT.plot_2D_Tree()
