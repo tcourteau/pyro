@@ -246,6 +246,14 @@ class PhasePlot:
         self.color_OL = 'b'
         self.color_CL = 'r'
         
+        self.figsize    = (3, 2)
+        self.dpi        = 300
+        self.linewidth  = 0.005
+        self.streamplot = False
+        self.arrowstyle = '->'
+        self.headlength = 4.5
+        self.fontsize   = 6
+        
         self.compute()
         
     ##############################
@@ -288,20 +296,27 @@ class PhasePlot:
     def plot(self):
         """ Plot phase plane """
         
-        self.phasefig = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
+        self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi, frameon=True)
         
         self.phasefig.canvas.set_window_title('Phase plane')
         
-        matplotlib.rc('xtick', labelsize=6)
-        matplotlib.rc('ytick', labelsize=6) 
+        matplotlib.rc('xtick', labelsize = self.fontsize )
+        matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
         if self.OL:
-            self.Q_OL = plt.quiver( self.X, self.Y, self.v_OL, self.w_OL, color=self.color_OL)
+            #streamplot
+            if self.streamplot:
+                self.Q_OL = plt.streamplot( self.X, self.Y, self.v_OL, self.w_OL, color=self.color_OL,  linewidth = self.linewidth , arrowstyle = self.arrowstyle , arrowsize = self.headlength )
+            else:
+                self.Q_OL = plt.quiver( self.X, self.Y, self.v_OL, self.w_OL, color=self.color_OL,  linewidth = self.linewidth )#, headlength = self.headlength )
         if self.CL:
-            self.Q_CL = plt.quiver( self.X, self.Y, self.v_CL, self.w_CL, color=self.color_CL)
+            if self.streamplot:
+                self.Q_CL = plt.streamplot( self.X, self.Y, self.v_CL, self.w_CL, color=self.color_CL ,  linewidth = self.linewidth , arrowstyle = self.arrowstyle , arrowsize = self.headlength )
+            else:
+                self.Q_CL = plt.quiver( self.X, self.Y, self.v_CL, self.w_CL, color=self.color_CL,  linewidth = self.linewidth , headlength = self.headlength )
         
-        plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=6)
-        plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize=6)
+        plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize = self.fontsize)
+        plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize = self.fontsize)
         plt.xlim([ self.y1min , self.y1max ])
         plt.ylim([ self.y2min , self.y2max ])
         plt.grid(True)
