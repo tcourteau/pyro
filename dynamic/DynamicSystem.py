@@ -346,6 +346,10 @@ class Simulation:
         
         self.solver = solver
         
+        # Ploting
+        
+        self.fontsize = 5
+        
     ##############################
     def compute(self):
         """ Integrate trought time """
@@ -401,16 +405,16 @@ class Simulation:
         
         simfig.canvas.set_window_title('Open loop trajectory')
         
-        #matplotlib.rc('xtick', labelsize=10)
-        #matplotlib.rc('ytick', labelsize=10)
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
         
         # For all states
         for i in xrange( self.DS.n ):
             plots[i].plot( self.t , self.x_sol_OL[:,i] , 'b')
-            plots[i].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=5)
+            plots[i].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=self.fontsize )
             plots[i].grid(True)
                
-        plots[l-1].set_xlabel('Time [sec]', fontsize=5)
+        plots[l-1].set_xlabel('Time [sec]', fontsize=self.fontsize )
         
         simfig.tight_layout()
         
@@ -443,8 +447,8 @@ class Simulation:
         
         simfig.canvas.set_window_title('Closed loop trajectory')
         
-        #matplotlib.rc('xtick', labelsize=10)
-        #matplotlib.rc('ytick', labelsize=10)
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
         
         j = 0 # plot index
         
@@ -452,7 +456,7 @@ class Simulation:
             # For all states
             for i in xrange( self.DS.n ):
                 plots[j].plot( self.t , self.x_sol_CL[:,i] , 'b')
-                plots[j].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=5)
+                plots[j].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
             
@@ -460,11 +464,11 @@ class Simulation:
             # For all inputs
             for i in xrange( self.DS.m ):
                 plots[j].plot( self.t , self.u_sol_CL[:,i] , 'r')
-                plots[j].set_ylabel(self.DS.input_label[i] + '\n' + self.DS.input_units[i] , fontsize=5)
+                plots[j].set_ylabel(self.DS.input_label[i] + '\n' + self.DS.input_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
                
-        plots[l-1].set_xlabel('Time [sec]', fontsize=5)
+        plots[l-1].set_xlabel('Time [sec]', fontsize=self.fontsize )
         
         simfig.tight_layout()
         

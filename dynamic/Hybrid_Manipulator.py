@@ -31,7 +31,7 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
         M.OneLinkManipulator.__init__(self, n , m )
         
         self.state_label = ['Angle','Speed']
-        self.input_label = ['Torque','Ratop']
+        self.input_label = ['Torque','Ratio']
         
         self.state_units = ['[rad]','[rad/sec]']
         self.input_units = ['[Nm]','']
@@ -52,6 +52,8 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
     
         self.Ia = 1
         self.Da = 1
+        
+        self.R  = [ np.array([1.0]) , np.array([10.0]) ]
 
         
     ##############################

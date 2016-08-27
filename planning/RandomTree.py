@@ -313,6 +313,23 @@ class RRT:
         self.solution        = [ x , u , t , dx ]
         self.solution_length = len( self.path_node_list )
         
+        
+    ############################
+    def save_solution(self, name = 'RRT_Solution.npy' ):
+        
+        arr = np.array( self.solution )
+        
+        np.save( name , arr )
+        
+        
+    ############################
+    def load_solution(self, name = 'RRT_Solution.npy' ):
+        
+        arr = np.load( name )
+        
+        self.solution        = arr.tolist()
+        self.time_to_goal    = self.solution[2].max()
+        
 
     ############################
     def plot_open_loop_solution(self):

@@ -95,7 +95,12 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         #for all gear ratio options
         for i in xrange( self.n_gears ):
             
-            T = self.computed_torque( ddq_r , x , i )
+            # Special on-link case 
+            if self.R.dof == 1 :
+                R  =  self.R.R[ i ]
+                T  = self.computed_torque( ddq_r , x , R ) # -> input is directly the ratio
+            else:
+                T  = self.computed_torque( ddq_r , x , i ) # -> input is  the index
             
             # Cost is norm of torque
             Q[i] = np.dot( T , T )
@@ -103,9 +108,15 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
             
         R_star = Q.argmin()
             
-        T = self.computed_torque( ddq_r , x , R_star )
-        
-        u = np.append( T , R_star )
+        # Special on-link case 
+        if self.R.dof == 1 :
+            R  =  self.R.R[ R_star ]
+            T  = self.computed_torque( ddq_r , x , R      ) # -> input is directly the ratio
+            u  = np.append( T , R      )
+        # Regular Case
+        else:
+            T  = self.computed_torque( ddq_r , x , R_star ) # -> input is the index
+            u  = np.append( T , R_star )
         
         return u
         
