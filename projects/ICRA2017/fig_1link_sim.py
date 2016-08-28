@@ -9,6 +9,7 @@ Created on Sat Aug 27 13:15:41 2016
 from AlexRobotics.planning import RandomTree           as RPRT
 from AlexRobotics.dynamic  import Hybrid_Manipulator   as HM
 from AlexRobotics.control  import RminComputedTorque   as RminCTC
+from AlexRobotics.dynamic  import DynamicSystem        as DS
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,9 +17,8 @@ import matplotlib.pyplot as plt
 """ Modes """
 
 ReComputeTraj = False
+save_fig      = True
 name_traj     = 'output/1link_sol.npy'
-state_fig     = 'output/1link_x.pdf'
-input_fig     = 'output/1link_u.pdf'
 all_fig       = 'output/1link_xu.pdf'
 
 
@@ -89,29 +89,9 @@ R.computeSim( x_start , tf , n = int( 10/0.001 ) + 1 )
 
 """ Plot """
 
-R.Sim.fontsize = 10
+R.Sim.fontsize = 7
 t_ticks = [0,5,10]
 
-## State fig
-#R.Sim.plot_CL('x')
-#
-#R.Sim.plots[0].set_yticks( [-4,-2,0] )
-#R.Sim.plots[1].set_yticks( [-3,0, 3] )
-#R.Sim.plots[0].set_xticks( t_ticks )
-#R.Sim.plots[1].set_xticks( t_ticks )
-#R.Sim.fig.canvas.draw()
-#R.Sim.fig.savefig( state_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
-#
-#
-#R.Sim.plot_CL('u')
-#
-#R.Sim.plots[0].set_yticks( [-5,0,5] )
-#R.Sim.plots[1].set_ylim(    -1,11 )
-#R.Sim.plots[1].set_yticks( [0,10] )
-#R.Sim.plots[0].set_xticks( t_ticks )
-#R.Sim.plots[1].set_xticks( t_ticks )
-#R.Sim.fig.canvas.draw()
-#R.Sim.fig.savefig( input_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
 
 R.Sim.plot_CL()
 
@@ -124,11 +104,60 @@ R.Sim.plots[3].set_xticks( t_ticks )
 R.Sim.fig.canvas.draw()
 R.Sim.fig.savefig( all_fig , format='pdf', bbox_inches='tight', pad_inches=0.05)
 
-# phase plane
-R.Sim.phase_plane_trajectory(True,False,False,True)
-R.ubar = np.array([0,10])
-R.Sim.phase_plane_trajectory(True,False,False,True)
-
-R.animateSim()
-
-plt.show()
+## phase plane 1
+#PP1 =  DS.PhasePlot( R )
+#
+#PP1.y1max = 2
+#PP1.y1min = -5
+#PP1.y2max = 4
+#PP1.y2min = -4
+#
+#name = 'output/simpp1' + '.pdf'
+#
+#PP1.CL         = False
+#PP1.color_CL   = 'b'
+#PP1.linewidth  = 0.04
+#PP1.headlength = 3.5
+#PP1.fontsize   = 6
+#PP1.dpi        = 600
+#PP1.figsize    = (3,3)
+#PP1.y1n        = 11
+#PP1.y2n        = 11
+#
+#PP1.u          = np.array([0,1])
+#PP1.compute()
+#PP1.plot( R.Sim )
+#
+#if save_fig:
+#    PP1.phasefig.savefig( name , format = 'pdf' , bbox_inches='tight', pad_inches=0.05 )
+#
+## phase plane 1
+#PP2 =  DS.PhasePlot( R )
+#
+#PP2.y1max = 2
+#PP2.y1min = -5
+#PP2.y2max = 4
+#PP2.y2min = -4
+#
+#name = 'output/simpp2' + '.pdf'
+#
+#PP2.CL         = False
+#PP2.color_CL   = 'b'
+#PP2.linewidth  = 0.04
+#PP2.headlength = 3.5
+#PP2.fontsize   = 6
+#PP2.dpi        = 600
+#PP2.figsize    = (3,3)
+#PP2.y1n        = 11
+#PP2.y2n        = 11
+#
+#PP2.u          = np.array([0,10])
+#PP2.compute()
+#PP2.plot( R.Sim )
+#
+#if save_fig:
+#    PP2.phasefig.savefig( name , format = 'pdf' , bbox_inches='tight', pad_inches=0.05 )
+#
+##R.animateSim()
+#
+#plt.show()

@@ -243,6 +243,8 @@ class PhasePlot:
         self.u = self.DS.ubar              # Control input
         self.t = 0                         # Current time
         
+        
+        # Plotting params
         self.color_OL = 'b'
         self.color_CL = 'r'
         
@@ -253,6 +255,9 @@ class PhasePlot:
         self.arrowstyle = '->'
         self.headlength = 4.5
         self.fontsize   = 6
+        
+        self.traj_OL    = False
+        self.traj_CL    = True
         
         self.compute()
         
@@ -274,7 +279,7 @@ class PhasePlot:
                 # Actual states
                 y1 = self.X[i, j]
                 y2 = self.Y[i, j]
-                x  = self.x  # default value for all states
+                x  = self.x             # default value for all states
                 x[ self.y1axis ] = y1
                 x[ self.y2axis ] = y2
                 
@@ -293,7 +298,7 @@ class PhasePlot:
                 
                 
     ##############################
-    def plot(self):
+    def plot(self, sim = None ):
         """ Plot phase plane """
         
         self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi, frameon=True)
@@ -321,6 +326,24 @@ class PhasePlot:
         plt.ylim([ self.y2min , self.y2max ])
         plt.grid(True)
         plt.tight_layout()
+        
+        
+        # Print Sim trajectory if passed as argument
+        if not( sim == None ):
+            #Simulation loading
+            xs_OL = sim.x_sol_OL
+            xs_CL = sim.x_sol_CL
+            
+            # Phase trajectory OL' 
+            if self.traj_OL:
+                plt.plot(xs_OL[:,0], xs_OL[:,1], 'b-') # path
+                plt.plot([xs_OL[0,0]], [xs_OL[0,1]], 'o') # start
+                plt.plot([xs_OL[-1,0]], [xs_OL[-1,1]], 's') # end
+            
+            # Phase trajectory CL
+            if self.traj_CL:
+                plt.plot(xs_CL[:,0], xs_CL[:,1], 'r-') # path
+                plt.plot([xs_CL[-1,0]], [xs_CL[-1,1]], 's') # end
         
 
 
