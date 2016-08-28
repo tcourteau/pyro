@@ -301,12 +301,12 @@ class PhasePlot:
     def plot(self, sim = None ):
         """ Plot phase plane """
         
+        matplotlib.rc('xtick', labelsize = self.fontsize )
+        matplotlib.rc('ytick', labelsize = self.fontsize ) 
+        
         self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi, frameon=True)
         
         self.phasefig.canvas.set_window_title('Phase plane')
-        
-        matplotlib.rc('xtick', labelsize = self.fontsize )
-        matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
         if self.OL:
             #streamplot
@@ -422,14 +422,15 @@ class Simulation:
         
         """
         
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
+        
         l = self.DS.n
         
         simfig , plots = plt.subplots( l , sharex=True,figsize=(4, 3),dpi=300, frameon=True)
         
         simfig.canvas.set_window_title('Open loop trajectory')
         
-        matplotlib.rc('xtick', labelsize=self.fontsize )
-        matplotlib.rc('ytick', labelsize=self.fontsize )
         
         # For all states
         for i in xrange( self.DS.n ):
@@ -458,6 +459,9 @@ class Simulation:
         
         """
         
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
+        
         # Number of subplots
         if plot == 'All':
             l = self.DS.m + self.DS.n
@@ -470,9 +474,7 @@ class Simulation:
         
         simfig.canvas.set_window_title('Closed loop trajectory')
         
-        matplotlib.rc('xtick', labelsize=self.fontsize )
-        matplotlib.rc('ytick', labelsize=self.fontsize )
-        
+
         j = 0 # plot index
         
         if plot == 'All' or plot == 'x':

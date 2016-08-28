@@ -14,7 +14,7 @@ import numpy             as np
 """ Params """
 
 save_fig   = True
-format_fig = 'pdf'
+format_fig = 'png'
 
 """ Define system """
 
@@ -45,11 +45,11 @@ name = 'output/pp1' + '.' + format_fig
 R.PP.color_CL   = 'b'
 R.PP.linewidth  = 0.04
 R.PP.headlength = 4.5
-R.PP.fontsize   = 10
+R.PP.fontsize   = 9
 R.PP.dpi        = 600
 R.PP.figsize    = (3,2)
-R.PP.y1n        = 16
-R.PP.y2n        = 16
+R.PP.y1n        = 11
+R.PP.y2n        = 11
 R.PP.compute() 
 R.PP.plot()
 if save_fig:
@@ -65,3 +65,7 @@ R.PP.compute()
 R.PP.plot()
 if save_fig:
     R.PP.phasefig.savefig( name , format = format_fig, bbox_inches='tight', pad_inches=0.05)
+    
+    
+    
+plt.show()
