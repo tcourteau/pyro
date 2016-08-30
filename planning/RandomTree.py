@@ -7,6 +7,7 @@ Created on Sun Mar  6 15:09:12 2016
 
 from AlexRobotics.control import linear        as RCL
 from AlexRobotics.dynamic import DynamicSystem as DS
+from AlexRobotics.signal  import filters
 
 import numpy as np
 import matplotlib
@@ -45,6 +46,9 @@ class RRT:
         self.max_solution_time    = 10     # won"t look for solution taking longuer than that
         
         
+        # Smoothing params
+        self.low_pass_filter      = filters.low_pass( fc = 3 , dt = self.dt )        
+        
         # Traj controller
         self.traj_ctl_kp          = 25
         self.traj_ctl_kd          = 10
@@ -60,7 +64,7 @@ class RRT:
         self.randomized_input      = False
         
         
-        #############################
+    #############################
     def discretizeactions(self, Nu0 = 3 ):
         
         self.U = np.linspace( self.DS.u_lb[0]  , self.DS.u_ub[0]  , Nu0  )
@@ -314,7 +318,27 @@ class RRT:
         self.solution        = [ x , u , t , dx ]
         self.solution_length = len( self.path_node_list )
         
+    
+    ############################
+    def solution_smoothing( self ):
         
+        [ x , u , t , dx ]  = self.solution
+        
+        x_new  = x.copy
+        dx_new = dx.copy()
+        
+        #dx_new[1] = self.low_pass_filter.filter_array( dx[1] )
+        
+        x_new  = self.low_pass_filter.filter_array( x  )
+        dx_new = self.low_pass_filter.filter_array( dx )
+        
+        # Filer acceleration only
+        self.solution   = [ x , u , t , dx_new ]
+        
+        #self.solution   = [ x_new , u , t , dx_new ]
+        
+    
+    
     ############################
     def save_solution(self, name = 'RRT_Solution.npy' ):
         
@@ -330,6 +354,7 @@ class RRT:
         
         self.solution        = arr.tolist()
         self.time_to_goal    = self.solution[2].max()
+        self.solution_length = self.solution[2].size
         
 
     ############################
@@ -344,6 +369,18 @@ class RRT:
         
         self.OL_SIM.plot_CL('x') 
         self.OL_SIM.plot_CL('u')
+        
+    
+    ############################
+    def plot_open_loop_solution_acc(self, index = 0 ):
+        """ """
+        
+        t       = self.solution[2].T
+        dx      = self.solution[3].T
+        
+        fig , plots = plt.subplots( 1, sharex=True,figsize=(4, 3),dpi=300, frameon=True)
+        
+        plots.plot( t , dx )
         
         
     ############################

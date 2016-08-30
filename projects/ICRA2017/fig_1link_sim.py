@@ -27,7 +27,7 @@ all_fig       = 'output/1link_xu.pdf'
 """ Define dynamic system """
 
 R      =  HM.HybridOneLinkManipulator()
-R.ubar = np.array([0.0,1])
+R.ubar =  np.array([0.0,1])
 
 
 """ Define control problem """
@@ -53,6 +53,8 @@ RRT.goal_radius           = 0.2
 RRT.max_nodes             = 15000
 RRT.max_solution_time     = 10
 
+RRT.low_pass_filter.set_freq_to( fc = 1.5 , dt = RRT.dt )
+
 
 """ Compute Open-Loop Solution """
 
@@ -65,6 +67,14 @@ if ReComputeTraj:
 else:
     
     RRT.load_solution( name_traj  )
+    
+#RRT.plot_open_loop_solution()
+#RRT.plot_open_loop_solution_acc()
+
+RRT.solution_smoothing()
+
+#RRT.plot_open_loop_solution()
+#RRT.plot_open_loop_solution_acc()
 
 
 """  Assign controller """
@@ -81,13 +91,13 @@ CTC_controller.n_gears      = 2
 #CTC_controller.traj_ref_pts = 'closest'
 CTC_controller.traj_ref_pts = 'interpol'
 CTC_controller.hysteresis   = True
-CTC_controller.hys_level    = 8
+CTC_controller.hys_level    = 1
 
 """ Simulation """
 
 tf = RRT.time_to_goal + 5
 
-R.computeSim( x_start , tf , n = int( 10/0.001 ) + 1 )  
+R.computeSim( x_start , tf , n = int( 10/0.001 ) + 1 , solver = 'euler' )  
 
 """ Plot """
 

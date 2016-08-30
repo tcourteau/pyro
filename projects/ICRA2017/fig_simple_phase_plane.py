@@ -23,7 +23,7 @@ R    =  HM.HybridOneLinkManipulator()
 
 # Definre domain of interest
 R.x_ub = np.array([ 3* np.pi  ,   2*np.pi  ])
-R.x_lb = np.array([ 0 , -2* np.pi  ])
+R.x_lb = np.array([ 0         , -2* np.pi  ])
 
 
 # Set of params
