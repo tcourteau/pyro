@@ -56,6 +56,7 @@ class RRT:
         # Ploting
         self.dyna_plot            = False
         self.dyna_node_no_update  = 50
+        self.fontsize             = 4
         
         self.discretizeactions()
         
@@ -253,6 +254,11 @@ class RRT:
                 no_nodes = 0
                 self.Nodes = []
                 self.Nodes.append( self.start_node )
+                
+                if self.dyna_plot :
+                    
+                    self.dyna_plot_clear()
+                    
                 
         
         print '\nSucces!!!!: Path to goal found'
@@ -499,7 +505,12 @@ class RRT:
             
             return u_ctl
             
-                
+    
+    
+    
+    ##################################################################
+    ### Ploting functions
+    ##################################################################            
                 
     ############################
     def plot_2D_Tree(self):
@@ -546,14 +557,17 @@ class RRT:
         self.y2min = self.DS.x_lb[ self.y2axis ]
         self.y2max = self.DS.x_ub[ self.y2axis ]
         
-        self.phasefig  = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
+        
+        self.phasefig  = plt.figure(figsize=(3, 2),dpi=600, frameon=True)
         self.ax        = self.phasefig.add_subplot(111)
         
         self.time_template = 'Number of nodes = %i'
-        self.time_text     = self.ax.text(0.05, 0.05, '', transform=self.ax.transAxes, fontsize=4 )
+        self.time_text     = self.ax.text(0.05, 0.05, '', transform=self.ax.transAxes, fontsize=self.fontsize )
         
-        plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=6)
-        plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize=6)
+        plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=self.fontsize )
+        plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize=self.fontsize )
         plt.xlim([ self.y1min , self.y1max ])
         plt.ylim([ self.y2min , self.y2max ])
         plt.grid(True)
@@ -576,6 +590,14 @@ class RRT:
                 if self.node_wait_list == self.dyna_node_no_update:
                     plt.pause( 0.01 )
                     self.node_wait_list = 0
+                    
+                    
+    ############################
+    def dyna_plot_clear(self ):
+        
+        self.ax.clear()
+        plt.close( self.phasefig )
+        self.dyna_plot_init()
                     
                     
     ############################
