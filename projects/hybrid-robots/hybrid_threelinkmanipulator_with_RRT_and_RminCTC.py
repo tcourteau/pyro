@@ -79,7 +79,7 @@ R.ctl               = CTC_controller.ctl
 
 CTC_controller.w0           = 1.0
 CTC_controller.zeta         = 0.7
-CTC_controller.traj_ref_pts = R.Sim.plot_CL('u')'closest'
+CTC_controller.traj_ref_pts = 'closest'
 CTC_controller.n_gears      = 2
 
 """ Simulation and plotting """
