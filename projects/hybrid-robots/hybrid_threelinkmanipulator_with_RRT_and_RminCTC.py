@@ -12,6 +12,14 @@ from AlexRobotics.control  import RminComputedTorque   as RminCTC
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+test_name     = 'no3'
+ReComputeTraj = True
+save_fig      = False
+name_traj     = 'data/3D_sol_'+ test_name +'.npy'
+
+
+####################################
 R  =  HM.HybridThreeLinkManipulator()
 
 R.x_ub[0] = np.pi
@@ -41,18 +49,26 @@ RRT.U = np.array([[ 0,T,0,u_R1],[ 0,0,0,u_R1],[ 0,-T,0,u_R1],[ 0,0,T,u_R1],[ 0,0
 
 
 RRT.dt                    = 0.1
-RRT.goal_radius           = 0.5
-RRT.alpha                 = 0.9
-RRT.max_nodes             = 50000
-RRT.max_solution_time     = 12
+RRT.goal_radius           = 0.7
+RRT.alpha                 = 0.8
+RRT.max_nodes             = 25000
+RRT.max_solution_time     = 8
 
 # Dynamic plot
 RRT.dyna_plot             = True
-RRT.dyna_node_no_update   = 200
+RRT.dyna_node_no_update   = 1000
 
-RRT.find_path_to_goal( x_goal )
 
-#RRT.animate3D_solution( 0.5 )
+
+if ReComputeTraj:
+    
+    RRT.find_path_to_goal( x_goal )
+    RRT.save_solution( name_traj  )
+    #RRT.plot_2D_Tree()
+    
+else:
+    
+    RRT.load_solution( name_traj  )
 
 
 # Assign controller
@@ -63,7 +79,7 @@ R.ctl               = CTC_controller.ctl
 
 CTC_controller.w0           = 1.0
 CTC_controller.zeta         = 0.7
-CTC_controller.traj_ref_pts = 'closest'
+CTC_controller.traj_ref_pts = R.Sim.plot_CL('u')'closest'
 CTC_controller.n_gears      = 2
 
 """ Simulation and plotting """
@@ -77,7 +93,15 @@ R.computeSim( x_start , tf  , n , solver = 'euler' )
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
 RRT.plot_2D_Tree()
-R.animate3DSim()
 
+if save_fig:
+    
+    R.animate3DSim( 1.0 , True ,  test_name )
+    
+else:
+    
+    R.animate3DSim()
+
+R.Sim.plot_CL('u')
 # Hold figures alive
 plt.show()
