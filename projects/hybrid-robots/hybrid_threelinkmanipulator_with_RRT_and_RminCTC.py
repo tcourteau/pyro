@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-test_name     = 'no3'
+test_name     = 'no4'
 ReComputeTraj = True
 save_fig      = False
 name_traj     = 'data/3D_sol_'+ test_name +'.npy'
@@ -48,11 +48,11 @@ RRT.U = np.array([[ 0,T,0,u_R1],[ 0,0,0,u_R1],[ 0,-T,0,u_R1],[ 0,0,T,u_R1],[ 0,0
                   [-T,T,0,u_R2],[-T,0,0,u_R2],[-T,-T,0,u_R2],[-T,0,T,u_R2],[-T,0,-T,u_R2],[-T,T,T,u_R2],[-T,-T,-T,u_R2],[-T,-T,T,u_R2],[-T,T,-T,u_R2]],)
 
 
-RRT.dt                    = 0.1
-RRT.goal_radius           = 0.7
+RRT.dt                    = 0.15
+RRT.goal_radius           = 0.6
 RRT.alpha                 = 0.8
 RRT.max_nodes             = 25000
-RRT.max_solution_time     = 8
+RRT.max_solution_time     = 5
 
 # Dynamic plot
 RRT.dyna_plot             = True
