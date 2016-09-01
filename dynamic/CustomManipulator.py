@@ -421,17 +421,17 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         self.lc1 = 0.1
         
         self.mc1 = 0.1
-        self.Ic1 = 1
+        self.Ic1 = 0
         
         # load
-        self.M  = 0.11
+        self.M  = 0.0
         
-        self.g = 9.81
+        self.g = 9.81 * 0
         
         self.d1 = 0
         
         # Total length
-        self.lw = 1
+        self.lw = 0.2
         
         self.setActuatorParams()
         
@@ -440,7 +440,7 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         """ Set actuators parameters here """
         
         # Actuator damping coef
-        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] ) * 0.5
+        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] ) * 0.0
         
         # Actuator inertia coef
         
