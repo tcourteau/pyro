@@ -6,18 +6,24 @@ Created on Sun Aug  7 15:28:12 2016
 """
 
 from AlexRobotics.dynamic  import Hybrid_Manipulator   as HM
+from AlexRobotics.dynamic  import DynamicSystem        as DS
 
 import matplotlib.pyplot as plt
 import numpy             as np
 
+""" Params """
+
+save_fig   = True
+format_fig = 'png'
+
 """ Define system """
 
 # Define dynamic system
-R  =  HM.HybridOneLinkManipulator()
+R    =  HM.HybridOneLinkManipulator()
 
 # Definre domain of interest
 R.x_ub = np.array([ 3* np.pi  ,   2*np.pi  ])
-R.x_lb = np.array([ 0 , -2* np.pi  ])
+R.x_lb = np.array([ 0         , -2* np.pi  ])
 
 
 # Set of params
@@ -29,26 +35,37 @@ R.Ia = 1
 
 R.ubar = np.array([ 0.0, r ])
 
-R.phase_plane()
-name = 'output/pp1.png'
-#R.PP.phasefig.savefig( name , dpi=600 )S
+""" Ploting """
+
+R.PP =  DS.PhasePlot( R , 0 , 1 , False , True )
+
+# Figure no 1
+name = 'output/pp1' + '.' + format_fig
 
 R.PP.color_CL   = 'b'
 R.PP.linewidth  = 0.04
 R.PP.headlength = 4.5
-R.PP.fontsize   = 10
+R.PP.fontsize   = 9
 R.PP.dpi        = 600
 R.PP.figsize    = (3,2)
-R.PP.y1n        = 16
-R.PP.y2n        = 16
+R.PP.y1n        = 11
+R.PP.y2n        = 11
 R.PP.compute() 
 R.PP.plot()
-R.PP.phasefig.savefig( name , format='png', bbox_inches='tight', pad_inches=0.05 )
-    
+if save_fig:
+    R.PP.phasefig.savefig( name , format = format_fig , bbox_inches='tight', pad_inches=0.05 )
+
+# Figure no 2
+
 r = 20
 R.ubar = np.array([ 0.0, r ])
 
-name = 'output/pp10.png'
+name = 'output/pp10' + '.' + format_fig
 R.PP.compute() 
 R.PP.plot()
-R.PP.phasefig.savefig( name , format='png', bbox_inches='tight', pad_inches=0.05)
+if save_fig:
+    R.PP.phasefig.savefig( name , format = format_fig, bbox_inches='tight', pad_inches=0.05)
+    
+    
+    
+plt.show()

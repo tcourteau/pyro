@@ -243,6 +243,8 @@ class PhasePlot:
         self.u = self.DS.ubar              # Control input
         self.t = 0                         # Current time
         
+        
+        # Plotting params
         self.color_OL = 'b'
         self.color_CL = 'r'
         
@@ -253,6 +255,9 @@ class PhasePlot:
         self.arrowstyle = '->'
         self.headlength = 4.5
         self.fontsize   = 6
+        
+        self.traj_OL    = False
+        self.traj_CL    = True
         
         self.compute()
         
@@ -274,7 +279,7 @@ class PhasePlot:
                 # Actual states
                 y1 = self.X[i, j]
                 y2 = self.Y[i, j]
-                x  = self.x  # default value for all states
+                x  = self.x             # default value for all states
                 x[ self.y1axis ] = y1
                 x[ self.y2axis ] = y2
                 
@@ -293,15 +298,15 @@ class PhasePlot:
                 
                 
     ##############################
-    def plot(self):
+    def plot(self, sim = None ):
         """ Plot phase plane """
+        
+        matplotlib.rc('xtick', labelsize = self.fontsize )
+        matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
         self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi, frameon=True)
         
         self.phasefig.canvas.set_window_title('Phase plane')
-        
-        matplotlib.rc('xtick', labelsize = self.fontsize )
-        matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
         if self.OL:
             #streamplot
@@ -321,6 +326,24 @@ class PhasePlot:
         plt.ylim([ self.y2min , self.y2max ])
         plt.grid(True)
         plt.tight_layout()
+        
+        
+        # Print Sim trajectory if passed as argument
+        if not( sim == None ):
+            #Simulation loading
+            xs_OL = sim.x_sol_OL
+            xs_CL = sim.x_sol_CL
+            
+            # Phase trajectory OL' 
+            if self.traj_OL:
+                plt.plot(xs_OL[:,0], xs_OL[:,1], 'b-') # path
+                plt.plot([xs_OL[0,0]], [xs_OL[0,1]], 'o') # start
+                plt.plot([xs_OL[-1,0]], [xs_OL[-1,1]], 's') # end
+            
+            # Phase trajectory CL
+            if self.traj_CL:
+                plt.plot(xs_CL[:,0], xs_CL[:,1], 'r-') # path
+                plt.plot([xs_CL[-1,0]], [xs_CL[-1,1]], 's') # end
         
 
 
@@ -345,6 +368,10 @@ class Simulation:
         self.x0 = np.zeros( self.DS.n )
         
         self.solver = solver
+        
+        # Ploting
+        
+        self.fontsize = 5
         
     ##############################
     def compute(self):
@@ -395,22 +422,23 @@ class Simulation:
         
         """
         
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
+        
         l = self.DS.n
         
         simfig , plots = plt.subplots( l , sharex=True,figsize=(4, 3),dpi=300, frameon=True)
         
         simfig.canvas.set_window_title('Open loop trajectory')
         
-        #matplotlib.rc('xtick', labelsize=10)
-        #matplotlib.rc('ytick', labelsize=10)
         
         # For all states
         for i in xrange( self.DS.n ):
             plots[i].plot( self.t , self.x_sol_OL[:,i] , 'b')
-            plots[i].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=5)
+            plots[i].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=self.fontsize )
             plots[i].grid(True)
                
-        plots[l-1].set_xlabel('Time [sec]', fontsize=5)
+        plots[l-1].set_xlabel('Time [sec]', fontsize=self.fontsize )
         
         simfig.tight_layout()
         
@@ -431,6 +459,9 @@ class Simulation:
         
         """
         
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
+        
         # Number of subplots
         if plot == 'All':
             l = self.DS.m + self.DS.n
@@ -443,16 +474,14 @@ class Simulation:
         
         simfig.canvas.set_window_title('Closed loop trajectory')
         
-        #matplotlib.rc('xtick', labelsize=10)
-        #matplotlib.rc('ytick', labelsize=10)
-        
+
         j = 0 # plot index
         
         if plot == 'All' or plot == 'x':
             # For all states
             for i in xrange( self.DS.n ):
                 plots[j].plot( self.t , self.x_sol_CL[:,i] , 'b')
-                plots[j].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=5)
+                plots[j].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
             
@@ -460,11 +489,11 @@ class Simulation:
             # For all inputs
             for i in xrange( self.DS.m ):
                 plots[j].plot( self.t , self.u_sol_CL[:,i] , 'r')
-                plots[j].set_ylabel(self.DS.input_label[i] + '\n' + self.DS.input_units[i] , fontsize=5)
+                plots[j].set_ylabel(self.DS.input_label[i] + '\n' + self.DS.input_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
                
-        plots[l-1].set_xlabel('Time [sec]', fontsize=5)
+        plots[l-1].set_xlabel('Time [sec]', fontsize=self.fontsize )
         
         simfig.tight_layout()
         

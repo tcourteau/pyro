@@ -21,7 +21,7 @@ x_goal  = np.array([0,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-T = 10
+T = 5
 #
 RRT.U = np.array([[T,0,0],[0,0,0],[-T,0,0],[0,T,0],[0,-T,0],[T,T,0],[-T,-T,0],[-T,T,0],[T,-T,0],
                   [T,0,1],[0,0,1],[-T,0,1],[0,T,1],[0,-T,1],[T,T,1],[-T,-T,1],[-T,T,1],[T,-T,1],
@@ -36,7 +36,7 @@ RRT.U = np.array([[T,0,0],[0,0,0],[-T,0,0],[0,T,0],[0,-T,0],[T,T,0],[-T,-T,0],[-
 
 
 RRT.dt                    = 0.2
-RRT.goal_radius           = 0.6
+RRT.goal_radius           = 1.0
 RRT.max_nodes             = 12000
 RRT.max_solution_time     = 12
 
