@@ -410,7 +410,7 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         # Ploting param
         self.n_pts   = 2 # number of pts to plot on the manipulator 
         self.dim_pts = 3 # number of dimension for each pts 
-        self.axis_to_plot = [0,2]  # axis to plot for 2D plot
+        self.axis_to_plot = [0,3]  # axis to plot for 2D plot
         
         
     #############################
@@ -421,7 +421,7 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         self.lc1 = 0.1
         
         self.mc1 = 0.1
-        self.Ic1 = 0
+        self.Ic1 = 0.1
         
         # load
         self.M  = 0.0
@@ -454,7 +454,7 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         
         #R1 = np.diag([ r1 ,1,1])
         R1 = np.diag([ r2, 1,1])
-        R2 = np.diag([ r2 ,1,1])
+        R2 = np.diag([ r1 ,1,1])
         
         self.R = [ R1 , R2 ]
         
