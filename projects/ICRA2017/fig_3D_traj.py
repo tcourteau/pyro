@@ -132,12 +132,17 @@ else:
     
     R.animate3DSim()
 
+
+R.lw = 2.5
 R.show_traj_3D([180,275,350,400,500])
 R.ax_show_3D.elev = 35
 R.ax_show_3D.azim = 35
 R.ax_show_3D.set_xlabel('')
 R.ax_show_3D.set_ylabel('')
 R.ax_show_3D.set_zlabel('')
+R.ax_show_3D.set_xlim3d([ - R.lw / 2. , R.lw / 2. ])
+R.ax_show_3D.set_ylim3d([ - R.lw / 2. + 0.5 , R.lw / 2. + 0.5 ])
+R.ax_show_3D.set_zlim3d([ - R.lw / 2. + 1.0 , R.lw / 2. + 1.0 ])
 R.ax_show_3D.set_xticklabels([])
 R.ax_show_3D.set_yticklabels([])
 R.ax_show_3D.set_zticklabels([])
@@ -149,3 +154,29 @@ if save_fig:
 
 # Hold figures alive
 plt.show()
+
+print 'max torque gearshift:' , R.Sim.u_sol_CL.max()
+print 'min torque gearshift:' , R.Sim.u_sol_CL.min()
+
+############
+
+CTC_controller.last_gear_i = 0
+CTC_controller.n_gears = 1
+R.R = [ np.diag([1,1,1]) ,   np.diag([1,1,1]) ]
+R.computeSim( x_start , tf  , n , solver = 'euler' )
+
+print 'max torque 1:1 :' , R.Sim.u_sol_CL.max()
+print 'min torque 1:1 :' , R.Sim.u_sol_CL.min()
+
+R.Sim.plot_CL('u')
+
+############
+
+CTC_controller.n_gears = 1
+R.R = [ np.diag([10,10,10]) , np.diag([10,10,10]) ]
+R.computeSim( x_start , tf  , n , solver = 'euler' )
+
+print 'max torque 1:10 :' , R.Sim.u_sol_CL.max()
+print 'min torque 1:10 :' , R.Sim.u_sol_CL.min()
+
+R.Sim.plot_CL('u')

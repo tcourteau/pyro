@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 """ Modes """
 
 ReComputeTraj = False
-save_fig      = True
+save_fig      = False
 name_traj     = 'output/1link_sol.npy'
 all_fig       = 'output/1link_xu.pdf'
 
@@ -177,3 +177,33 @@ name_video = 'output/sim1_anim'
 R.animateSim( 1.0 , save_fig ,  name_video )
 
 plt.show()
+
+n = R.Sim.n
+
+print 'max torque gearshift:' , R.Sim.u_sol_CL[:,0].max()
+print 'min torque gearshift:' , R.Sim.u_sol_CL[:,0].min()
+
+R.Sim.plot_CL('u')
+
+############
+
+CTC_controller.last_gear_i = 0
+CTC_controller.n_gears = 1
+R.R = [ np.diag([1]) ,   np.diag([1]) ]
+R.computeSim( x_start , tf  , n , solver = 'euler' )
+
+print 'max torque 1:1 :' , R.Sim.u_sol_CL[:,0].max()
+print 'min torque 1:1 :' , R.Sim.u_sol_CL[:,0].min()
+
+R.Sim.plot_CL('u')
+
+############
+
+CTC_controller.n_gears = 1
+R.R = [ np.diag([10]) , np.diag([10]) ]
+R.computeSim( x_start , tf  , n , solver = 'euler' )
+
+print 'max torque 1:10 :' , R.Sim.u_sol_CL[:,0].max()
+print 'min torque 1:10 :' , R.Sim.u_sol_CL[:,0].min()
+
+R.Sim.plot_CL('u')
