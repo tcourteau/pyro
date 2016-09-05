@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 
 test_name     = 'no4'
-ReComputeTraj = True
+ReComputeTraj = False
 save_fig      = False
 name_traj     = 'data/3D_sol_'+ test_name +'.npy'
 
@@ -92,16 +92,25 @@ R.computeSim( x_start , tf  , n , solver = 'euler' )
 # Plot
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
-RRT.plot_2D_Tree()
+#RRT.plot_2D_Tree()
 
 if save_fig:
     
-    R.animate3DSim( 1.0 , True ,  test_name )
+    R.animate3DSim( 1.0 , True ,  'output/' + test_name )
     
 else:
     
     R.animate3DSim()
 
-R.Sim.plot_CL('u')
+R.show_traj_3D([180,275,350,400,500])
+R.ax_show_3D.elev = 35
+R.ax_show_3D.azim = 35
+R.ax_show_3D.set_xlabel('')
+R.ax_show_3D.set_ylabel('')
+R.ax_show_3D.set_zlabel('')
+R.ax_show_3D.set_xticklabels([])
+R.ax_show_3D.set_yticklabels([])
+R.ax_show_3D.set_zticklabels([])
+R.fig_show_3D.canvas.draw()
 # Hold figures alive
 plt.show()

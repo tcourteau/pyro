@@ -91,7 +91,7 @@ CTC_controller.n_gears      = 2
 #CTC_controller.traj_ref_pts = 'closest'
 CTC_controller.traj_ref_pts = 'interpol'
 CTC_controller.hysteresis   = True
-CTC_controller.hys_level    = 1
+CTC_controller.hys_level    = 3
 
 """ Simulation """
 
@@ -112,6 +112,7 @@ R.Sim.plots[1].set_yticks( [-4,0, 4] )
 R.Sim.plots[2].set_yticks( [-8,0,8] )
 R.Sim.plots[3].set_ylim(    -1,11 )
 R.Sim.plots[3].set_yticks( [0,10] )
+R.Sim.plots[3].set_xlim(    0,10 )
 R.Sim.plots[3].set_xticks( t_ticks )
 R.Sim.fig.canvas.draw()
 if save_fig:
@@ -171,6 +172,8 @@ PP2.plot( R.Sim )
 if save_fig:
     PP2.phasefig.savefig( name , format = 'pdf' , bbox_inches='tight', pad_inches=0.05 )
 
-#R.animateSim()
+name_video = 'output/sim1_anim'
+
+R.animateSim( 1.0 , save_fig ,  name_video )
 
 plt.show()
