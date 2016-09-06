@@ -370,8 +370,12 @@ class Simulation:
         self.solver = solver
         
         # Ploting
-        
         self.fontsize = 5
+        
+        # Cost computing
+        self.J = 0
+        self.Q = np.diag( np.ones( self.DS.n) )
+        self.R = np.diag( np.ones( self.DS.m) )
         
     ##############################
     def compute(self):
@@ -379,18 +383,29 @@ class Simulation:
         
         self.t  = np.linspace( self.t0 , self.tf , self.n )
         
+        self.J  = 0
+        
         if self.solver == 'ode':
         
             self.x_sol_OL = odeint( self.DS.fc_OpenLoop   , self.x0 , self.t)
             self.x_sol_CL = odeint( self.DS.fc_ClosedLoop , self.x0 , self.t)
             
             # Compute control inputs
-            
-            self.u_sol_CL   = np.zeros(( self.n , self.DS.m ))
+            self.u_sol_CL   = np.zeros(( self.n , self.DS.m ))  
             
             for i in xrange(self.n):
                 
-                self.u_sol_CL[i,:] = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
+                # u & x
+                u = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
+                x = self.x_sol_CL[i,:]
+                
+                # integral cost
+                xQx    = np.dot( x.T , np.dot( self.Q , x ) )
+                uRu    = np.dot( u.T , np.dot( self.R , u ) )
+                self.J = self.J + ( xQx + uRu ) * self.dt
+                
+                self.u_sol_CL[i,:] = u
+                
                 
         elif self.solver == 'euler':
             
@@ -404,7 +419,16 @@ class Simulation:
             
             for i in xrange(self.n):
                 
-                self.u_sol_CL[i,:]   = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
+                # u & x
+                u = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
+                x = self.x_sol_CL[i,:]
+                
+                # integral cost
+                xQx    = np.dot( x.T , np.dot( self.Q , x ) )
+                uRu    = np.dot( u.T , np.dot( self.R , u ) )
+                self.J = self.J + ( xQx + uRu ) * self.dt
+                
+                self.u_sol_CL[i,:] = u
                 
                 if i+1<self.n:
                     self.x_sol_CL[i+1,:] = self.DS.fd( self.x_sol_CL[i,:] , self.u_sol_CL[i,:] , self.dt )
