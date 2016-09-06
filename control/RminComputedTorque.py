@@ -109,7 +109,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
                         
         # Hysteresis
         if self.hysteresis:
-            gear_shift_gain = np.linalg.norm( T[ i_star ] - T[ self.last_gear_i ] )
+            gear_shift_gain = np.linalg.norm( T[ self.last_gear_i ] ) - np.linalg.norm( T[ i_star ] )
             if gear_shift_gain < self.hys_level :
                 # Keep old gear ratio
                 i_star = self.last_gear_i
