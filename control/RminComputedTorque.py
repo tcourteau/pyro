@@ -101,7 +101,22 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
             T[i] = self.computed_torque( ddq_r , x , self.uD(i) ) 
             
             # Cost is norm of torque
-            Q[i] = np.dot( T[i] , T[i] )
+            #Q[i] = np.dot( T[i] , T[i] )
+            
+            # Verify validity
+            u_test  = np.append( T[i] , self.uD(i) )
+            
+            if self.R.isavalidinput( x , u_test ):
+                # valid option
+                
+                # Cost is norm of torque
+                Q[i] = np.dot( T[i] , T[i] )
+                
+            else:
+                
+                # Bad option
+                Q[i] = 9999999999 # INF
+               # print 'bad option'
             
         
         # Optimal dsicrete mode

@@ -414,6 +414,35 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         
         self.ubar = np.array([0,0,0,1])
         
+        self.x_ub = np.array([ + 1 * np.pi , 0 , 0 ,  15 , 0 , 0])
+        self.x_lb = np.array([ - 2 * np.pi , 0 , 0 , -15 , 0 , 0])
+        
+        self.dq_max_HF = 1.4 # [rad/sec]
+        
+        
+    #############################
+    def isavalidinput(self , x , u):
+        """ check if u is in the domain """
+        
+        ans = False # set to True if something is bad
+        
+        for i in xrange(self.m):
+            ans = ans or ( u[i] < self.u_lb[i] )
+            ans = ans or ( u[i] > self.u_ub[i] )
+            
+        # add w_max constraint
+        
+        # if High-force mode
+        if u[3] == 1 :
+            
+            dq = x[3]
+            
+            ans = ans or ( dq >  self.dq_max_HF )
+            ans = ans or ( dq < -self.dq_max_HF )
+
+            
+        return not(ans)
+        
         
     #############################
     def setparams(self):
@@ -454,9 +483,8 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         r1   = 23.2 # 5.8 * 4
         r2   = 474  # 123 * 52/18 *4/3
         
-        #R1 = np.diag([ r1 ,1,1])
-        R1 = np.diag([ r2, 1,1])
-        R2 = np.diag([ r1 ,1,1])
+        R1 = np.diag([ r1 ,1,1])
+        R2 = np.diag([ r2, 1,1])
         
         self.R = [ R1 , R2 ]
         

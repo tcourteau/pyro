@@ -84,7 +84,7 @@ class RRT:
         return x_random
         
     ############################
-    def rand_input(self):    
+    def rand_input(self, x = 0 ):    
         """ Sample a random state """
         
         n_options = len( self.U )
@@ -92,6 +92,10 @@ class RRT:
         
         u         = self.U[j]
         
+        # New sample if not valid option
+        if not( self.DS.isavalidinput( x , u ) ):
+            u = self.rand_input( x )
+            
         # correct for 1 input case
         if self.DS.m == 1:
                 u = np.array([u])
@@ -137,7 +141,7 @@ class RRT:
         # Select a random control input
         if self.randomized_input :
             
-            u          = self.rand_input()
+            u          = self.rand_input( closest_node.x )
             x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
             t_next     = closest_node.t + self.dt
             new_node   = Node( x_next , u , t_next  , closest_node )
@@ -150,18 +154,21 @@ class RRT:
             
             for u in self.U:
                 
-                if self.DS.m == 1:
-                    u = np.array([u])
+                # if input is valid
+                if self.DS.isavalidinput( closest_node.x , u ):
+                
+                    if self.DS.m == 1:
+                        u = np.array([u])
+                        
+                    x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
+                    t_next     = closest_node.t + self.dt
+                    node       = Node( x_next , u , t_next  , closest_node )
                     
-                x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
-                t_next     = closest_node.t + self.dt
-                node       = Node( x_next , u , t_next  , closest_node )
-                
-                d = node.distanceTo( x_target )
-                
-                if d < min_distance:
-                    min_distance = d
-                    new_node     = node
+                    d = node.distanceTo( x_target )
+                    
+                    if d < min_distance:
+                        min_distance = d
+                        new_node     = node
                 
         return new_node
         
