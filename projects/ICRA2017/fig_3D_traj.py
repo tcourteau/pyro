@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 test_name     = 'no4'
 ReComputeTraj = False
-save_fig      = True
+save_fig      = False
 name_traj     = 'data/3D_sol_'+ test_name +'.npy'
 
 
@@ -155,18 +155,28 @@ if save_fig:
 # Hold figures alive
 plt.show()
 
+
+# Compute integral cost
+R.Sim.Q = np.diag([0,0,0,0,0,0])
+R.Sim.R = np.diag([1,1,1,0])
+
+R.Sim.compute()
+
 print 'max torque gearshift:' , R.Sim.u_sol_CL.max()
 print 'min torque gearshift:' , R.Sim.u_sol_CL.min()
+print '      cost gearshift:' , R.Sim.J
 
 ############
 
 CTC_controller.last_gear_i = 0
 CTC_controller.n_gears = 1
 R.R = [ np.diag([1,1,1]) ,   np.diag([1,1,1]) ]
-R.computeSim( x_start , tf  , n , solver = 'euler' )
+
+R.Sim.compute()
 
 print 'max torque 1:1 :' , R.Sim.u_sol_CL.max()
 print 'min torque 1:1 :' , R.Sim.u_sol_CL.min()
+print '      cost 1:1 :' , R.Sim.J
 
 R.Sim.plot_CL('u')
 
@@ -174,9 +184,11 @@ R.Sim.plot_CL('u')
 
 CTC_controller.n_gears = 1
 R.R = [ np.diag([10,10,10]) , np.diag([10,10,10]) ]
-R.computeSim( x_start , tf  , n , solver = 'euler' )
+
+R.Sim.compute()
 
 print 'max torque 1:10 :' , R.Sim.u_sol_CL.max()
 print 'min torque 1:10 :' , R.Sim.u_sol_CL.min()
+print '      cost 1:10 :' , R.Sim.J
 
 R.Sim.plot_CL('u')
