@@ -158,7 +158,6 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
                     self.last_gear_i  = i_star
                     self.last_shift_t = t
                     
-        
             
         u  = np.append( T[ i_star ] , self.uD( i_star ) )
         

@@ -1393,6 +1393,55 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.fig_show_3D.canvas.draw()
         
         
+    #############################
+    def show_3D_add_end_effector_traj(self):
+        """ 
+        Plot trajectory of end-effector 
+        ----------------------------------------
+        -self.Sim needs to exist
+        
+        """
+        
+        self.ax_show_3D.plot( self.PTS[-1,0,:], self.PTS[-1,1,:], self.PTS[-1,2,:], ':' ) 
+        
+        self.fig_show_3D.canvas.draw()
+        
+    
+    #############################
+    def show_traj_3D(self, index = None ):
+        """ 
+        3D figure including:
+        ----------------------------------------
+        - trajectory of end-effector 
+        - intial configuration
+        - final  configuration
+        
+        index: list of index of configuration to plot
+        
+        Notes:
+        -self.Sim needs to exist
+        
+        """
+        [ q_start , dq ]      = self.x2q(  self.Sim.x_sol_CL[ 0,:]  )
+        [ q_end   , dq ]      = self.x2q(  self.Sim.x_sol_CL[-1,:]  )
+        pts_end               = self.fwd_kinematic( q_end )
+        
+        self.show_3D( q_start )
+        self.ax_show_3D.plot( pts_end[:,0], pts_end[:,1], pts_end[:,2], 'o-' )
+        
+        
+        if not( index == None ):
+            # For all requested index
+            for i in index:
+                # If it is not out-of range
+                if ( i < self.Sim.n ):
+                    [ q   , dq ]     = self.x2q(  self.Sim.x_sol_CL[i,:]  )
+                    pts              = self.fwd_kinematic( q )
+                    self.ax_show_3D.plot( pts[:,0], pts[:,1], pts[:,2], 'o-' )
+                    
+        self.show_3D_add_end_effector_traj()                            
+        
+        
     ##############################
     def animate3DSim(self, time_factor_video =  1.0 , save = False , file_name = 'RobotSim' ):
         """ 
@@ -1432,6 +1481,9 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.ax.set_zlim3d([- self.lw / 2. , self.lw / 2.])
         self.ax.set_zlabel('Z')
         self.ax.set_title('3D Robot Animation')
+        
+        # Add End-effector traj
+        self.ax.plot( self.PTS[-1,0,:], self.PTS[-1,1,:], self.PTS[-1,2,:], ':' ) 
         
         inter      =  40.             # ms --> 25 frame per second
         frame_dt   =  inter / 1000. 

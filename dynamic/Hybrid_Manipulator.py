@@ -304,7 +304,8 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         """ Set model parameters here """
         
         # Gear ratio
-        self.R = [np.diag([r1,r1,r1]),np.diag([r2,r2,r2])]
+        self.R = [np.diag([r1,r1,r1]),np.diag([r1,r1,r2]),np.diag([r1,r2,r1]), np.diag([r1,r2,r2]),
+                  np.diag([r2,r1,r1]),np.diag([r2,r1,r2]),np.diag([r2,r2,r1]), np.diag([r2,r2,r2])  ]
         
         # Inertia
         self.Ia = np.diag([ja,ja,ja])
