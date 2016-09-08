@@ -412,26 +412,57 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         self.dim_pts = 3 # number of dimension for each pts 
         self.axis_to_plot = [0,2]  # axis to plot for 2D plot
         
+        self.ubar = np.array([0,0,0,1])
+        
+        self.x_ub = np.array([ + 1 * np.pi , 0 , 0 ,  15 , 0 , 0])
+        self.x_lb = np.array([ - 2 * np.pi , 0 , 0 , -15 , 0 , 0])
+        
+        self.dq_max_HF = 0.9 # [rad/sec]
+        
+        
+    #############################
+    def isavalidinput(self , x , u):
+        """ check if u is in the domain """
+        
+        ans = False # set to True if something is bad
+        
+        for i in xrange(self.m):
+            ans = ans or ( u[i] < self.u_lb[i] )
+            ans = ans or ( u[i] > self.u_ub[i] )
+            
+        # add w_max constraint
+        
+        # if High-force mode
+        if u[3] == 1 :
+            
+            dq = x[3]
+            
+            ans = ans or ( dq >  self.dq_max_HF )
+            ans = ans or ( dq < -self.dq_max_HF )
+
+            
+        return not(ans)
+        
         
     #############################
     def setparams(self):
         """ Set model parameters here """
         
-        self.l1  = 0.2
+        self.l1  = 0.25
         self.lc1 = 0.1
         
-        self.mc1 = 0.1
-        self.Ic1 = 1
+        self.mc1 = 0.0 # Neglect
+        self.Ic1 = 0.0 # Neglect
         
         # load
-        self.M  = 0.11
+        self.M  = 1.0
         
-        self.g = 9.81
+        self.g = 9.81 * 1
         
-        self.d1 = 0
+        self.d1 = 0.05
         
         # Total length
-        self.lw = 1
+        self.lw = 0.3
         
         self.setActuatorParams()
         
@@ -440,7 +471,7 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         """ Set actuators parameters here """
         
         # Actuator damping coef
-        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] ) * 0.5
+        self.Da = np.diag( [ 0.00002 , 0.00002 , 0.00002 ] ) * 0.1
         
         # Actuator inertia coef
         
@@ -452,9 +483,8 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         r1   = 23.2 # 5.8 * 4
         r2   = 474  # 123 * 52/18 *4/3
         
-        #R1 = np.diag([ r1 ,1,1])
-        R1 = np.diag([ r2, 1,1])
-        R2 = np.diag([ r2 ,1,1])
+        R1 = np.diag([ r1 ,1,1])
+        R2 = np.diag([ r2, 1,1])
         
         self.R = [ R1 , R2 ]
         
@@ -596,4 +626,6 @@ if __name__ == "__main__":
     BA = BoeingArm()
     
     R  = TestPendulum()
+    
+    R.plotAnimation( [0.1,0,0,0,0,0])
     

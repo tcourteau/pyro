@@ -50,6 +50,9 @@ class DynamicSystem:
         
         self.setparams()
         
+        # Ploting
+        self.axis_to_plot = [0,1]
+        
     #############################
     def setparams(self):
         """ Set model parameters here """
@@ -129,8 +132,8 @@ class DynamicSystem:
     def phase_plane(self , PP_CL = True , PP_OL = False ):
         """ """
         
-        y1 = 0 
-        y2 = 1
+        y1 = self.axis_to_plot[0] 
+        y2 = self.axis_to_plot[1]
         
         # Quiver
         self.PP   = PhasePlot( self , y1 , y2 , PP_OL , PP_CL )
@@ -146,8 +149,8 @@ class DynamicSystem:
     def phase_plane_trajectory(self ,  u = [0,1] , x0 = [0,0,0,0] , tf = 10 , CL = True, OL = False , PP_CL = True , PP_OL = False ):
         """ """
         
-        y1 = 0 
-        y2 = 1
+        y1 = self.axis_to_plot[0] 
+        y2 = self.axis_to_plot[1]
         
         # Quiver
         self.PP = PhasePlot( self , y1 , y2 , PP_OL , PP_CL )

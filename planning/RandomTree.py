@@ -57,6 +57,8 @@ class RRT:
         self.dyna_plot            = False
         self.dyna_node_no_update  = 50
         self.fontsize             = 4
+        self.y1axis               = 0  # State to plot on y1 axis
+        self.y2axis               = 1  # State to plot on y2 axis
         
         self.discretizeactions()
         
@@ -82,7 +84,7 @@ class RRT:
         return x_random
         
     ############################
-    def rand_input(self):    
+    def rand_input(self, x = 0 ):    
         """ Sample a random state """
         
         n_options = len( self.U )
@@ -90,6 +92,10 @@ class RRT:
         
         u         = self.U[j]
         
+        # New sample if not valid option
+        if not( self.DS.isavalidinput( x , u ) ):
+            u = self.rand_input( x )
+            
         # correct for 1 input case
         if self.DS.m == 1:
                 u = np.array([u])
@@ -135,7 +141,7 @@ class RRT:
         # Select a random control input
         if self.randomized_input :
             
-            u          = self.rand_input()
+            u          = self.rand_input( closest_node.x )
             x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
             t_next     = closest_node.t + self.dt
             new_node   = Node( x_next , u , t_next  , closest_node )
@@ -148,18 +154,21 @@ class RRT:
             
             for u in self.U:
                 
-                if self.DS.m == 1:
-                    u = np.array([u])
+                # if input is valid
+                if self.DS.isavalidinput( closest_node.x , u ):
+                
+                    if self.DS.m == 1:
+                        u = np.array([u])
+                        
+                    x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
+                    t_next     = closest_node.t + self.dt
+                    node       = Node( x_next , u , t_next  , closest_node )
                     
-                x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
-                t_next     = closest_node.t + self.dt
-                node       = Node( x_next , u , t_next  , closest_node )
-                
-                d = node.distanceTo( x_target )
-                
-                if d < min_distance:
-                    min_distance = d
-                    new_node     = node
+                    d = node.distanceTo( x_target )
+                    
+                    if d < min_distance:
+                        min_distance = d
+                        new_node     = node
                 
         return new_node
         
@@ -516,9 +525,6 @@ class RRT:
     def plot_2D_Tree(self):
         """ """
         
-        self.y1axis = 0  # State to plot on y1 axis
-        self.y2axis = 1  # State to plot on y2 axis
-        
         self.y1min = self.DS.x_lb[ self.y1axis ]
         self.y1max = self.DS.x_ub[ self.y1axis ]
         self.y2min = self.DS.x_lb[ self.y2axis ]
@@ -529,12 +535,12 @@ class RRT:
         
         for node in self.Nodes:
             if not(node.P==None):
-                line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'o-')
+                line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'o-')
                 
         if not self.solution == None:
             for node in self.path_node_list:
                 if not(node.P==None):
-                    line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'r')
+                    line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'r')
         
         
         plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=6)
@@ -548,9 +554,6 @@ class RRT:
     
     ############################
     def dyna_plot_init(self):
-        
-        self.y1axis = 0  # State to plot on y1 axis
-        self.y2axis = 1  # State to plot on y2 axis
         
         self.y1min = self.DS.x_lb[ self.y1axis ]
         self.y1max = self.DS.x_ub[ self.y1axis ]
@@ -582,7 +585,7 @@ class RRT:
     def dyna_plot_add_node(self, node , no_nodes ):
         
         if not(node.P==None):
-                line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'o-')
+                line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'o-')
                 self.time_text.set_text(self.time_template % ( no_nodes ))
                 self.node_wait_list = self.node_wait_list + 1
                 
@@ -606,7 +609,7 @@ class RRT:
         if not self.solution == None:
             for node in self.path_node_list:
                 if not(node.P==None):
-                    line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'r')
+                    line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'r')
                     
             plt.ioff()
             plt.show()

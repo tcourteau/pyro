@@ -641,10 +641,10 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
             
         # Figure
         self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
+        self.ax = self.fig.add_subplot(111, autoscale_on=False, xlim=(-self.lw, self.lw), ylim=(-self.lw, self.lw))
         self.ax.grid()
         
-        self.line, = self.ax.plot([], [], 'o-', lw=2)
+        self.line, = self.ax.plot([], [], 'o-', lw=self.lw )
         self.time_template = 'time = %.1fs'
         self.time_text = self.ax.text(0.05, 0.9, '', transform=self.ax.transAxes)
             
