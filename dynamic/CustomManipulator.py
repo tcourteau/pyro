@@ -417,7 +417,7 @@ class TestPendulum( HM.HybridThreeLinkManipulator ) :
         self.x_ub = np.array([ + 1 * np.pi , 0 , 0 ,  15 , 0 , 0])
         self.x_lb = np.array([ - 2 * np.pi , 0 , 0 , -15 , 0 , 0])
         
-        self.dq_max_HF = 1.4 # [rad/sec]
+        self.dq_max_HF = 0.9 # [rad/sec]
         
         
     #############################
