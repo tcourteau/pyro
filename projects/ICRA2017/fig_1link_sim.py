@@ -121,7 +121,7 @@ if save_fig:
 # phase plane 1
 PP1 =  DS.PhasePlot( R )
 
-PP1.y1max = 2
+PP1.y1max = 1
 PP1.y1min = -5
 PP1.y2max = 4
 PP1.y2min = -4
@@ -132,11 +132,11 @@ PP1.CL         = False
 PP1.color_CL   = 'b'
 PP1.linewidth  = 0.04
 PP1.headlength = 3.5
-PP1.fontsize   = 7
+PP1.fontsize   = 8
 PP1.dpi        = 600
 PP1.figsize    = (3,2)
-PP1.y1n        = 11
-PP1.y2n        = 11
+PP1.y1n        = 8
+PP1.y2n        = 8
 
 PP1.u          = np.array([0,1])
 PP1.compute()
