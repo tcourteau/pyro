@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 ## LOADING
 
 name      = 'succes5+'
-name      = '/home/alex/ROS_WS/src/dsdm_robotics/dsdm_sensing/data/' + name + '.npy'
+name      = 'data/' + name + '.npy'
 
 DATA = np.load( name )
 
@@ -40,13 +40,13 @@ wr2= DATA[i:j,14]
 
 def plot_main():
 
-    fontsize = 5
+    fontsize = 6
     
     matplotlib.rc('xtick', labelsize=fontsize )
     matplotlib.rc('ytick', labelsize=fontsize )
     
     
-    simfig , plot = plt.subplots(4, sharex=True,figsize=(5, 3),dpi=400, frameon=True)
+    simfig , plot = plt.subplots(4, sharex=True,figsize=(3.5, 3),dpi=300, frameon=True)
     
     simfig.canvas.set_window_title('Closed loop trajectory')
     
@@ -88,6 +88,8 @@ def plot_main():
     simfig.tight_layout()
     
     simfig.show()
+    
+    return simfig
     
 
 def plot_motors():
@@ -177,7 +179,7 @@ def plot_currents():
     matplotlib.rc('ytick', labelsize=fontsize )
     
     
-    simfig , plot = plt.subplots(1, sharex=True,figsize=(4, 3),dpi=400, frameon=True)
+    simfig , plot = plt.subplots(1, sharex=True,figsize=(4, 3),dpi=500, frameon=True)
     
     simfig.canvas.set_window_title('Motors Currents')
     
@@ -197,7 +199,9 @@ def plot_currents():
     
     
     
-plot_main()
+fig = plot_main()
 #plot_motors()
 #plot_currents()
 #plot_shift_delay()
+
+fig.savefig( 'output/' + 'exp_fig2.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)

@@ -19,8 +19,8 @@ import matplotlib.pyplot as plt
 """ Modes """
 
 ReComputeTraj = False
-save_fig      = False
-name_traj     = 'output/1link_sol.npy'
+save_fig      = True
+name_traj     = 'data/1link_sol.npy'
 all_fig       = 'output/1link_xu.pdf'
 
 
@@ -91,7 +91,8 @@ CTC_controller.n_gears      = 2
 #CTC_controller.traj_ref_pts = 'closest'
 CTC_controller.traj_ref_pts = 'interpol'
 CTC_controller.hysteresis   = True
-CTC_controller.hys_level    = 3
+CTC_controller.hys_level    = 1.0
+CTC_controller.min_delay    = 0.1
 
 """ Simulation """
 
@@ -105,13 +106,14 @@ R.Sim.fontsize = 7
 t_ticks = [0,5,10]
 
 
+
 R.Sim.plot_CL()
 
 R.Sim.plots[0].set_yticks( [-4,0] )
 R.Sim.plots[1].set_yticks( [-4,0, 4] )
 R.Sim.plots[2].set_yticks( [-8,0,8] )
-R.Sim.plots[3].set_ylim(    -1,11 )
-R.Sim.plots[3].set_yticks( [0,10] )
+R.Sim.plots[3].set_ylim(    0,11 )
+R.Sim.plots[3].set_yticks( [1,10] )
 R.Sim.plots[3].set_xlim(    0,10 )
 R.Sim.plots[3].set_xticks( t_ticks )
 R.Sim.fig.canvas.draw()

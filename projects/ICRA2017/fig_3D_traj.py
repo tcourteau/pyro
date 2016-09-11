@@ -91,7 +91,7 @@ CTC_controller.w0           = 1.0
 CTC_controller.zeta         = 0.7
 CTC_controller.traj_ref_pts = 'interpol'
 CTC_controller.n_gears      = 8
-CTC_controller.hysteresis   = True
+CTC_controller.hysteresis   = False
 CTC_controller.hys_level    = 3
 
 """ Simulation and plotting """
@@ -109,6 +109,26 @@ R.Sim.fontsize = 7
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
 
+t = R.Sim.t
+
+t1 = R.Sim.u_sol_CL[:,0]
+t2 = R.Sim.u_sol_CL[:,1]
+t3 = R.Sim.u_sol_CL[:,2]
+
+l = R.Sim.n
+r1 = np.zeros( n )
+r2 = np.zeros( n )
+r3 = np.zeros( n )
+
+for i in xrange(l):
+    
+    index = int( R.Sim.u_sol_CL[i,3] )
+
+    r1[i] = R.R[ index ][0,0]
+    r2[i] = R.R[ index ][1,1]
+    r3[i] = R.R[ index ][2,2]
+
+
 R.Sim.plots[0].set_ylim( -12,12 )
 R.Sim.plots[1].set_ylim( -12,12 )
 R.Sim.plots[2].set_ylim( -12,12 )
@@ -122,19 +142,17 @@ R.Sim.plots[3].set_xlim( -0,6 )
 R.Sim.fig.canvas.draw()
 
 if save_fig:
-    R.Sim.fig.savefig( 'output/' + 'u_'+test_name+ '.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
-
-if save_fig:
-    
-    R.animate3DSim( 1.0 , True ,  'output/' + test_name )
+    R.Sim.fig.savefig( 'output/' + 'u_'+test_name+ '.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)  
+    #R.animate3DSim( 1.0 , True ,  'output/' + test_name )
     
 else:
     
     R.animate3DSim()
+    #pass
 
 
 R.lw = 2.5
-R.show_traj_3D([180,275,350,400,500])
+R.show_traj_3D([180,310,350,400,500])
 R.ax_show_3D.elev = 35
 R.ax_show_3D.azim = 35
 R.ax_show_3D.set_xlabel('')
@@ -146,6 +164,8 @@ R.ax_show_3D.set_zlim3d([ - R.lw / 2. + 1.0 , R.lw / 2. + 1.0 ])
 R.ax_show_3D.set_xticklabels([])
 R.ax_show_3D.set_yticklabels([])
 R.ax_show_3D.set_zticklabels([])
+R.ax_show_3D.text(2.2, 1, 1, 'Configuration A' )
+R.ax_show_3D.text(0, 0.8, 2.5, 'Configuration B')
 R.fig_show_3D.canvas.draw()
 
 if save_fig:
@@ -166,29 +186,80 @@ print 'max torque gearshift:' , R.Sim.u_sol_CL.max()
 print 'min torque gearshift:' , R.Sim.u_sol_CL.min()
 print '      cost gearshift:' , R.Sim.J
 
-############
+#############
+#
+#CTC_controller.last_gear_i = 0
+#CTC_controller.n_gears = 1
+#R.R = [ np.diag([1,1,1]) ,   np.diag([1,1,1]) ]
+#
+#R.Sim.compute()
+#
+#print 'max torque 1:1 :' , R.Sim.u_sol_CL.max()
+#print 'min torque 1:1 :' , R.Sim.u_sol_CL.min()
+#print '      cost 1:1 :' , R.Sim.J
+#
+#R.Sim.plot_CL('u')
+#
+#############
+#
+#CTC_controller.n_gears = 1
+#R.R = [ np.diag([10,10,10]) , np.diag([10,10,10]) ]
+#
+#R.Sim.compute()
+#
+#print 'max torque 1:10 :' , R.Sim.u_sol_CL.max()
+#print 'min torque 1:10 :' , R.Sim.u_sol_CL.min()
+#print '      cost 1:10 :' , R.Sim.J
+#
+#R.Sim.plot_CL('u')
 
-CTC_controller.last_gear_i = 0
-CTC_controller.n_gears = 1
-R.R = [ np.diag([1,1,1]) ,   np.diag([1,1,1]) ]
 
-R.Sim.compute()
 
-print 'max torque 1:1 :' , R.Sim.u_sol_CL.max()
-print 'min torque 1:1 :' , R.Sim.u_sol_CL.min()
-print '      cost 1:1 :' , R.Sim.J
 
-R.Sim.plot_CL('u')
+def plot_3d():
 
-############
+    fontsize = 6
+    
+    matplotlib.rc('xtick', labelsize=fontsize )
+    matplotlib.rc('ytick', labelsize=fontsize )
+    
+    
+    simfig , plot = plt.subplots(2, sharex=True,figsize=(3, 3),dpi=300, frameon=True)
+    
+    simfig.canvas.set_window_title('Closed loop trajectory')
+    
+    plot[0].plot( t ,  t1 , 'r--', label = 'Ref. trajectory')
+    plot[0].plot( t ,  t2 , 'b' ,  label = 'Actual position')
+    plot[0].plot( t ,  t3 , 'b' ,  label = 'Actual position')
+    #plot[0].set_yticks([-3.14,0])
+    #plot[0].set_ylim(-5,1)
+    plot[0].grid(True)
+    #plot[0].set_ylim(-6,1)
+    #legend = plot[0].legend(loc='lower right', fancybox=True, shadow=False, prop={'size':fontsize})
+    #legend.get_frame().set_alpha(0.4)
+    
+    plot[1].plot( t ,  r1 , 'b')
+    plot[1].plot( t ,  r2 , 'r')
+    plot[1].plot( t ,  r3 , 'g')
+    #plot[1].set_yticks([-6,0,6])
+    #plot[1].set_ylim(-8,8)
+    plot[1].grid(True)
+    
+    plot[1].set_ylabel('Ratio' , fontsize=fontsize )
+    plot[0].set_ylabel('Torque [Nm]' , fontsize=fontsize )
+    
+    plot[-1].set_xlabel('Time [sec]', fontsize=fontsize )
+    #plot[-1].set_xlim(0,4)
+    
+    #plot[-1].set_xticks([0.65,1.16,1.39,2.63])
+    plot[-1].set_xticks([0,1,2,3,4])
 
-CTC_controller.n_gears = 1
-R.R = [ np.diag([10,10,10]) , np.diag([10,10,10]) ]
-
-R.Sim.compute()
-
-print 'max torque 1:10 :' , R.Sim.u_sol_CL.max()
-print 'min torque 1:10 :' , R.Sim.u_sol_CL.min()
-print '      cost 1:10 :' , R.Sim.J
-
-R.Sim.plot_CL('u')
+    simfig.tight_layout()
+    
+    simfig.show()
+    
+    return simfig
+    
+    
+fig = plot_3d()
+fig.savefig( 'output/' + '3du.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
