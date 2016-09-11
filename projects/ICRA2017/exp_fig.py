@@ -4,6 +4,10 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
+# Embed font type in PDF
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype']  = 42
+
 
 #data = np.array([[ self.q , self.dq , self.q_d , self.f , self.k , t, self.w1 , self.w2 , self.i1 , self.i2 , self.brake ]])
 
@@ -204,4 +208,4 @@ fig = plot_main()
 #plot_currents()
 #plot_shift_delay()
 
-fig.savefig( 'output/' + 'exp_fig2.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
+fig.savefig( 'output/' + 'exp_fig3.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
