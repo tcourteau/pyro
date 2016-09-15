@@ -13,10 +13,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-ReComputeTraj = False
+ReComputeTraj = True
 saving_auto   = False
-simulation    = True
-name_traj     = '../data/pendulum_traj.npy'
+simulation    = False
+name_traj     = 'data/pendulum_traj.npy'
 
 
 ####################################
@@ -25,28 +25,28 @@ R  =  CM.TestPendulum()
 
 R.ubar = np.array([0,0,0,1])
 
-x_start = np.array([-np.pi ,0,0,0,0,0])
+x_start = np.array([-np.pi + 0.05 ,0,0,0,0,0])
 x_goal  = np.array([ 0,0,0,0,0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
 T    = 0.02
 u_R1 = 0
-u_R2 = 1
+u_R2 = 0
 
 #RRT.U = np.array([ [ T,0,0,u_R1] , [ 0,0,0,u_R1] , [ -T,0,0,u_R1] ])
 
 RRT.U = np.array([ [ T,0,0,u_R1] , [ 0,0,0,u_R1] , [ -T,0,0,u_R1] , [ T,0,0,u_R2] , [ 0,0,0,u_R2] , [ -T,0,0,u_R2] ])
 
 
-RRT.dt                    = 0.08
-RRT.goal_radius           = 0.5
+RRT.dt                    = 0.05
+RRT.goal_radius           = 0.2
 RRT.alpha                 = 0.8
 RRT.max_nodes             = 10000
-RRT.max_solution_time     = 2
+RRT.max_solution_time     = 3
 
 # Dynamic plot
-RRT.dyna_plot             = True
+RRT.dyna_plot             = False
 RRT.dyna_node_no_update   = 1000
 
 RRT.y1axis = 0
@@ -106,3 +106,29 @@ if simulation:
 
 
 plt.ion()
+
+
+
+# Ploting
+
+fig = RRT.phasefig
+axe = RRT.phasefig.get_axes()[0]
+
+fontsize = 5
+
+#matplotlib.rc('xtick', labelsize = fontsize )
+#matplotlib.rc('ytick', labelsize = fontsize )
+
+axe.tick_params(axis='both', which='major', labelsize=fontsize)
+
+axe.set_xlabel('Angle [rad]', fontsize = fontsize)
+axe.set_ylabel('Speed [rad/sec]', fontsize = fontsize)
+axe.set_xlim(-6,1)
+
+fig.set_size_inches(3, 2)
+
+fig.canvas.draw()
+fig.show()
+
+
+fig.savefig('output/rrt_fig.pdf', dpi = 300 , format = 'pdf' , bbox_inches='tight', pad_inches=0.05 )

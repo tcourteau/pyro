@@ -138,8 +138,8 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
                     # Keep old gear ratio
                     i_star = self.last_gear_i
                     
-                    print 'shifting not Allowed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-                    print 'too small gain       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                    #print 'shifting not Allowed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                    #print 'too small gain       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
                 
                 # if changed recently
                 elif ( t < self.min_delay + self.last_shift_t ):
@@ -147,10 +147,9 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
                     # Keep old gear ratio
                     i_star = self.last_gear_i
                     
-                    print 'shifting not Allowed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-                    print 'too sshort delay     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-                    
-                    print '  t:', t , '  timing:' , self.min_delay + self.last_shift_t 
+                    #print 'shifting not Allowed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                    #print 'too sshort delay     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                    #print '  t:', t , '  timing:' , self.min_delay + self.last_shift_t 
                     
                 # ok to gear-shift    
                 else:
