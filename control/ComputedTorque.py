@@ -39,6 +39,9 @@ class ComputedTorqueController:
         
         #self.traj_ref_pts = 'closest'
         self.traj_ref_pts = 'interpol'
+        
+        # For manual acc control
+        self.ddq_manual_setpoint = np.zeros( self.R.dof )
     
     
     ############################
@@ -51,6 +54,57 @@ class ComputedTorqueController:
         
         pass
     
+    
+    ############################
+    def traj_following_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired loaded trajectory and actual state, compute torques
+        
+        """
+        
+        ddq_d , dq_d , q_d = self.get_traj( t )
+
+        ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
+        
+        F                  = self.computed_torque( ddq_r , x )
+        
+        return F
+        
+        
+    ############################
+    def fixed_goal_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired fixed goal state and actual state, compute torques
+        
+        """
+        
+        ddq_d          =   np.zeros( self.R.dof )
+
+        [ q_d , dq_d ] = self.R.x2q( self.goal  )   # from state vector (x) to angle and speeds (q,dq)
+
+        ddq_r          = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
+        
+        F              = self.computed_torque( ddq_r , x )
+        
+        return F
+        
+        
+    ############################
+    def manual_acc_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired acc, compute torques
+        
+        """
+
+        ddq_r          = self.ddq_manual_setpoint
+        
+        F              = self.computed_torque( ddq_r , x )
+        
+        return F
+    
         
     ############################
     def computed_torque( self , ddq_r , x ):
@@ -60,10 +114,6 @@ class ComputedTorqueController:
         
         """
         
-        #q  = x[0:2]
-        #dq = x[2:4]
-        
-        # New n-DoF version
         [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         F = self.R.F( q , dq , ddq_r ) # Generalized force necessarly
@@ -79,10 +129,6 @@ class ComputedTorqueController:
         
         """
         
-        #q  = x[0:2]
-        #dq = x[2:4]
-        
-        # New n-DoF version
         [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         q_e   = q  -  q_d
@@ -90,29 +136,12 @@ class ComputedTorqueController:
         
         ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
         
+        # Save for Debug
+        self.q_e   = q_e
+        self.dq_e  = dq_e
+        self.ddq_r = ddq_r
+        
         return ddq_r
-        
-        
-    ############################
-    def fixed_goal_ctl( self , x , t = 0 ):
-        """ 
-        
-        Given desired fixed goal state and actual state, compute torques
-        
-        """
-        
-        ddq_d = np.zeros( self.R.dof )
-        #dq_d  = self.goal[2:4]
-        #q_d   = self.goal[0:2]
-        
-        # New n-DoF version
-        [ q_d , dq_d ] = self.R.x2q( self.goal )   # from state vector (x) to angle and speeds (q,dq)
-
-        ddq_r = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
-        
-        F     = self.computed_torque( ddq_r , x )
-        
-        return F
         
         
     ############################
@@ -125,9 +154,9 @@ class ComputedTorqueController:
         
         self.solution = solution
         
-        q   = solution[0][0:2,:]
-        dq  = solution[0][2:4,:]
-        ddq = solution[3][2:4,:]
+        q   = solution[0][ 0          :     self.R.dof , : ]
+        dq  = solution[0][ self.R.dof : 2 * self.R.dof , : ]
+        ddq = solution[3][ self.R.dof : 2 * self.R.dof , : ]
         t   = solution[2]
         
         self.traj = [ ddq , dq , q , t ]
@@ -174,28 +203,14 @@ class ComputedTorqueController:
         else:
             
             # Fixed goal
-            ddq = np.zeros(2)
-            dq  = self.goal[2:4]
-            q   = self.goal[0:2]
+            ddq = np.zeros( self.R.dof )
+            dq  = self.goal[ self.R.dof : 2 * self.R.dof]
+            q   = self.goal[ 0          : self.R.dof    ]
             
         
         return ddq , dq , q
         
     
-    ############################
-    def traj_following_ctl( self , x , t ):
-        """ 
-        
-        Given desired loaded trajectory and actual state, compute torques
-        
-        """
-        
-        ddq_d , dq_d , q_d = self.get_traj( t )
 
-        ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
-        
-        F                  = self.computed_torque( ddq_r , x )
-        
-        return F
         
         

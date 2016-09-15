@@ -16,18 +16,41 @@ import matplotlib.pyplot as plt
 R  =  M.ThreeLinkManipulator()
 
 x_start = np.array([0,   np.pi * 0.5 ,0,0,0,0])
-x_goal  = np.array([0, - np.pi * 0.5 ,0,0,0,0])
+x_goal  = np.array([np.pi, - np.pi * 0.5 ,0,0,0,0])
+
+""" Planning Params """
 
 RRT = RPRT.RRT( R , x_start )
 
 T = 12 # torque
 
-RRT.U = np.array([[0,T,0],[0,0,0],[0,-T,0],[0,0,T],[0,0,-T],[0,T,T],[0,-T,-T],[0,-T,T],[0,T,-T]])
+RRT.U = np.array([[0,T,0],[0,0,0],[0,-T,0],[0,0,T],[0,0,-T],[0,T,T],[0,-T,-T],[0,-T,T],[0,T,-T],
+                  [T,T,0],[T,0,0],[T,-T,0],[T,0,T],[T,0,-T],[T,T,T],[T,-T,-T],[T,-T,T],[T,T,-T],
+                  [-T,T,0],[-T,0,0],[-T,-T,0],[-T,0,T],[-T,0,-T],[-T,T,T],[-T,-T,-T],[-T,-T,T],[-T,T,-T]])
+
 
 RRT.dt                    = 0.1
-RRT.goal_radius           = 2.0
-RRT.max_nodes             = 15000
-RRT.max_solution_time     = 10
+RRT.goal_radius           = 1.0
+RRT.max_nodes             = 50000
+RRT.max_solution_time     = 25
 
-#RRT.compute_steps(1000,True)
+""" Compute open-loop solution """
 RRT.find_path_to_goal( x_goal )
+
+#RRT.animate3D_solution( 0.5 )
+
+# Assign controller
+R.ctl = RRT.open_loop_controller
+
+#
+""" Simulation and plotting """
+
+# Plot
+tf = RRT.time_to_goal + 5
+R.plot3DAnimation( x_start , tf  )
+R.Sim.plot_CL('x') 
+R.Sim.plot_CL('u')
+RRT.plot_2D_Tree()
+
+# Hold figures alive
+plt.show()

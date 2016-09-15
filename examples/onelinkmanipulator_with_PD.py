@@ -30,7 +30,7 @@ R.ctl = PD_controller.u
 # Ploting a trajectory
 x_start = np.array([-3,0])
 tf      = 8
-n       = int( tf / 0.05 ) + 1
+n       = int( tf / 0.01 ) + 1
 
 R.plotAnimation( x_start , tf , n , solver = 'ode' )
 

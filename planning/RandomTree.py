@@ -7,6 +7,7 @@ Created on Sun Mar  6 15:09:12 2016
 
 from AlexRobotics.control import linear        as RCL
 from AlexRobotics.dynamic import DynamicSystem as DS
+from AlexRobotics.signal  import filters
 
 import numpy as np
 import matplotlib
@@ -32,12 +33,11 @@ class RRT:
         self.Nodes = []
         self.Nodes.append( self.start_node )
         
-        self.solution = None
         
         # Params
         self.dt  = 0.05
         self.INF = 10000
-        self.eps = 0.1
+        self.eps = 0.001
         
         self.goal_radius          = 0.2        
         self.alpha                = 0.9    # prob of random exploration
@@ -45,15 +45,29 @@ class RRT:
         self.max_distance_compute = 500    # maximum number of nodes to check distance
         self.max_solution_time    = 10     # won"t look for solution taking longuer than that
         
+        
+        # Smoothing params
+        self.low_pass_filter      = filters.low_pass( fc = 3 , dt = self.dt )        
+        
+        # Traj controller
         self.traj_ctl_kp          = 25
         self.traj_ctl_kd          = 10
         
+        # Ploting
+        self.dyna_plot            = False
+        self.dyna_node_no_update  = 50
+        self.fontsize             = 4
+        self.y1axis               = 0  # State to plot on y1 axis
+        self.y2axis               = 1  # State to plot on y2 axis
+        
         self.discretizeactions()
         
+        # Init
+        self.solution              = None
         self.randomized_input      = False
         
         
-        #############################
+    #############################
     def discretizeactions(self, Nu0 = 3 ):
         
         self.U = np.linspace( self.DS.u_lb[0]  , self.DS.u_ub[0]  , Nu0  )
@@ -70,7 +84,7 @@ class RRT:
         return x_random
         
     ############################
-    def rand_input(self):    
+    def rand_input(self, x = 0 ):    
         """ Sample a random state """
         
         n_options = len( self.U )
@@ -78,6 +92,10 @@ class RRT:
         
         u         = self.U[j]
         
+        # New sample if not valid option
+        if not( self.DS.isavalidinput( x , u ) ):
+            u = self.rand_input( x )
+            
         # correct for 1 input case
         if self.DS.m == 1:
                 u = np.array([u])
@@ -123,7 +141,7 @@ class RRT:
         # Select a random control input
         if self.randomized_input :
             
-            u          = self.rand_input()
+            u          = self.rand_input( closest_node.x )
             x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
             t_next     = closest_node.t + self.dt
             new_node   = Node( x_next , u , t_next  , closest_node )
@@ -136,18 +154,21 @@ class RRT:
             
             for u in self.U:
                 
-                if self.DS.m == 1:
-                    u = np.array([u])
+                # if input is valid
+                if self.DS.isavalidinput( closest_node.x , u ):
+                
+                    if self.DS.m == 1:
+                        u = np.array([u])
+                        
+                    x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
+                    t_next     = closest_node.t + self.dt
+                    node       = Node( x_next , u , t_next  , closest_node )
                     
-                x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
-                t_next     = closest_node.t + self.dt
-                node       = Node( x_next , u , t_next  , closest_node )
-                
-                d = node.distanceTo( x_target )
-                
-                if d < min_distance:
-                    min_distance = d
-                    new_node     = node
+                    d = node.distanceTo( x_target )
+                    
+                    if d < min_distance:
+                        min_distance = d
+                        new_node     = node
                 
         return new_node
         
@@ -191,6 +212,10 @@ class RRT:
         
         no_nodes = 0
         
+         # Plot
+        if self.dyna_plot:
+            self.dyna_plot_init()
+        
         while not succes:
             
             # Exploration:
@@ -222,6 +247,10 @@ class RRT:
             no_nodes = no_nodes + 1
             #print '\nNumber of Nodes = ', no_nodes
             
+            # Plot
+            if self.dyna_plot:
+                self.dyna_plot_add_node( new_node , no_nodes )
+            
             # Succes?
             if d < self.goal_radius:
                 succes = True
@@ -235,12 +264,21 @@ class RRT:
                 self.Nodes = []
                 self.Nodes.append( self.start_node )
                 
+                if self.dyna_plot :
+                    
+                    self.dyna_plot_clear()
+                    
+                
         
         print '\nSucces!!!!: Path to goal found'
         
         
         # Compute Path
         self.compute_path_to_goal()
+        
+        # Plot
+        if self.dyna_plot:
+            self.dyna_plot_solution()
         
                 
     ############################
@@ -272,6 +310,7 @@ class RRT:
             
             # Previous Node
             node  = node.P 
+            
         
         # Arrange Time array
         t = np.array( t_list )
@@ -290,9 +329,47 @@ class RRT:
         dx = np.fliplr( dx )
             
         # Save solution
-        self.time_to_goal = t.max()
+        self.time_to_goal    = t.max()
         self.solution        = [ x , u , t , dx ]
         self.solution_length = len( self.path_node_list )
+        
+    
+    ############################
+    def solution_smoothing( self ):
+        
+        [ x , u , t , dx ]  = self.solution
+        
+        x_new  = x.copy
+        dx_new = dx.copy()
+        
+        #dx_new[1] = self.low_pass_filter.filter_array( dx[1] )
+        
+        x_new  = self.low_pass_filter.filter_array( x  )
+        dx_new = self.low_pass_filter.filter_array( dx )
+        
+        # Filer acceleration only
+        self.solution   = [ x , u , t , dx_new ]
+        
+        #self.solution   = [ x_new , u , t , dx_new ]
+        
+    
+    
+    ############################
+    def save_solution(self, name = 'RRT_Solution.npy' ):
+        
+        arr = np.array( self.solution )
+        
+        np.save( name , arr )
+        
+        
+    ############################
+    def load_solution(self, name = 'RRT_Solution.npy' ):
+        
+        arr = np.load( name )
+        
+        self.solution        = arr.tolist()
+        self.time_to_goal    = self.solution[2].max()
+        self.solution_length = self.solution[2].size
         
 
     ############################
@@ -307,6 +384,38 @@ class RRT:
         
         self.OL_SIM.plot_CL('x') 
         self.OL_SIM.plot_CL('u')
+        
+    
+    ############################
+    def plot_open_loop_solution_acc(self, index = 0 ):
+        """ """
+        
+        t       = self.solution[2].T
+        dx      = self.solution[3].T
+        
+        fig , plots = plt.subplots( 1, sharex=True,figsize=(4, 3),dpi=300, frameon=True)
+        
+        plots.plot( t , dx )
+        
+        
+    ############################
+    def animate3D_solution(self, time_scale = 1 ):
+        """ 
+        animate robots with open loop solution
+        --------------------------------------
+        only works if self.DS is a 3D mainpulator class
+        
+        """
+        
+        self.OL_SIM = DS.Simulation( self.DS , self.time_to_goal , self.solution_length )
+        
+        self.OL_SIM.t        = self.solution[2].T
+        self.OL_SIM.x_sol_CL = self.solution[0].T
+        self.OL_SIM.u_sol_CL = self.solution[1].T
+        
+        self.DS.Sim = self.OL_SIM 
+        
+        self.DS.animate3DSim( time_scale )
         
         
     ############################
@@ -405,14 +514,16 @@ class RRT:
             
             return u_ctl
             
-                
+    
+    
+    
+    ##################################################################
+    ### Ploting functions
+    ##################################################################            
                 
     ############################
     def plot_2D_Tree(self):
         """ """
-        
-        self.y1axis = 0  # State to plot on y1 axis
-        self.y2axis = 1  # State to plot on y2 axis
         
         self.y1min = self.DS.x_lb[ self.y1axis ]
         self.y1max = self.DS.x_ub[ self.y1axis ]
@@ -424,12 +535,12 @@ class RRT:
         
         for node in self.Nodes:
             if not(node.P==None):
-                line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'o-')
+                line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'o-')
                 
         if not self.solution == None:
             for node in self.path_node_list:
                 if not(node.P==None):
-                    line = self.ax.plot( [node.x[0],node.P.x[0]] , [node.x[1],node.P.x[1]] , 'r')
+                    line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'r')
         
         
         plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=6)
@@ -439,7 +550,69 @@ class RRT:
         plt.grid(True)
         plt.tight_layout()
         plt.show()
-                        
+        
+    
+    ############################
+    def dyna_plot_init(self):
+        
+        self.y1min = self.DS.x_lb[ self.y1axis ]
+        self.y1max = self.DS.x_ub[ self.y1axis ]
+        self.y2min = self.DS.x_lb[ self.y2axis ]
+        self.y2max = self.DS.x_ub[ self.y2axis ]
+        
+        matplotlib.rc('xtick', labelsize=self.fontsize )
+        matplotlib.rc('ytick', labelsize=self.fontsize )
+        
+        self.phasefig  = plt.figure(figsize=(3, 2),dpi=600, frameon=True)
+        self.ax        = self.phasefig.add_subplot(111)
+        
+        self.time_template = 'Number of nodes = %i'
+        self.time_text     = self.ax.text(0.05, 0.05, '', transform=self.ax.transAxes, fontsize=self.fontsize )
+        
+        plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize=self.fontsize )
+        plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize=self.fontsize )
+        plt.xlim([ self.y1min , self.y1max ])
+        plt.ylim([ self.y2min , self.y2max ])
+        plt.grid(True)
+        plt.tight_layout()
+        
+        plt.ion()
+        
+        self.node_wait_list = 0
+        
+        
+     ############################
+    def dyna_plot_add_node(self, node , no_nodes ):
+        
+        if not(node.P==None):
+                line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'o-')
+                self.time_text.set_text(self.time_template % ( no_nodes ))
+                self.node_wait_list = self.node_wait_list + 1
+                
+                
+                if self.node_wait_list == self.dyna_node_no_update:
+                    plt.pause( 0.01 )
+                    self.node_wait_list = 0
+                    
+                    
+    ############################
+    def dyna_plot_clear(self ):
+        
+        self.ax.clear()
+        plt.close( self.phasefig )
+        self.dyna_plot_init()
+                    
+                    
+    ############################
+    def dyna_plot_solution(self ):
+        
+        if not self.solution == None:
+            for node in self.path_node_list:
+                if not(node.P==None):
+                    line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'r')
+                    
+            plt.ioff()
+            plt.show()
     
         
         

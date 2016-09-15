@@ -28,7 +28,11 @@ RRT.goal_radius           = 0.3
 RRT.max_nodes             = 5000
 RRT.max_solution_time     = 5
 
-#RRT.compute_steps(1000,True)
+# Dynamic plot
+RRT.dyna_plot             = True
+RRT.dyna_node_no_update   = 10
+
+# Path Plannning
 RRT.find_path_to_goal( x_goal )
 
 # Assign controller
@@ -41,8 +45,8 @@ RRT.traj_ctl_kd   = 10
 tf = RRT.time_to_goal + 5
 n = int( tf / 0.05 ) + 1
 R.plotAnimation( x_start , tf , n , solver = 'euler' )
-R.phase_plane_trajectory([0],x_start,tf,True,False,False,True)
-RRT.plot_2D_Tree()
+R.Sim.phase_plane_trajectory(True,False,False,True)
+#RRT.plot_2D_Tree()
 R.Sim.plot_CL()
 
 

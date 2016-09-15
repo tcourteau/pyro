@@ -47,7 +47,7 @@ n  = int( np.round( tf / 0.05 ) ) + 1
 R.plotAnimation( x_start , tf  , n )
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')
-R.phase_plane_trajectory([0,0],x_start,tf,True,True,True,True)
+#R.Sim.phase_plane_trajectory(True,False,False,False)
 RRT.plot_2D_Tree()
 
 # Hold figures alive

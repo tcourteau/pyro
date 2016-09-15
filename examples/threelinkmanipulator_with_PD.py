@@ -41,4 +41,5 @@ R.Sim.plot_CL( 'x' )
 R.Sim.plot_CL( 'u' )
 
 # Hold figures alive
+
 plt.show()

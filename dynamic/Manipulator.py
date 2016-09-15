@@ -83,7 +83,11 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def trig(self, q = np.zeros(2)):
-        """ Compute cos and sin """
+        """ 
+        Compute cos and sin usefull in other computation 
+        ------------------------------------------------
+        
+        """
         
         c1  = np.cos( q[0] )
         s1  = np.sin( q[0] )
@@ -97,27 +101,47 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def fwd_kinematic(self, q = np.zeros(2)):
-        """ Compute [x;y] end effector position given angles q """
+        """ 
+        Compute p = [x;y] positions given angles q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        - last point should be the end-effector
+        
+        """
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
-        # Three robot points in plane
+        PTS = np.zeros(( self.n_pts , self.dim_pts ))
         
-        x0 = 0
-        y0 = 0
+        PTS[0,0] = 0
+        PTS[0,1] = 0
         
-        x1 = self.l1 * s1
-        y1 = self.l1 * c1
+        PTS[1,0] = self.l1 * s1
+        PTS[1,1] = self.l1 * c1
         
-        x2 = self.l1 * s1 + self.l2 * s12
-        y2 = self.l1 * c1 + self.l2 * c12
-        
-        return np.array([[x0,y0],[x1,y1],[x2,y2]])
+        PTS[2,0] = self.l1 * s1 + self.l2 * s12
+        PTS[2,1] = self.l1 * c1 + self.l2 * c12
+                
+        return PTS
     
     
     ##############################
     def jacobian_endeffector(self, q = np.zeros(2)):
-        """ Compute jacobian of end-effector """
+        """ 
+        Compute jacobian of end-effector 
+        --------------------------------------
+
+        # Differential kinematic
+        p : end-effector position
+        q : joint coordinates
+        dp = [ J_end ] dq 
+        
+        # Virtual work
+        f_ext : force applied on end-effector
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) f_ext
+        
+        """
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -132,8 +156,92 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     ##############################
+    def jacobian_actuators(self, q = np.zeros(2) ):
+        """ 
+        Compute jacobian of acutator coordinates 
+        ----------------------------------------
+        dim( J_a ) = ( dof , dof )
+        
+        # Differential kinematic
+        a : actuator coordinates
+        q : joint coordinates
+        da = [ J_a ] dq 
+        
+        # Virtual work
+        e     : actuator efforts
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) e
+        
+        Note : This will be identity matrix for most case where actuators 
+        are coupled 1:1 at each joint.
+        
+        """
+        
+        J_a = np.eye( self.dof )  # By default, identity matrix --> actuator coord = joint coord
+        
+        return J_a
+        
+        
+    ##############################
+    def jacobian_actuators_diff(self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """ 
+        Compute time differential of actuator coordinates jacobian
+        ----------------------------------------------------------
+        dim( dJ_a ) = ( dof , dof )
+        
+        - Become necessarly in EoM computation if two condition are True:
+        -- Inertia in actuator coordinates is included
+        -- Actuator coupling is variable --> J_a = J_a( q )
+        
+        """
+        
+        dJ_a = np.zeros( ( self.dof , self.dof )  )  # By default, J is constant hence dJ = zero
+        
+        return dJ_a
+        
+    
+    ##############################
+    def a2q(self, a = np.zeros(2) ):
+        """ 
+        Get actuator coor from joint coor
+        ----------------------------------------------
+        by defaut joint coord & actuator coord are the same :
+        
+        q = a
+        
+        """
+        
+        q = a
+        
+        return q
+        
+    
+    ##############################
+    def q2a(self, q = np.zeros(2) ):
+        """ 
+        Get joint coord from actuators coor
+        ----------------------------------------
+        by defaut joint coord & actuator coord are the same :
+        
+        q = a
+        
+        """
+        
+        a = q
+        
+        return a
+        
+        
+    ##############################
     def H(self, q = np.zeros(2)):
-        """ Inertia matrix """  
+        """ 
+        Inertia matrix of the manipulator
+        ----------------------------------
+        dim( H ) = ( dof , dof )
+        
+        such that --> Kinetic Energy = 0.5 * dq^T * H(q) * dq
+        
+        """  
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -149,7 +257,15 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def C(self, q = np.zeros(2) ,  dq = np.zeros(2) ):
-        """ Corriolis Matrix """  
+        """ 
+        Corriolis and Centrifugal Matrix 
+        ------------------------------------
+        dim( C ) = ( dof , dof )
+        
+        such that --> d H / dt =  C + C^T
+        
+        
+        """  
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -167,7 +283,17 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def D(self, q = np.zeros(2) ,  dq = np.zeros(2) ):
-        """ Damping Matrix """  
+        """ 
+        Damping Matrix  
+        -------------------------------
+        dim( D ) = ( dof , dof )
+        
+        f_d = damping force in joint coord
+        
+        f_d = D( q , dq ) * dq
+        
+        
+        """  
                
         D = np.zeros((2,2))
         
@@ -181,7 +307,15 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def G(self, q = np.zeros(2) ):
-        """Gravity forces """  
+        """
+        Gravity forces 
+        ---------------------------
+        dim( G ) = ( dof )
+        
+        compute gravitational force in joint coordinates       
+        
+        
+        """  
         
         [c1,s1,c2,s2,c12,s12] = self.trig( q )
         
@@ -195,31 +329,136 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         return G
         
+        
+    ##############################
+    def F_ext(self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """
+        Compute External forces applied on end-effector
+        ---------------------------
+        Override this function with a specific function if the robot
+        is interacting with an external system and it will be automatically
+        included in EoM that is calling this function.
+        
+        F_ext = f( q , dq )
+                
+        """  
+        
+        # TODO should define a dimension corresponding to end-effector DoF that can be different from the robot DoF
+        F_ext = np.zeros( self.dof ) 
+        
+        return F_ext
+        
+        
+    ##############################
+    def e_potential(self, q = np.zeros(2) ):
+        """ Compute potential energy of manipulator """  
+        
+        [c1,s1,c2,s2,c12,s12] = self.trig( q )
+        
+        g1 = (self.m1 * self.lc1 + self.m2 * self.l1 ) * self.g
+        g2 = self.m2 * self.lc2 * self.g
+        
+        e_p = g1 * c1 + g2 * c12        
+        
+        return e_p
+        
+        
+    ##########################################################################
+    # Based functions : No need to modify the next functions for custom robots
+    ##########################################################################
+        
+    ##############################
+    def da2dq(self, da = np.zeros(2) , q = np.zeros(2) ):
+        """ 
+        Get actuator velocities from joint velocities
+        ----------------------------------------------
+        
+        da = [ J_a( q ) ] dq
+        
+        """
+        
+        J_a = self.jacobian_actuators( q )
+        
+        dq  = np.dot( np.linalg.inv( J_a ) , da )
+        
+        return dq
+        
+    
+    ##############################
+    def dq2da(self, dq = np.zeros(2) , q = np.zeros(2) ):
+        """ 
+        Get joint velocities from actuators velocities
+        ----------------------------------------
+        
+        da = [ J_a( q ) ] dq
+        
+        """
+        
+        J_a = self.jacobian_actuators( q )
+        
+        da  = np.dot( J_a , dq )
+        
+        return da
+        
+    
+    ##############################
+    def B(self, q = np.zeros(2) ):
+        """
+        Actuator mechanical advantage Matrix
+        ---------------------------
+        dim( B ) = ( dof , dof )  --> assuming number of actuator == number of DOF
+        
+        e   : actuator efforts
+        f   : generalized force in joint coord
+        
+        f  = B( q ) * e
+    
+
+        """  
+        
+        B = self.jacobian_actuators( q ).T
+        
+        return B
+        
     
     ##############################
     def F(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2)):
         """ Computed torques given a trajectory (inverse dynamic) """  
         
-        H = self.H( q )
-        C = self.C( q , dq )
-        D = self.D( q , dq )
-        G = self.G( q )
+        H   = self.H( q )
+        C   = self.C( q , dq )
+        D   = self.D( q , dq )
+        G   = self.G( q )
+        B   = self.B( q )
         
-        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G
+        # External forces
+        J_e = self.jacobian_endeffector( q )
+        f_e = self.F_ext( q , dq )
         
-        return F
+        # Generalized forces
+        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G - np.dot( J_e.T , f_e )
+        
+        # Actuator effort
+        e = np.dot( np.linalg.inv( B ) , F )
+        
+        return e
         
         
     ##############################
-    def ddq(self, q = np.zeros(2) , dq = np.zeros(2) , F = np.zeros(2)):
+    def ddq(self, q = np.zeros(2) , dq = np.zeros(2) , e = np.zeros(2)):
         """ Computed accelerations given torques"""  
         
         H = self.H( q )
         C = self.C( q , dq )
         D = self.D( q , dq )
         G = self.G( q )
+        B = self.B( q )
         
-        ddq = np.dot( np.linalg.inv( H ) ,  ( F - np.dot( C , dq ) - np.dot( D , dq ) - G ) )
+        # External forces
+        J_e = self.jacobian_endeffector( q )
+        f_e = self.F_ext( q , dq )
+        
+        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , e ) + np.dot( J_e.T , f_e ) - np.dot( C , dq ) - np.dot( D , dq ) - G ) )
         
         return ddq
         
@@ -238,21 +477,6 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         dx : state derivative vectror n x 1
         
         """
-        
-        # Old 2-dof only version
-        """
-        dx = np.zeros(self.n) # State derivative vector
-        
-        q  = x[0:2]
-        dq = x[2:4]
-        
-        ddq = self.ddq( q , dq , u )
-        
-        dx[0:2] = dq
-        dx[2:4] = ddq
-        """
-        
-        # New n-dof version
         
         [ q , dq ] = self.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
@@ -293,20 +517,6 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         return e_k
         
-        
-    ##############################
-    def e_potential(self, q = np.zeros(2) ):
-        """ Compute potential energy of manipulator """  
-        
-        [c1,s1,c2,s2,c12,s12] = self.trig( q )
-        
-        g1 = (self.m1 * self.lc1 + self.m2 * self.l1 ) * self.g
-        g2 = self.m2 * self.lc2 * self.g
-        
-        e_p = g1 * c1 + g2 * c12        
-        
-        return e_p
-        
     
     ##############################
     def energy_values(self, x = np.zeros(4)  ):
@@ -322,7 +532,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     #############################
-    def show(self, q):
+    def show(self, q = np.zeros(2) ):
         """ Plot figure of configuration q """
         
         fig = plt.figure()
@@ -335,7 +545,21 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         plt.show()
         
-        return fig , ax, line
+        self.fig_show  = fig
+        self.line_show = line[0]
+        self.ax_show   = ax
+        
+        #return fig , ax, line
+    
+    #############################
+    def update_show(self, q):
+        """ update figure of configuration q """
+        
+        pts = self.fwd_kinematic( q )
+        
+        self.line_show.set_data( pts[:, self.axis_to_plot[0] ], pts[:, self.axis_to_plot[1] ])
+        
+        self.fig_show.canvas.draw()
         
         
     #############################
@@ -381,51 +605,81 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         return fig , ax, line
         
-    
+        
+        
     #############################
-    def plotAnimation(self, x0 = np.array([0,0,0,0]) , tf = 10 , n = 201 , solver = 'ode' ,  save = False , file_name = 'RobotSim'  ):
-        """ Simulate and animate robot """
+    def computeSim(self, x0 = np.array([0,0,0,0]) , tf = 10 , n = 1001 , solver = 'ode' ):
+        """ Simulate the robot """
         
         
-        # Integrate EoM
         self.Sim    = RDDS.Simulation( self , tf , n , solver )
         self.Sim.x0 = x0
         
+        # Integrate EoM
         self.Sim.compute()
         
-        # Compute pts localization
-        self.PTS = np.zeros(( self.n_pts , self.dim_pts , n ))
         
-        for i in xrange(n):
+    ##############################
+    def animateSim(self, time_factor_video =  1.0 , save = False , file_name = 'RobotSim' ):
+        """ 
+        Show Animation of the simulation 
+        ----------------------------------
+        time_factor_video < 0 --> Slow motion video        
+        
+        """  
+        
+        # Compensate for slightly slower ploting than it should:
+        time_factor_video = time_factor_video * 1.15
+        
+        # Compute pts localization
+        self.PTS = np.zeros(( self.n_pts , self.dim_pts , self.Sim.n ))
+        
+        for i in xrange( self.Sim.n ):
             
             [ q , dq ]      = self.x2q(  self.Sim.x_sol_CL[i,:]  )
             self.PTS[:,:,i] = self.fwd_kinematic( q )  # Forward kinematic
             
-            
-        # figure
-            
+        # Figure
         self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
+        self.ax = self.fig.add_subplot(111, autoscale_on=False, xlim=(-self.lw, self.lw), ylim=(-self.lw, self.lw))
         self.ax.grid()
         
-        self.line, = self.ax.plot([], [], 'o-', lw=2)
+        self.line, = self.ax.plot([], [], 'o-', lw=self.lw )
         self.time_template = 'time = %.1fs'
         self.time_text = self.ax.text(0.05, 0.9, '', transform=self.ax.transAxes)
             
-        inter = int( n / 8. )
-        #interval=25 with n=201
-           
-        # blit=True option crash on mac
-        #self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, blit=True, init_func=self.__ani_init__)
-        self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, init_func=self.__ani_init__)
+        inter      =  40.             # ms --> 25 frame per second
+        frame_dt   =  inter / 1000. 
         
+        if ( frame_dt * time_factor_video )  < self.Sim.dt :
+            # Simulation is slower than video
+            self.skip_steps = 1                                         # don't skip steps
+            inter           = self.Sim.dt * 1000. / time_factor_video   # adjust frame speed to simulation
+            n_frame         = self.Sim.n
+            
+        else:
+            # Simulation is faster than video
+            self.skip_steps =  int( frame_dt / self.Sim.dt * time_factor_video ) # --> number of simulation frame to skip between video frames
+            n_frame         =  int( self.Sim.n / self.skip_steps )               # --> number of video frames
+        
+        # ANIMATION
+        # blit=True option crash on mac
+        #self.ani = animation.FuncAnimation( self.fig, self.__animate__, n_frame , interval = inter, blit=True, init_func=self.__ani_init__)
+        self.ani = animation.FuncAnimation( self.fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__)
         
         if save:
             self.ani.save( file_name + '.mp4' ) # , writer = 'mencoder' )
             
-        plt.show()
         
-        return self.PTS
+        
+    
+    #############################
+    def plotAnimation(self, x0 = np.array([0,0,0,0]) , tf = 10 , n = 1001 , solver = 'ode' ,  save = False , file_name = 'RobotSim'  ):
+        """ Simulate and animate robot """
+        
+        self.computeSim( x0 , tf , n , solver )
+        
+        self.animateSim( 1.0 , save , file_name )
         
         
         
@@ -436,22 +690,22 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
     
     
     def __animate__(self,i):
-        thisx = self.PTS[:, self.axis_to_plot[0] ,i]
-        thisy = self.PTS[:, self.axis_to_plot[1] ,i]
+        thisx = self.PTS[:, self.axis_to_plot[0] , i * self.skip_steps ]
+        thisy = self.PTS[:, self.axis_to_plot[1] , i * self.skip_steps ]
     
         self.line.set_data(thisx, thisy)
-        self.time_text.set_text(self.time_template % (i*0.05))
+        self.time_text.set_text(self.time_template % ( i * self.skip_steps * self.Sim.dt ))
         return self.line, self.time_text
         
     def __animateStop__(self,i):
         
-        if i > 198: # To close window
+        if i > 198: # Hack To close window used in reinforcement learning algo
             plt.close()
-        thisx = self.PTS[:, self.axis_to_plot[0] ,i]
-        thisy = self.PTS[:, self.axis_to_plot[1] ,i]
+        thisx = self.PTS[:, self.axis_to_plot[0] , i * self.skip_steps ]
+        thisy = self.PTS[:, self.axis_to_plot[1] , i * self.skip_steps ]
     
         self.line.set_data(thisx, thisy)
-        self.time_text.set_text(self.time_template % (i*0.05))
+        self.time_text.set_text(self.time_template % ( i * self.skip_steps * self.Sim.dt ))
         return self.line, self.time_text
 
             
@@ -462,14 +716,24 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
 '''
 
 
-class OneLinkManipulator( RDDS.DynamicSystem ) :
-    """ 2DOF Manipulator Class """
+class OneLinkManipulator( TwoLinkManipulator ) :
+    """ 
+    1DOF Manipulator Class
+    -----------------------------------
+    Pendulum used as exemple
+    
+    some base function are overloaded with the scalar version when necessarly
+    -- for instance function using np.linalg.inv 
+    
+    """
     
     
     ############################
     def __init__(self, n = 2 , m = 1 ):
         
         RDDS.DynamicSystem.__init__(self, n , m )
+        
+        self.dof = 1 # Number of DoF
         
         self.state_label = ['Angle 1','Speed 1']
         self.input_label = ['Torque 1']
@@ -491,6 +755,11 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
         self.setparams()
         
+        # Ploting param
+        self.n_pts        = 2 # number of pts to plot on the manipulator 
+        self.dim_pts      = 2 # number of dimension for each pts 
+        self.axis_to_plot = [0,1]
+        
         
     #############################
     def setparams(self):
@@ -509,6 +778,9 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
         self.d1 = 0
         
+        # Total length
+        self.lw = 1
+        
         
     ##############################
     def trig(self, q ):
@@ -523,24 +795,44 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
     ##############################
     def fwd_kinematic(self, q = np.zeros(1) ):
-        """ Compute [x;y] end effector position given angles q """
+        """ 
+        Compute p = [x;y] positions given angles q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        - last point should be the end-effector
+        
+        """
         
         [c1,s1] = self.trig( q )
         
-        # Three robot points
+        PTS = np.zeros(( self.n_pts , self.dim_pts ))
         
-        x0 = 0
-        y0 = 0
+        PTS[0,0] = 0
+        PTS[0,1] = 0
         
-        x1 = self.l1 * s1
-        y1 = self.l1 * c1
+        PTS[1,0] = self.l1 * s1
+        PTS[1,1] = self.l1 * c1
         
-        return np.array([[x0,y0],[x1,y1]])
+        return PTS
     
     
     ##############################
     def jacobian_endeffector(self, q = np.zeros(1)):
-        """ Compute jacobian of end-effector """
+        """ 
+        Compute jacobian of end-effector 
+        --------------------------------------
+        
+        # Differential kinematic
+        p : end-effector position
+        q : joint coordinates
+        dp = [ J_end ] dq 
+        
+        # Virtual work
+        f_ext : force applied on end-effector
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) f_ext
+        
+        """
         
         [c1,s1] = self.trig( q )
         
@@ -550,6 +842,51 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         J[1] = -self.l1 * s1 
         
         return J
+        
+        
+    ##############################
+    def jacobian_actuators(self, q = np.zeros(2) ):
+        """ 
+        Compute jacobian of acutator coordinates 
+        ----------------------------------------
+        dim( J_a ) = ( dof , dof )
+        
+        # Differential kinematic
+        a : actuator coordinates
+        q : joint coordinates
+        da = [ J_a ] dq 
+        
+        # Virtual work
+        e     : actuator efforts
+        f_g   : generalized forces in joint coordinates
+        f_q = [ J_end ]^(T) e
+        
+        Note : This will be identity matrix for most case where actuators 
+        are coupled 1:1 at each joint.
+        
+        """
+        
+        J_a = 1  # By default, identity matrix --> actuator coord = joint coord
+        
+        return J_a
+        
+        
+    ##############################
+    def jacobian_actuators_diff(self, q = np.zeros(2) , dq = np.zeros(2) ):
+        """ 
+        Compute time differential of actuator coordinates jacobian
+        ----------------------------------------------------------
+        dim( dJ_a ) = ( dof , dof )
+        
+        - Become necessarly in EoM computation if two condition are True:
+        -- Inertia in actuator coordinates is included
+        -- Actuator coupling is variable --> J_a = J_a( q )
+        
+        """
+        
+        dJ_a = 0  # By default, J is constant hence dJ = zero
+        
+        return dJ_a
         
         
     ##############################
@@ -592,6 +929,86 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
         return G
         
+    
+    ##############################
+    def B(self, q = np.zeros(2) ):
+        """
+        Actuator mechanical advantage Matrix
+        ---------------------------
+        dim( B ) = ( dof , dof )  --> assuming number of actuator == number of DOF
+        
+        e   : actuator efforts
+        f   : generalized force in joint coord
+        
+        f  = B( q ) * e
+    
+
+        """  
+        
+        B = self.jacobian_actuators( q )
+        
+        return B
+        
+        
+    
+    ##############################
+    def F(self, q = np.zeros(1) , dq = np.zeros(1) , ddq = np.zeros(1)):
+        """ Computed torques given a trajectory (inverse dynamic) """  
+        
+        H = self.H( q )
+        C = self.C( q , dq )
+        D = self.D( q , dq )
+        G = self.G( q )
+        B = self.B( q )
+        
+        # Generalized forces
+        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G
+        
+        # Actuator effort
+        e = ( 1./ B ) * F 
+        
+        return e
+        
+        
+    ##############################
+    def ddq(self, q = np.zeros(1) , dq = np.zeros(1) , e = np.zeros(1) ):
+        """ Computed accelerations given torques"""  
+        
+        H = self.H( q )
+        C = self.C( q , dq )
+        D = self.D( q , dq )
+        G = self.G( q )
+        B = self.B( q )
+        
+        ddq = np.dot( 1./H ,  ( np.dot( B , e ) - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
+        
+        #  TODO include external forces for 1-DOF
+        
+        return ddq
+                
+        
+    #############################
+    def x2q( self, x = np.zeros(2) ):
+        """ from state vector (x) to angle and speeds (q,dq) """
+        
+        q  = x[ 0 ]
+        dq = x[ 1 ]
+        
+        return [ q , dq ]
+        
+        
+    #############################
+    def q2x( self, q = np.zeros(1) , dq = np.zeros(1) ):
+        """ from angle and speeds (q,dq) to state vector (x) """
+        
+        x = np.zeros( self.n )
+        
+        x[ 0  ] = q
+        x[ 1  ] = dq
+        
+        return x
+        
+        
     ##############################
     def e_kinetic(self, q = np.zeros(1) , dq = np.zeros(1) ):
         """ Compute kinetic energy of manipulator """  
@@ -613,158 +1030,22 @@ class OneLinkManipulator( RDDS.DynamicSystem ) :
         
         return e_p
         
-    ##############################
-    def energy_values(self, x = np.zeros(1)  ):
-        """ Compute energy values of manipulator """ 
-        
-        q  = x[0]
-        dq = x[1]
-        
-        e_k = self.e_kinetic( q , dq )
-        e_p = self.e_potential( q )
-        e   = e_k + e_p
-        
-        return [ e , e_k , e_p ]
-        
-    
-    ##############################
-    def F(self, q = np.zeros(1) , dq = np.zeros(1) , ddq = np.zeros(1)):
-        """ Computed torques given a trajectory (inverse dynamic) """  
-        
-        H = self.H( q )
-        C = self.C( q , dq )
-        D = self.D( q , dq )
-        G = self.G( q )
-        
-        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G
-        
-        return F
-        
         
     ##############################
-    def ddq(self, q = np.zeros(1) , dq = np.zeros(1) , F = np.zeros(1) ):
-        """ Computed accelerations given torques"""  
-        
-        H = self.H( q )
-        C = self.C( q , dq )
-        D = self.D( q , dq )
-        G = self.G( q )
-        
-        ddq = np.dot( 1./H ,  ( F - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
-        
-        return ddq
-        
-        
-    #############################
-    def fc(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
+    def da2dq(self, da = np.zeros(1) , q = np.zeros(1) ):
         """ 
-        Continuous time function evaluation
+        Get actuator velocities from joint velocities
+        ----------------------------------------------
         
-        INPUTS
-        x  : state vector             n x 1
-        u  : control inputs vector    m x 1
-        t  : time                     1 x 1
-        
-        OUPUTS
-        dx : state derivative vectror n x 1
+        da = [ J_a( q ) ] dq
         
         """
         
-        dx = np.zeros(self.n) # State derivative vector
+        J_a = self.jacobian_actuators( q )
         
-        q  = x[0]
-        dq = x[1]
+        dq  = np.dot( 1./ J_a  , da )
         
-        ddq = self.ddq( q , dq , u[0] )
-        
-        dx[0] = dq
-        dx[1] = ddq
-        
-        return dx
-        
-        
-    #############################
-    def show(self, q):
-        """ Plot figure of configuration q """
-        
-        fig = plt.figure()
-        ax = fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
-        ax.grid()
-        
-        pts = self.fwd_kinematic( q )
-        
-        line = ax.plot( pts[:,0], pts[:,1], 'o-', lw=(self.l1) )
-        
-        plt.show()
-        
-        return fig , ax, line
-        
-  
-    
-    #############################
-    def plotAnimation(self, x0 = np.array([0,0]) , tf = 10 , n = 201 ,  solver = 'ode' , save = False , file_name = 'RobotSim' ):
-        """ Simulate and animate robot """
-        
-        # Integrate EoM
-        self.Sim    = RDDS.Simulation( self , tf , n  , solver  )
-        self.Sim.x0 = x0
-        
-        self.Sim.compute()
-        
-        # Compute pts localization
-        self.PTS = np.zeros((2,2,n))
-        
-        for i in xrange(n):
-            self.PTS[:,:,i] = self.fwd_kinematic( self.Sim.x_sol_CL[i,0] ) # Forward kinematic
-            
-        # Figure            
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
-        self.ax.grid()
-        
-        self.line, = self.ax.plot([], [], 'o-', lw=2)
-        self.time_template = 'time = %.1fs'
-        self.time_text = self.ax.text(0.05, 0.9, '', transform=self.ax.transAxes)
-
-        inter = int( n / 8. )
-        #interval=25 with n=201
-                    
-        # blit=True option crash on mac
-        #self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter , blit=True, init_func=self.__ani_init__)
-        self.ani = animation.FuncAnimation( self.fig, self.__animate__, n, interval = inter, init_func=self.__ani_init__)
-        
-        if save:
-            self.ani.save( file_name + '.mp4' ) #, writer = 'mencoder' )
-            
-        plt.show()
-        
-        return self.PTS
-        
-    def __ani_init__(self):
-        self.line.set_data([], [])
-        self.time_text.set_text('')
-        return self.line, self.time_text
-    
-    
-    def __animate__(self,i):
-        thisx = self.PTS[:,0,i]
-        thisy = self.PTS[:,1,i]
-    
-        self.line.set_data(thisx, thisy)
-        self.time_text.set_text(self.time_template % (i*0.05))
-        return self.line, self.time_text
-        
-    def __animateStop__(self,i):
-        
-        if i > 198: # To close window
-            plt.close()
-        thisx = self.PTS[:,0,i]
-        thisy = self.PTS[:,1,i]
-    
-        self.line.set_data(thisx, thisy)
-        self.time_text.set_text(self.time_template % (i*0.05))
-        return self.line, self.time_text
-        
+        return dq
         
 
 
@@ -1095,22 +1376,91 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         ax.set_zlabel('Z')
         plt.show()
         
+        self.fig_show_3D  = fig
+        self.line_show_3D = line[0]
+        self.ax_show_3D   = ax
+        
+    
+    #############################
+    def update_show_3D(self, q):
+        """ update figure of configuration q """
+        
+        pts = self.fwd_kinematic( q )
+        
+        self.line_show_3D.set_data( pts[:, 0 ], pts[:, 1 ])
+        self.line_show_3D.set_3d_properties( pts[:, 2 ] )
+        
+        self.fig_show_3D.canvas.draw()
         
         
     #############################
-    def plot3DAnimation(self, x0 = np.array([0,0,0,0,0,0]) , tf = 10 , n = 201 ,  solver = 'ode' , save = False , file_name = 'RobotSim' ):
-        """ Simulate and animate robot """
+    def show_3D_add_end_effector_traj(self):
+        """ 
+        Plot trajectory of end-effector 
+        ----------------------------------------
+        -self.Sim needs to exist
         
-        # Integrate EoM
-        self.Sim    = RDDS.Simulation( self , tf , n  , solver  )
-        self.Sim.x0 = x0
+        """
         
-        self.Sim.compute()
-
+        self.ax_show_3D.plot( self.PTS[-1,0,:], self.PTS[-1,1,:], self.PTS[-1,2,:], ':' ) 
+        
+        self.fig_show_3D.canvas.draw()
+        
+    
+    #############################
+    def show_traj_3D(self, index = None ):
+        """ 
+        3D figure including:
+        ----------------------------------------
+        - trajectory of end-effector 
+        - intial configuration
+        - final  configuration
+        
+        index: list of index of configuration to plot
+        
+        Notes:
+        -self.Sim needs to exist
+        
+        """
+        [ q_start , dq ]      = self.x2q(  self.Sim.x_sol_CL[ 0,:]  )
+        [ q_end   , dq ]      = self.x2q(  self.Sim.x_sol_CL[-1,:]  )
+        pts_end               = self.fwd_kinematic( q_end )
+        
+        self.show_3D( q_start )
+        self.ax_show_3D.plot( pts_end[:,0], pts_end[:,1], pts_end[:,2], 'o-' )
+        
+        
+        if not( index == None ):
+            # For all requested index
+            for i in index:
+                # If it is not out-of range
+                if ( i < self.Sim.n ):
+                    [ q   , dq ]     = self.x2q(  self.Sim.x_sol_CL[i,:]  )
+                    pts              = self.fwd_kinematic( q )
+                    self.ax_show_3D.plot( pts[:,0], pts[:,1], pts[:,2], 'o-' )
+                    
+        self.show_3D_add_end_effector_traj()                            
+        
+        
+    ##############################
+    def animate3DSim(self, time_factor_video =  1.0 , save = False , file_name = 'RobotSim' ):
+        """ 
+        Show Animation of the simulation 
+        ----------------------------------
+        self.computeSim() need to be run before
+        
+        time_factor_video < 0 --> Slow motion video        
+        
+        """  
+        
+        # Compensate for slightly slower ploting than it should:
+        time_factor_video = time_factor_video * 1.15
+        
         # Compute pts localization
-        self.PTS = np.zeros(( self.n_pts , self.dim_pts , n ))
+        self.PTS = np.zeros(( self.n_pts , self.dim_pts , self.Sim.n ))
         
-        for i in xrange(n):
+        for i in xrange( self.Sim.n ):
+            
             [ q , dq ]      = self.x2q(  self.Sim.x_sol_CL[i,:]  )
             self.PTS[:,:,i] = self.fwd_kinematic( q )  # Forward kinematic
             
@@ -1123,8 +1473,6 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.time_template = 'time = %.1fs'
         self.time_text = self.ax.text(0, 0, 0, '', transform=self.ax.transAxes)
         
-        inter = int( n / 4. )        
-        
         # Setting the axes properties
         self.ax.set_xlim3d([ - self.lw / 2. , self.lw / 2. ])
         self.ax.set_xlabel('X')
@@ -1133,28 +1481,53 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.ax.set_zlim3d([- self.lw / 2. , self.lw / 2.])
         self.ax.set_zlabel('Z')
         self.ax.set_title('3D Robot Animation')
-                    
-        self.ani = animation.FuncAnimation( self.fig, self.__animate_3D__, n, interval=inter, blit=False )
+        
+        # Add End-effector traj
+        self.ax.plot( self.PTS[-1,0,:], self.PTS[-1,1,:], self.PTS[-1,2,:], ':' ) 
+        
+        inter      =  40.             # ms --> 25 frame per second
+        frame_dt   =  inter / 1000. 
+        
+        if ( frame_dt * time_factor_video ) < self.Sim.dt :
+            # Simulation is slower than video
+            self.skip_steps = 1                                         # don't skip steps
+            inter           = self.Sim.dt * 1000. / time_factor_video   # adjust frame speed to simulation
+            n_frame         = self.Sim.n
+            
+        else:
+            # Simulation is faster than video
+            self.skip_steps =  int( frame_dt / self.Sim.dt * time_factor_video ) # --> number of simulation frame to skip between video frames
+            n_frame         =  int( self.Sim.n / self.skip_steps )               # --> number of video frames
+        
+        
+        self.ani = animation.FuncAnimation( self.fig, self.__animate_3D__, n_frame, interval=inter, blit=False )
                     
         
         if save:
             self.ani.save( file_name + '.mp4' ) #, writer = 'mencoder' )
-            
-        plt.show()
         
-        return self.PTS
         
-    
+        
+    #############################
+    def plot3DAnimation(self, x0 = np.array([0,0,0,0,0,0]) , tf = 10 , n = 1001 ,  solver = 'ode' , save = False , file_name = 'RobotSim' ):
+        """ Simulate and animate robot """
+        
+        self.computeSim( x0 , tf , n , solver )
+        
+        self.animate3DSim( 1.0 , save , file_name )
+        
+        
+    ##############################
     def __animate_3D__(self,i):
-        thisx = self.PTS[:,0,i]
-        thisy = self.PTS[:,1,i]
-        thisz = self.PTS[:,2,i]
+        thisx = self.PTS[:,0, i * self.skip_steps]
+        thisy = self.PTS[:,1, i * self.skip_steps]
+        thisz = self.PTS[:,2, i * self.skip_steps]
     
         #self.line.set_data(thisx, thisy, thisz) # not working for 3D
         self.line.set_data(thisx, thisy)
         self.line.set_3d_properties(thisz)
         
-        self.time_text.set_text(self.time_template % (i*0.05))
+        self.time_text.set_text(self.time_template % (i * self.skip_steps * self.Sim.dt))
         return self.line, self.time_text
         
 
