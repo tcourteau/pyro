@@ -10,6 +10,7 @@ from AlexRobotics.dynamic  import Hybrid_Manipulator   as HM
 from AlexRobotics.control  import RminComputedTorque   as RminCTC
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 
@@ -18,6 +19,17 @@ ReComputeTraj = False
 save_fig      = False
 name_traj     = 'data/3D_sol_'+ test_name +'.npy'
 
+
+###################################
+# Issues with non-blocking figures
+
+if not(plt.isinteractive()):
+    print 'Terminal Mode'
+    terminal = True
+    plt.ion()
+else:
+    terminal = False
+    print 'Spyder Mode'
 
 ####################################
 R  =  HM.HybridThreeLinkManipulator()
@@ -166,14 +178,14 @@ R.ax_show_3D.set_yticklabels([])
 R.ax_show_3D.set_zticklabels([])
 R.ax_show_3D.text(2.2, 1, 1, 'Configuration A' )
 R.ax_show_3D.text(0, 0.8, 2.5, 'Configuration B')
+
+plt.ion()
+
 R.fig_show_3D.canvas.draw()
 
 if save_fig:
 
     R.fig_show_3D.savefig( 'output/' + '3d_traj_'+test_name+ '.pdf' , format = 'pdf' , bbox_inches='tight', pad_inches=0.05 )
-
-# Hold figures alive
-plt.show()
 
 
 # Compute integral cost
@@ -186,31 +198,33 @@ print 'max torque gearshift:' , R.Sim.u_sol_CL.max()
 print 'min torque gearshift:' , R.Sim.u_sol_CL.min()
 print '      cost gearshift:' , R.Sim.J
 
-#############
-#
-#CTC_controller.last_gear_i = 0
-#CTC_controller.n_gears = 1
-#R.R = [ np.diag([1,1,1]) ,   np.diag([1,1,1]) ]
-#
-#R.Sim.compute()
-#
-#print 'max torque 1:1 :' , R.Sim.u_sol_CL.max()
-#print 'min torque 1:1 :' , R.Sim.u_sol_CL.min()
-#print '      cost 1:1 :' , R.Sim.J
-#
+############
+
+CTC_controller.last_gear_i = 0
+CTC_controller.n_gears = 1
+R.R = [ np.diag([1,1,1]) ,   np.diag([1,1,1]) ]
+
+R.Sim.compute()
+
+print 'max torque 1:1 :' , R.Sim.u_sol_CL.max()
+print 'min torque 1:1 :' , R.Sim.u_sol_CL.min()
+print '      cost 1:1 :' , R.Sim.J
+
+
 #R.Sim.plot_CL('u')
-#
-#############
-#
-#CTC_controller.n_gears = 1
-#R.R = [ np.diag([10,10,10]) , np.diag([10,10,10]) ]
-#
-#R.Sim.compute()
-#
-#print 'max torque 1:10 :' , R.Sim.u_sol_CL.max()
-#print 'min torque 1:10 :' , R.Sim.u_sol_CL.min()
-#print '      cost 1:10 :' , R.Sim.J
-#
+
+############
+
+CTC_controller.n_gears = 1
+R.R = [ np.diag([10,10,10]) , np.diag([10,10,10]) ]
+
+plt.ion()
+R.Sim.compute()
+
+print 'max torque 1:10 :' , R.Sim.u_sol_CL.max()
+print 'min torque 1:10 :' , R.Sim.u_sol_CL.min()
+print '      cost 1:10 :' , R.Sim.J
+
 #R.Sim.plot_CL('u')
 
 
@@ -218,41 +232,43 @@ print '      cost gearshift:' , R.Sim.J
 
 def plot_3d():
 
-    fontsize = 6
+    fontsize = 7
     
     matplotlib.rc('xtick', labelsize=fontsize )
     matplotlib.rc('ytick', labelsize=fontsize )
     
     
-    simfig , plot = plt.subplots(2, sharex=True,figsize=(3, 3),dpi=300, frameon=True)
+    simfig , plot = plt.subplots(2, sharex=True,figsize=(4, 2),dpi=300, frameon=True)
     
-    simfig.canvas.set_window_title('Closed loop trajectory')
+    simfig.canvas.set_window_title('Closed loop trajectory'
+)
     
-    plot[0].plot( t ,  t1 , 'r--', label = 'Ref. trajectory')
-    plot[0].plot( t ,  t2 , 'b' ,  label = 'Actual position')
-    plot[0].plot( t ,  t3 , 'b' ,  label = 'Actual position')
-    #plot[0].set_yticks([-3.14,0])
-    #plot[0].set_ylim(-5,1)
+    plot[0].plot( t ,  t1 , 'r',  label = 'DoF 1')
+    plot[0].plot( t ,  t2 , 'b--' ,  label = 'DoF 2')
+    plot[0].plot( t ,  t3 , 'g-.'  ,  label = 'DoF 3')
+    plot[0].set_yticks([-10,0,10])
+    plot[0].set_ylim(-15,15)
     plot[0].grid(True)
-    #plot[0].set_ylim(-6,1)
-    #legend = plot[0].legend(loc='lower right', fancybox=True, shadow=False, prop={'size':fontsize})
+    plot[0].legend(loc='lower right', fancybox=True, shadow=False, prop={'size':fontsize})
     #legend.get_frame().set_alpha(0.4)
     
-    plot[1].plot( t ,  r1 , 'b')
-    plot[1].plot( t ,  r2 , 'r')
-    plot[1].plot( t ,  r3 , 'g')
-    #plot[1].set_yticks([-6,0,6])
-    #plot[1].set_ylim(-8,8)
+    plot[1].plot( t ,  r1 , 'r',  label = 'DoF 1')
+    plot[1].plot( t ,  r2 , 'b--',  label = 'DoF 2')
+    plot[1].plot( t ,  r3 , 'g-.',  label = 'DoF 3')
+    plot[1].set_yticks([1,10])
+    plot[1].set_ylim(0,11)
     plot[1].grid(True)
+    plot[1].legend(loc='lower right', fancybox=True, shadow=False, prop={'size':fontsize})
     
+
     plot[1].set_ylabel('Ratio' , fontsize=fontsize )
-    plot[0].set_ylabel('Torque [Nm]' , fontsize=fontsize )
+    plot[0].set_ylabel('Torque \n [Nm]' , fontsize=fontsize )
     
     plot[-1].set_xlabel('Time [sec]', fontsize=fontsize )
     #plot[-1].set_xlim(0,4)
     
     #plot[-1].set_xticks([0.65,1.16,1.39,2.63])
-    plot[-1].set_xticks([0,1,2,3,4])
+    #plot[-1].set_xticks([0,1,2,3,4])
 
     simfig.tight_layout()
     
@@ -262,4 +278,10 @@ def plot_3d():
     
     
 fig = plot_3d()
-fig.savefig( 'output/' + '3du.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
+
+if save_fig:
+    fig.savefig( 'output/' + '3du.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
+
+# Hold figures alive
+if terminal:
+    plt.show( block = True )

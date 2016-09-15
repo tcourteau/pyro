@@ -39,10 +39,9 @@ ValueIterationAlgo.assign_interpol_controller()
 """ Simulation and plotting """
 
 # Ploting a trajectory
-u_OL = [0]
 x0   = [-6,-2]
 tf   = 25
-pendulum.phase_plane_trajectory( u_OL , x0 , tf , True , True , True, True )
+pendulum.phase_plane_trajectory(  x0 , tf , True , True , True, True )
 
 # Time plot
 pendulum.Sim.plot_CL()

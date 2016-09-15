@@ -28,11 +28,10 @@ RRT.U = np.array([[0,T,0],[0,0,0],[0,-T,0],[0,0,T],[0,0,-T],[0,T,T],[0,-T,-T],[0
                   [T,T,0],[T,0,0],[T,-T,0],[T,0,T],[T,0,-T],[T,T,T],[T,-T,-T],[T,-T,T],[T,T,-T],
                   [-T,T,0],[-T,0,0],[-T,-T,0],[-T,0,T],[-T,0,-T],[-T,T,T],[-T,-T,-T],[-T,-T,T],[-T,T,-T]])
 
-
-RRT.dt                    = 0.1
-RRT.goal_radius           = 1.0
-RRT.max_nodes             = 50000
-RRT.max_solution_time     = 25
+RRT.dt                    = 0.2
+RRT.goal_radius           = 1.5
+RRT.max_nodes             = 25000
+RRT.max_solution_time     = 10
 
 """ Compute open-loop solution """
 RRT.find_path_to_goal( x_goal )

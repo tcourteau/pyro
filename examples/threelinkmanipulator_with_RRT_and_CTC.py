@@ -34,9 +34,9 @@ RRT.U = np.array([[ 0,T,0],[ 0,0,0],[ 0,-T,0],[ 0,0,T],[ 0,0,-T],[ 0,T,T],[ 0,-T
 
 
 RRT.dt                    = 0.2
-RRT.goal_radius           = 1.0
-RRT.max_nodes             = 50000
-RRT.max_solution_time     = 25
+RRT.goal_radius           = 1.5
+RRT.max_nodes             = 25000
+RRT.max_solution_time     = 10
 
 #RRT.compute_steps(1000,True)
 RRT.find_path_to_goal( x_goal )

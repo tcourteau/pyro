@@ -494,7 +494,7 @@ class Simulation:
                 uRu    = np.dot( u.T , np.dot( self.R , u ) )
                 self.J = self.J + ( xQx + uRu ) * self.dt
                 
-                self.u_sol_CL[i,:] = u
+                self.u_sol_CL[i,:] = u.copy()
                 
                 if i+1<self.n:
                     self.x_sol_CL[i+1,:] = self.DS.fd( self.x_sol_CL[i,:] , self.u_sol_CL[i,:] , self.dt )
@@ -593,7 +593,7 @@ class Simulation:
         
         
     #############################
-    def phase_plane_trajectory(self , traj_CL = True, traj_OL = False , PP_CL = True , PP_OL = False ):
+    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = True , PP_OL = False ):
         """ """
         
         y1 = self.DS.axis_to_plot[0] # State for x-axis of plot

@@ -26,9 +26,13 @@ RRT.U = np.array([[T,0],[0,0],[-T,0],[0,T],[0,-T],[T,T],[-T,-T],[-T,T],[T,-T]])
 #RRT.U = np.array([[0,T],[0,-T],[0,0]]) # Acrobot problem
 
 RRT.dt                    = 0.1
-RRT.goal_radius           = 0.8
-RRT.max_nodes             = 15000
-RRT.max_solution_time     = 10
+RRT.goal_radius           = 0.8       # --> really large just for quick example
+RRT.max_nodes             = 12000
+RRT.max_solution_time     = 8
+
+# Dynamic plot
+RRT.dyna_plot             = False
+RRT.dyna_node_no_update   = 1000
 
 #RRT.compute_steps(1000,True)
 RRT.find_path_to_goal( x_goal )

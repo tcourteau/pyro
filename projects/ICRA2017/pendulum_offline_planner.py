@@ -45,6 +45,9 @@ RRT.alpha                 = 0.8
 RRT.max_nodes             = 10000
 RRT.max_solution_time     = 3
 
+# Make sure no low-gear is used at high-speed by the planner
+RRT.test_u_domain = True
+
 # Dynamic plot
 RRT.dyna_plot             = False
 RRT.dyna_node_no_update   = 1000
@@ -67,7 +70,7 @@ if ReComputeTraj:
 else:
     
     RRT.load_solution( name_traj  )
-    
+    RRT.test_u_domain = True
 
 #RRT.plot_open_loop_solution()
 #RRT.plot_open_loop_solution_acc()

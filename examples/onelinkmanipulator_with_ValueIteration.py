@@ -36,10 +36,12 @@ ValueIterationAlgo.assign_interpol_controller()
 
 """ Simulation and plotting """
 
-# Ploting a trajectory
+# Simulation and animation
 x0   = [3,0]
 tf   = 10
 R.plotAnimation( x0 , tf )
+
+# Phase plane plot
 R.Sim.phase_plane_trajectory( True , True , True, True )
 
 # Time plot

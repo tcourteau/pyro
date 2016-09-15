@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
+from mpl_toolkits.mplot3d import Axes3D
+
 from AlexRobotics.dynamic import DynamicSystem as RDDS
 
 
@@ -41,7 +43,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         self.x_ub = np.array([ 6, 6, 6, 6])    # States Upper Bounds
         self.x_lb = np.array([-6,-6,-6,-6])    # States Lower Bounds
         
-        tmax = 1
+        tmax = 15
         
         self.u_ub = np.array([ tmax, tmax])      # Control Upper Bounds
         self.u_lb = np.array([-tmax,-tmax])      # Control Lower Bounds
@@ -608,7 +610,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     #############################
-    def computeSim(self, x0 = np.array([0,0,0,0]) , tf = 10 , n = 1001 , solver = 'ode' ):
+    def computeSim(self, x0 = np.array([0,0,0,0]) , tf = 10 , n = 10001 , solver = 'ode' ):
         """ Simulate the robot """
         
         
@@ -744,7 +746,7 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         self.x_ub = np.array([ 2*np.pi , 2*np.pi])    # States Upper Bounds
         self.x_lb = np.array([-2*np.pi,-2*np.pi])    # States Lower Bounds
         
-        tmax = 10
+        tmax = 15
         
         self.u_ub = np.array([ tmax])      # Control Upper Bounds
         self.u_lb = np.array([-tmax])      # Control Lower Bounds
@@ -1091,7 +1093,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.x_ub = np.array([ 6, 6, 6, 6, 6, 6])    # States Upper Bounds
         self.x_lb = np.array([-6,-6,-6,-6,-6,-6])    # States Lower Bounds
         
-        tmax = 1 # Max torque
+        tmax = 15 # Max torque
         
         self.u_ub = np.array([ tmax, tmax, tmax])      # Control Upper Bounds
         self.u_lb = np.array([-tmax,-tmax,-tmax])      # Control Lower Bounds
@@ -1362,9 +1364,8 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         
         pts = self.fwd_kinematic( q )
                 
-        #Import matplotlib as mpl
-        from mpl_toolkits.mplot3d import Axes3D
         fig = plt.figure()
+        fig.canvas.set_window_title('3D Robot Configuration')
         ax = fig.gca(projection='3d')
         line = ax.plot( pts[:,0], pts[:,1], pts[:,2], 'o-' )   
         # Setting the axes properties
@@ -1480,7 +1481,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         self.ax.set_ylabel('Y')
         self.ax.set_zlim3d([- self.lw / 2. , self.lw / 2.])
         self.ax.set_zlabel('Z')
-        self.ax.set_title('3D Robot Animation')
+        self.fig.canvas.set_window_title('3D Robot Animation')
         
         # Add End-effector traj
         self.ax.plot( self.PTS[-1,0,:], self.PTS[-1,1,:], self.PTS[-1,2,:], ':' ) 

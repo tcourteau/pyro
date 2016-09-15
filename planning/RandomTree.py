@@ -45,6 +45,8 @@ class RRT:
         self.max_distance_compute = 500    # maximum number of nodes to check distance
         self.max_solution_time    = 10     # won"t look for solution taking longuer than that
         
+        self.test_u_domain        = False  # run a check on validity of u input at each state
+        
         
         # Smoothing params
         self.low_pass_filter      = filters.low_pass( fc = 3 , dt = self.dt )        
@@ -92,13 +94,16 @@ class RRT:
         
         u         = self.U[j]
         
-        # New sample if not valid option
-        if not( self.DS.isavalidinput( x , u ) ):
-            u = self.rand_input( x )
-            
-        # correct for 1 input case
+        # correct for m=1 --> make it a numpy array
         if self.DS.m == 1:
                 u = np.array([u])
+        
+        # if u domain check is active
+        if self.test_u_domain :
+            # I new sample is not a valid option
+            if not( self.DS.isavalidinput( x , u ) ):
+                # Sample again (recursivity)
+                u = self.rand_input( x )
         
         return u
         
@@ -154,21 +159,27 @@ class RRT:
             
             for u in self.U:
                 
-                # if input is valid
-                if self.DS.isavalidinput( closest_node.x , u ):
-                
-                    if self.DS.m == 1:
+                # Fix for m=1
+                if self.DS.m == 1:
                         u = np.array([u])
-                        
-                    x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
-                    t_next     = closest_node.t + self.dt
-                    node       = Node( x_next , u , t_next  , closest_node )
+                
+                # if u domain check is active
+                if self.test_u_domain:
+                    # if input is not valid
+                    if not( self.DS.isavalidinput( closest_node.x , u ) ):
+                        # Skip this u
+                        continue
+                
+                x_next     = closest_node.x + self.DS.fc( closest_node.x , u ) * self.dt
+                t_next     = closest_node.t + self.dt
+                node       = Node( x_next , u , t_next  , closest_node )
+                
+                d = node.distanceTo( x_target )
+                
+                if d < min_distance:
+                    min_distance = d
+                    new_node     = node
                     
-                    d = node.distanceTo( x_target )
-                    
-                    if d < min_distance:
-                        min_distance = d
-                        new_node     = node
                 
         return new_node
         

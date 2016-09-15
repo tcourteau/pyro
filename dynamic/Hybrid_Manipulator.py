@@ -39,7 +39,7 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
         self.x_ub = np.array([ 2*np.pi , 2*np.pi])    # States Upper Bounds
         self.x_lb = np.array([-2*np.pi, -2*np.pi])    # States Lower Bounds
         
-        tmax = 10
+        tmax = 15
         
         self.u_ub = np.array([ tmax , 10])      # Control Upper Bounds
         self.u_lb = np.array([-tmax , 1 ])      # Control Lower Bounds
@@ -146,7 +146,7 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         self.input_label = ['Torque 1','Torque 2','Mode']
         self.input_units = ['[Nm]','[Nm]','']
         
-        tmax = 5
+        tmax = 15
         
         self.u_ub = np.array([ tmax, tmax, 3])      # Control Upper Bounds
         self.u_lb = np.array([-tmax,-tmax, 0])      # Control Lower Bounds
@@ -289,7 +289,7 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         self.input_label = ['Torque 1','Torque 2','Torque 3','Mode']
         self.input_units = ['[Nm]','[Nm]','[Nm]','']
         
-        tmax = 5
+        tmax = 15
         
         self.u_ub = np.array([ tmax, tmax, tmax, 3])      # Control Upper Bounds
         self.u_lb = np.array([-tmax,-tmax,-tmax, 0])      # Control Lower Bounds
