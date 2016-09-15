@@ -175,49 +175,49 @@ PP2.plot( R.Sim )
 if save_fig:
     PP2.phasefig.savefig( name , format = 'pdf' , bbox_inches='tight', pad_inches=0.05 )
 
-#name_video = 'output/sim1_anim'
-#
-#R.animateSim( 1.0 , save_fig ,  name_video )
-#
-#plt.show()
-#
-#n = R.Sim.n
-#
-## Compute integral cost
-#R.Sim.Q = np.diag([0,0])
-#R.Sim.R = np.diag([1,0])
-#
-#R.Sim.compute()
-#
-#print 'max torque gearshift:' , R.Sim.u_sol_CL[:,0].max()
-#print 'min torque gearshift:' , R.Sim.u_sol_CL[:,0].min()
-#print '      cost gearshift:' , R.Sim.J
-#
-#R.Sim.plot_CL('u')
-#
-#############
-#
-#CTC_controller.last_gear_i = 0
-#CTC_controller.n_gears = 1
-#R.R = [ np.diag([1]) ,   np.diag([1]) ]
-#
-#R.Sim.compute()
-#
-#print 'max torque 1:1 :' , R.Sim.u_sol_CL[:,0].max()
-#print 'min torque 1:1 :' , R.Sim.u_sol_CL[:,0].min()
-#print '      cost 1:1 :' , R.Sim.J
-#
-#R.Sim.plot_CL('u')
-#
-#############
-#
-#CTC_controller.n_gears = 1
-#R.R = [ np.diag([10]) , np.diag([10]) ]
-#
-#R.Sim.compute()
-#
-#print 'max torque 1:10 :' , R.Sim.u_sol_CL[:,0].max()
-#print 'min torque 1:10 :' , R.Sim.u_sol_CL[:,0].min()
-#print '      cost 1:10 :' , R.Sim.J
-#
-#R.Sim.plot_CL('u')
+name_video = 'output/sim1_anim'
+
+R.animateSim( 1.0 , save_fig ,  name_video )
+
+plt.show()
+
+n = R.Sim.n
+
+# Compute integral cost
+R.Sim.Q = np.diag([0,0])
+R.Sim.R = np.diag([1,0])
+
+R.Sim.compute()
+
+print 'max torque gearshift:' , R.Sim.u_sol_CL[:,0].max()
+print 'min torque gearshift:' , R.Sim.u_sol_CL[:,0].min()
+print '      cost gearshift:' , R.Sim.J
+
+R.Sim.plot_CL('u')
+
+############
+
+CTC_controller.last_gear_i = 0
+CTC_controller.n_gears = 1
+R.R = [ np.diag([1]) ,   np.diag([1]) ]
+
+R.Sim.compute()
+
+print 'max torque 1:1 :' , R.Sim.u_sol_CL[:,0].max()
+print 'min torque 1:1 :' , R.Sim.u_sol_CL[:,0].min()
+print '      cost 1:1 :' , R.Sim.J
+
+R.Sim.plot_CL('u')
+
+############
+
+CTC_controller.n_gears = 1
+R.R = [ np.diag([10]) , np.diag([10]) ]
+
+R.Sim.compute()
+
+print 'max torque 1:10 :' , R.Sim.u_sol_CL[:,0].max()
+print 'min torque 1:10 :' , R.Sim.u_sol_CL[:,0].min()
+print '      cost 1:10 :' , R.Sim.J
+
+R.Sim.plot_CL('u')
