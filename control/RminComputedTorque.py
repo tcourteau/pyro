@@ -30,6 +30,8 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         self.hysteresis       = False
         self.hys_level        = 1
         self.last_gear_i      = 1 # Default gear
+        self.min_delay        = -10000   # default is not constraint
+        self.last_shift_t     = 0
         
         
     ############################
@@ -44,7 +46,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
 
         ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
-        u                  = self.u_star( ddq_r , x )
+        u                  = self.u_star( ddq_r , x , t )
         
         return u
         
@@ -63,7 +65,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
 
         ddq_r          = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
-        u              = self.u_star( ddq_r , x )
+        u              = self.u_star( ddq_r , x , t )
         
         return u
         
@@ -78,13 +80,13 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
 
         ddq_r          = self.ddq_manual_setpoint
         
-        u              = self.u_star( ddq_r , x )
+        u              = self.u_star( ddq_r , x , t )
         
         return u
         
     
     ############################
-    def u_star( self , ddq_r , x  ):
+    def u_star( self , ddq_r , x  , t ):
         """ 
         
         Compute optimal u given desired accel and actual states
@@ -101,7 +103,22 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
             T[i] = self.computed_torque( ddq_r , x , self.uD(i) ) 
             
             # Cost is norm of torque
-            Q[i] = np.dot( T[i] , T[i] )
+            #Q[i] = np.dot( T[i] , T[i] )
+            
+            # Verify validity
+            u_test  = np.append( T[i] , self.uD(i) )
+            
+            if self.R.isavalidinput( x , u_test ):
+                # valid option
+                
+                # Cost is norm of torque
+                Q[i] = np.dot( T[i] , T[i] )
+                
+            else:
+                
+                # Bad option
+                Q[i] = 9999999999 # INF
+               # print 'bad option'
             
         
         # Optimal dsicrete mode
@@ -109,10 +126,37 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
                         
         # Hysteresis
         if self.hysteresis:
-            gear_shift_gain = np.linalg.norm( T[ self.last_gear_i ] ) - np.linalg.norm( T[ i_star ] )
-            if gear_shift_gain < self.hys_level :
-                # Keep old gear ratio
-                i_star = self.last_gear_i
+            
+            # if optimal gear is new
+            if not(i_star == self.last_gear_i ):
+                
+                gear_shift_gain = np.linalg.norm( T[ i_star ] - T[ self.last_gear_i ] )
+                
+                # if gain of changing is small
+                if gear_shift_gain < self.hys_level :
+                    
+                    # Keep old gear ratio
+                    i_star = self.last_gear_i
+                    
+                    #print 'shifting not Allowed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                    #print 'too small gain       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                
+                # if changed recently
+                elif ( t < self.min_delay + self.last_shift_t ):
+                    
+                    # Keep old gear ratio
+                    i_star = self.last_gear_i
+                    
+                    #print 'shifting not Allowed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                    #print 'too sshort delay     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                    #print '  t:', t , '  timing:' , self.min_delay + self.last_shift_t 
+                    
+                # ok to gear-shift    
+                else:
+                    
+                    self.last_gear_i  = i_star
+                    self.last_shift_t = t
+                    
             
         u  = np.append( T[ i_star ] , self.uD( i_star ) )
         
