@@ -9,6 +9,7 @@ from AlexRobotics.dynamic import DynamicSystem as RDDS
 from AlexRobotics.control import linear        as RCL
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 """ Define system """
 
@@ -26,15 +27,24 @@ double_integrator.ctl = PD_controller.u
 """ Simulation and plotting """
 
 # Phase plot
-PP = RDDS.PhasePlot( double_integrator )
-PP.compute()
-PP.plot()
+#PP = RDDS.PhasePlot( double_integrator )
+#PP.compute()
+#PP.plot()
 
-# Ploting a trajectory
-u_OL = [3]
-x0   = [-5,-5]
-tf   = 10
-double_integrator.phase_plane_trajectory( u_OL , x0 , tf , True , True , True, True )
+open_loop_vector_field   = True
+closed_loop_vector_field = True
+
+double_integrator.phase_plane( closed_loop_vector_field , open_loop_vector_field )
+
+# Trajectory simulation and plotting
+double_integrator.ubar   = np.array([3])
+x0                       = np.array([-5,-5])
+tf                       = 10
+
+open_loop_trajectory     = True
+closed_loop_trajectory   = True
+
+double_integrator.phase_plane_trajectory( x0 , tf , True , True , True, True )
 
 # Time plot
 double_integrator.Sim.plot_OL()

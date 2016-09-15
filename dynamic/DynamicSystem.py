@@ -21,11 +21,17 @@ matplotlib.rcParams['ps.fonttype']  = 42
 
 
 class DynamicSystem:
-    """ Set of function for dynamical systems: mother class with double-integrator example """
+    """ 
+    Mother class for dynamical systems
+    ----------------------------------------------
+    default value correspond to a double-integrator
+    
+    """
     
     ############################
     def __init__(self, n = 2 , m = 1 ):
         """ """
+        
         self.n = n   # Number of states
         self.m = m   # Number of control inputs
         
@@ -37,7 +43,6 @@ class DynamicSystem:
         self.state_units = ['[m]','[m/sec]']
         self.input_units = ['[N]']
         
-        
         # Define the domain
         self.x_ub = np.zeros(n) + 10  # States Upper Bounds
         self.x_lb = np.zeros(n) - 10  # States Lower Bounds
@@ -48,21 +53,29 @@ class DynamicSystem:
         self.xbar = np.zeros(n)
         self.ubar = np.zeros(m)
         
+        # Ploting
+        self.axis_to_plot = [0,1]  # List of state to plot on 2D graph
+        
+        # Init system params
         self.setparams()
         
-        # Ploting
-        self.axis_to_plot = [0,1]
         
     #############################
     def setparams(self):
-        """ Set model parameters here """
+        """ 
+        Parameters initialization
+        --------------------------------------
+        Set model parameters here
+        
+        """
+        
         pass
         
     
     #############################
     def fc(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
         """ 
-        Continuous time function evaluation
+        Continuous time foward dynamics evaluation
         
         INPUTS
         x  : state vector             n x 1
@@ -83,19 +96,60 @@ class DynamicSystem:
         dx[1] = u[0]
         
         return dx
+        
+    ###########################################################################################
+    # Basic domain checks, ovewrite if something more complex is needed, ex: obstacles, etc
+    ###########################################################################################
+        
+        
+    #############################
+    def isavalidstate(self , x ):
+        """ check if x is in the state domain """
+        ans = False
+        for i in xrange(self.n):
+            ans = ans or ( x[i] < self.x_lb[i] )
+            ans = ans or ( x[i] > self.x_ub[i] )
+            
+        return not(ans)
+        
+        
+    #############################
+    def isavalidinput(self , x , u):
+        """ check if u is in the control inputs domain given x """
+        ans = False
+        
+        for i in xrange(self.m):
+            ans = ans or ( u[i] < self.u_lb[i] )
+            ans = ans or ( u[i] > self.u_ub[i] )
+
+            
+        return not(ans)
+        
+        
+    #########################################################################
+    # No need to overwrite the following functions for custom dynamic systems
+    #########################################################################
     
     #############################
     def fc_OpenLoop(self, x , t ):
-        """ fc with u = self.ubar """
+        """ 
+        Foward dynamics ( fc ) in open loop with u = uBar (default constant inputs)
+        ----------------------------------------------------------------
+        
+        """
         
         return self.fc( x , self.ubar , t )
         
         
     #############################
     def fc_ClosedLoop(self, x , t ):
-        """ fc with u = b(x,t) """
+        """ 
+        Foward dynamics ( fc ) in closed-loop with u = ctl( x , t)
+        ----------------------------------------------------------------
         
-        # Feedback law
+        """
+        
+        # Using assigned Feedback law
         u = self.ctl( x , t )
         
         return self.fc( x , u , t )
@@ -103,7 +157,9 @@ class DynamicSystem:
     #############################
     def ctl(self, x , t ):
         """ 
-        Feedback law :
+        Feedback law  u = ctl( x , t )
+        ----------------------------------------------
+        Default is u = ubar
         
         assign controller like this
         
@@ -119,7 +175,12 @@ class DynamicSystem:
         
     #############################
     def fd(self, x = np.zeros(2) , u = np.zeros(1) , dt = 0.1 ):
-        """ Discrete time function evaluation """
+        """ 
+        Discrete time foward dynamics evaluation 
+        -------------------------------------
+        - using Euler integration
+        
+        """
         
         x_next = np.zeros(self.n) # k+1 State vector
         
@@ -130,7 +191,14 @@ class DynamicSystem:
         
     #############################
     def phase_plane(self , PP_CL = True , PP_OL = False ):
-        """ """
+        """ 
+        Plot Phase Plane vector field of the system
+        ------------------------------------------------
+        
+        PP_CL : show closed-loop vector field?
+        PP_OL : show open-loop vector field?
+        
+        """
         
         y1 = self.axis_to_plot[0] 
         y2 = self.axis_to_plot[1]
@@ -146,22 +214,34 @@ class DynamicSystem:
         
         
     #############################
-    def phase_plane_trajectory(self ,  u = [0,1] , x0 = [0,0,0,0] , tf = 10 , CL = True, OL = False , PP_CL = True , PP_OL = False ):
-        """ """
+    def phase_plane_trajectory(self , x0 = [0,0,0,0] , tf = 10 , CL = True, OL = False , PP_CL = True , PP_OL = False ):
+        """ 
+        Simulates the system and plot the trajectory in the Phase Plane 
+        ------------------------------------------------
+        
+        x0 : starting state
+        t  : simulation time
+        
+        CL : show closed-loop trajectory?
+        OL : show open-loop trajectory?        
+        
+        PP_CL : show closed-loop vector field?
+        PP_OL : show open-loop vector field?
+        
+        """
         
         y1 = self.axis_to_plot[0] 
         y2 = self.axis_to_plot[1]
         
         # Quiver
         self.PP = PhasePlot( self , y1 , y2 , PP_OL , PP_CL )
-        self.PP.u = u
+        self.PP.u = self.ubar
         self.PP.compute()
         self.PP.plot()
         
         #Simulation
         self.Sim = Simulation( self , tf )
         self.Sim.x0 = x0
-        self.ubar   = u
         self.Sim.compute()
         xs_OL = self.Sim.x_sol_OL
         xs_CL = self.Sim.x_sol_CL
@@ -181,30 +261,9 @@ class DynamicSystem:
         
         
 
-        
-    #############################
-    def isavalidstate(self , x ):
-        """ check if x is in the domain """
-        ans = False
-        for i in xrange(self.n):
-            ans = ans or ( x[i] < self.x_lb[i] )
-            ans = ans or ( x[i] > self.x_ub[i] )
-            
-        return not(ans)
-        
-        
-    #############################
-    def isavalidinput(self , x , u):
-        """ check if u is in the domain """
-        ans = False
-        
-        for i in xrange(self.m):
-            ans = ans or ( u[i] < self.u_lb[i] )
-            ans = ans or ( u[i] > self.u_ub[i] )
-
-            
-        return not(ans)
-
+##########################################################################
+# Simulation and Plotting Tools
+##########################################################################
        
 '''
 ################################################################################
@@ -218,6 +277,9 @@ class PhasePlot:
     
     y1axis : index of state to display as x axis
     y2axis : index of state to display as y axis
+    
+    CL     : show closed-loop vector field?
+    OL     : show open-loop vector field?
     
     """
     ############################
@@ -263,6 +325,7 @@ class PhasePlot:
         self.traj_CL    = True
         
         self.compute()
+        
         
     ##############################
     def compute(self):
@@ -441,11 +504,8 @@ class Simulation:
     
     ##############################
     def plot_OL(self, show = True ):
-        """ """
         """ 
-        No arguments
-        
-        Create a figure with trajectories for all states and control inputs
+        Create a figure with trajectories for all states of the Open-Loop simulation
         
         """
         
@@ -472,9 +532,9 @@ class Simulation:
         if show:
             simfig.show()
         
-        
         self.fig   = simfig
         self.plots = plots
+        
         
     ##############################
     def plot_CL(self, plot = 'All' , show = True ):
@@ -533,11 +593,11 @@ class Simulation:
         
         
     #############################
-    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = True , PP_OL = False ):
+    def phase_plane_trajectory(self , traj_CL = True, traj_OL = False , PP_CL = True , PP_OL = False ):
         """ """
         
-        y1 = 0 
-        y2 = 1
+        y1 = self.DS.axis_to_plot[0] # State for x-axis of plot
+        y2 = self.DS.axis_to_plot[1] # State for y-axis of plot
         
         # Quiver
         self.PP = PhasePlot( self.DS , y1 , y2 , PP_OL , PP_CL )
@@ -579,4 +639,8 @@ if __name__ == "__main__":
     DS = DynamicSystem()
     
     # Phase plane behavior with open-loop u=3, strating at [-5,-5] for 7 sec
-    DS.phase_plane_trajectory([3],[-5,-5],7)
+    DS.ubar = np.array([3])
+    x0      = np.array([-5,-5])
+    tf      = 7
+    
+    DS.phase_plane_trajectory( x0 , tf )
