@@ -35,6 +35,49 @@ class PD:
         
         
         
+class PID:
+    """ Feedback law  """
+    ############################
+    def __init__( self , kp = 1 , kd = 0 , ki = 0 , dt = 0.001 , setpoint = 0 ):
+        """ """
+        self.kp       = kp
+        self.kd       = kd
+        self.ki       = ki
+        self.dt       = dt
+        self.setpoint = setpoint
+        
+        # Init
+        self.e_integral = 0
+        
+    ############################
+    def reset( self ):
+        """ Reinitialize integral action """
+        
+        self.e_integral = 0
+        
+        
+    ############################
+    def u( self , x , t = 0 ):
+        """ 
+        u = f( x , t ) 
+        x = [ position ; speed ] --> state must be defined this way
+        
+        """
+        u = np.zeros(1)
+        
+        e  = x[0] - self.setpoint
+        de = x[1]                  # assuming stationnary setpoint
+        ei = self.e_integral
+        
+        u[0] =  -1 * ( self.kp * e + self.kd * de + self.ki * ei )
+        
+        # Internal controller state dynamic
+        self.e_integral = self.e_integral + e * self.dt
+        
+        return u
+        
+        
+        
 class PD_nDOF:
     """ Feedback law  """
     ############################
