@@ -622,7 +622,7 @@ class RRT:
                 if not(node.P==None):
                     line = self.ax.plot( [node.x[ self.y1axis ],node.P.x[ self.y1axis ]] , [node.x[ self.y2axis ],node.P.x[ self.y2axis ]] , 'r')
                     
-            plt.ioff()
+            #plt.ioff()
             plt.show()
     
         

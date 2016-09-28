@@ -593,7 +593,7 @@ class Simulation:
         
         
     #############################
-    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = True , PP_OL = False ):
+    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = False , PP_OL = True ):
         """ """
         
         y1 = self.DS.axis_to_plot[0] # State for x-axis of plot
