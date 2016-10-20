@@ -964,7 +964,7 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         B = self.B( q )
         
         # Generalized forces
-        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G
+        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G - self.F_ext( q , dq )
         
         # Actuator effort
         e = ( 1./ B ) * F 
@@ -982,9 +982,9 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         G = self.G( q )
         B = self.B( q )
         
-        ddq = np.dot( 1./H ,  ( np.dot( B , e ) - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
+        ddq = np.dot( 1./H ,  ( np.dot( B , e ) + self.F_ext( q , dq ) - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
         
-        #  TODO include external forces for 1-DOF
+        #  TODO include external forces for 1-DOF as vector (fix dimensions mistmach)
         
         return ddq
                 

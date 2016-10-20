@@ -92,7 +92,7 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
         
         G  = self.G( q )
         
-        ddq = np.dot( 1. / Ha  ,  ( np.dot( R , T ) - np.dot( Ca , dq ) - G  + d ) )
+        ddq = np.dot( 1. / Ha  ,  ( np.dot( R , T ) + self.F_ext( q , dq ) - np.dot( Ca , dq ) - G  + d ) )
         
         return ddq
         

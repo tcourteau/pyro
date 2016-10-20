@@ -125,7 +125,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
                 
                 # Bad option
                 Q[i] = 9999999999 # INF
-               # print 'bad option'
+                #print 'bad option'
             
         
         # Optimal dsicrete mode
@@ -209,6 +209,44 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
 
     
 
+'''
+################################################################################
+'''
+
+    
+class RfixComputedTorqueController( RminComputedTorqueController ):
+    """ Feedback law  """
+    ############################
+    def __init__( self , R = HM.HybridTwoLinkManipulator() , R_index = 0 ):
+        """ """
+        
+        CTC.ComputedTorqueController.__init__( self , R  )
+        
+        self.R_index = R_index    # Fixed gear ratio index
+
+        
+    ############################
+    def reset_hysteresis( self ):
+        """ Reset all memorized info in controlled, ex: before restarting a simulation """
+        
+        pass
+        
+
+    
+    ############################
+    def u_star( self , ddq_r , x  , t ):
+        """      
+        only one gear option
+        """
+        
+        Ratio  = self.uD( self.R_index )
+        
+        Torque = self.computed_torque( ddq_r , x , Ratio ) 
+         
+        u  = np.append( Torque , Ratio )
+        
+        return u
+        
 
         
         
