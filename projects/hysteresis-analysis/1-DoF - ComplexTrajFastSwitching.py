@@ -5,15 +5,12 @@ Created on Sat Aug 27 13:15:41 2016
 @author: agirard
 """
 
-from AlexRobotics.planning import RandomTree           as RPRT
-from AlexRobotics.dynamic  import Prototypes           as Proto
-from AlexRobotics.control  import RminComputedTorque   as RminCTC
-from AlexRobotics.dynamic  import DynamicSystem        as DS
+from AlexRobotics.planning import RandomTree             as RPRT
+from AlexRobotics.dynamic  import Prototypes             as Proto
+from AlexRobotics.control  import RminComputedTorque     as RminCTC
+from AlexRobotics.control  import RolloutComputedTorque  as RollCTC
 
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-
 
 """ Modes """
 
@@ -91,7 +88,7 @@ else:
     
     
 
-"""  Assign controller """
+"""  CTC Rmin Controller """
 
 CTC_controller     = RminCTC.RminComputedTorqueController( R_ctl )
 
@@ -103,19 +100,37 @@ CTC_controller.zeta         = 0.7
 CTC_controller.n_gears      = 2
 #CTC_controller.traj_ref_pts = 'closest'
 #CTC_controller.traj_ref_pts = 'interpol'
-CTC_controller.hysteresis   = False
+CTC_controller.hysteresis   = True
 CTC_controller.hys_level    = 0#1.0
-CTC_controller.min_delay    = 0.1
+CTC_controller.min_delay    = 0.2
+
+"""  Rollout Controller """
+
+Rollout     = RollCTC.RolloutComputedTorqueController( R_ctl )
+
+Rollout.load_trajectory( RRT.solution )
+
+Rollout.goal         = x_goal
+Rollout.w0           = 1.0
+Rollout.zeta         = 0.7
+Rollout.n_gears      = 2
+Rollout.hysteresis   = True
+Rollout.min_delay    = 0.2
+Rollout.horizon      = 0.2
+
+"""  Assign controller """
 
 R.ctl              = CTC_controller.ctl
+#R.ctl              = Rollout.ctl
 
 """ Simulation """
 
 tf = 5
+dt = 0.01
 
-R.computeSim( x_start , tf , n = int( 10/0.001 ) + 1 , solver = 'euler' )  
+R.computeSim( x_start , tf , n = int( tf / dt  ) + 1 , solver = 'euler' )  
 
-R.animateSim()
+#R.animateSim()
 
 
 """ Plot """

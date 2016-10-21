@@ -31,7 +31,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         self.hys_level        = 1
         self.last_gear_i      = 0 # Default gear
         self.min_delay        = -10000   # default is not constraint
-        self.last_shift_t     = 0
+        self.last_shift_t     = -1
         
     ############################
     def reset_hysteresis( self ):
