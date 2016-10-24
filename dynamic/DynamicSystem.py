@@ -513,6 +513,14 @@ class Simulation:
                     self.x_sol_OL[i+1,:] = self.DS.fd( self.x_sol_OL[i,:] , self.DS.ubar       , self.dt )
                     
                     
+                # domain check
+                if self.domain_check:
+                    if not( self.DS.isavalidstate( x ) ):
+                        self.J = self.J + self.domain_fail_cost 
+                    if not( self.DS.isavalidinput( x , u ) ):
+                        self.J = self.J + self.domain_fail_cost 
+                    
+                    
         # Final cost
         self.J = self.J + np.dot( x.T , np.dot( self.H , x ) )
 

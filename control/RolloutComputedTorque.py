@@ -10,7 +10,7 @@ from AlexRobotics.control  import RminComputedTorque   as RCTC
 
 from AlexRobotics.dynamic  import DynamicSystem        as DS
 
-
+from scipy.interpolate import interp1d
 import numpy as np
 
 
@@ -30,11 +30,8 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         
         self.FixCtl = RCTC.RfixComputedTorqueController( R )
         
-        # Copy traj & ddq_r functions
-        self.FixCtl.get_traj         = self.get_traj
-        self.FixCtl.compute_ddq_r    = self.compute_ddq_r
-        
-        # Assign Rollout Controller
+
+        # Assign Rollout Controller to Simulation Model
         self.R.ctl = self.FixCtl.ctl
         
         
@@ -67,7 +64,7 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         # Optimal dsicrete mode
         i_star = Q.argmin()
         
-        print Q , i_star
+        print Q , i_star, t , x
                         
         # Hysteresis
         if self.hysteresis:
@@ -99,7 +96,10 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
     ############################
     def Rollout( self , x  , t ):
         
-        self.Sim    = DS.Simulation( self.R , t + self.horizon ,  self.sim_n )
+        
+        self.sim_n  =  self.horizon / self.sim_dt + 1
+        
+        self.Sim    = DS.Simulation( self.R , t + self.horizon ,  self.sim_n , 'euler' )
         
         self.Sim.J  = 0
         self.Sim.x0 = x
@@ -120,6 +120,45 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         #raw_input('Press <ENTER> to continue')
         
         return self.Sim.J
+        
+        
+    
+    ############################
+    def load_trajectory( self , solution  ):
+        """ 
+        
+        Load Open-Loop trajectory solution to use as reference trajectory
+        
+        """
+        
+        self.solution = solution
+        
+        q   = solution[0][ 0          :     self.R.dof , : ]
+        dq  = solution[0][ self.R.dof : 2 * self.R.dof , : ]
+        ddq = solution[3][ self.R.dof : 2 * self.R.dof , : ]
+        t   = solution[2]
+        
+        self.traj = [ ddq , dq , q , t ]
+        
+        self.max_time = t.max()
+        
+        # assign traj following to both global and base controller
+        self.ctl           = self.traj_following_ctl
+        self.FixCtl.ctl    = self.FixCtl.traj_following_ctl
+        self.R.ctl         = self.FixCtl.ctl
+        
+        # Note : very slow when using traj following?? interpolation is taking time? because fixed goal is fast
+        # Sloved by switching to euler integration
+        
+        # Create interpol functions
+        self.q   = interp1d(t,q)
+        self.dq  = interp1d(t,dq)
+        self.ddq = interp1d(t,ddq)
+        
+        
+        # Copy traj & ddq_r functions for base policy
+        self.FixCtl.get_traj         = self.get_traj
+        self.FixCtl.compute_ddq_r    = self.compute_ddq_r
         
         
         

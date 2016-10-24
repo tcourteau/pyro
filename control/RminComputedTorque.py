@@ -130,6 +130,8 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         # Optimal dsicrete mode
         i_star = Q.argmin()
+        
+        print Q , i_star , t , x
                         
         # Hysteresis
         if self.hysteresis:

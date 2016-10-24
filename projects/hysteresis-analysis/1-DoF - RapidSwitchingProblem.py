@@ -55,7 +55,7 @@ CTC_controller.zeta         = 0.7
 CTC_controller.n_gears      = 2
 #CTC_controller.traj_ref_pts = 'closest'
 CTC_controller.traj_ref_pts = 'interpol'
-CTC_controller.hysteresis   = True
+CTC_controller.hysteresis   = False
 CTC_controller.hys_level    = 0#1.0
 CTC_controller.min_delay    = 0.2
 
@@ -73,8 +73,8 @@ Rollout.horizon      = 0.2
 
 """  Assign controller """
 
-R.ctl              = CTC_controller.ctl
-#R.ctl              = Rollout.ctl
+#R.ctl              = CTC_controller.ctl
+R.ctl              = Rollout.ctl
 
 """ Simulation """
 
@@ -83,7 +83,7 @@ dt = 0.01
 
 R.computeSim( x_start , tf , n = int( tf / dt  ) + 1 , solver = 'euler' ) 
 
-R.animateSim()
+#R.animateSim()
 
 
 """ Plot """

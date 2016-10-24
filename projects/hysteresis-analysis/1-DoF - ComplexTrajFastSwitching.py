@@ -100,7 +100,7 @@ CTC_controller.zeta         = 0.7
 CTC_controller.n_gears      = 2
 #CTC_controller.traj_ref_pts = 'closest'
 #CTC_controller.traj_ref_pts = 'interpol'
-CTC_controller.hysteresis   = True
+CTC_controller.hysteresis   = False
 CTC_controller.hys_level    = 0#1.0
 CTC_controller.min_delay    = 0.2
 
@@ -120,8 +120,8 @@ Rollout.horizon      = 0.2
 
 """  Assign controller """
 
-R.ctl              = CTC_controller.ctl
-#R.ctl              = Rollout.ctl
+#R.ctl              = CTC_controller.ctl
+R.ctl              = Rollout.ctl
 
 """ Simulation """
 
@@ -136,7 +136,7 @@ R.computeSim( x_start , tf , n = int( tf / dt  ) + 1 , solver = 'euler' )
 """ Plot """
 
 R.Sim.fontsize = 7
-t_ticks        = [0,2,4,6,8,10]
+t_ticks        = [0,1,2,3,4,5]
 
 R.Sim.plot_CL()
 
@@ -145,7 +145,7 @@ R.Sim.plots[1].set_yticks( [-4,0, 4] )
 #R.Sim.plots[2].set_yticks( [-8,0,8] )
 R.Sim.plots[3].set_ylim(    0,500 )
 R.Sim.plots[3].set_yticks( [23.2,474] )
-R.Sim.plots[3].set_xlim(    0,10 )
+R.Sim.plots[3].set_xlim(    0,5 )
 R.Sim.plots[3].set_xticks( t_ticks )
 R.Sim.fig.set_size_inches(4,2.5)
 R.Sim.fig.canvas.draw()
