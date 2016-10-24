@@ -79,6 +79,15 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
         
         
     ##############################
+    def H_all(self,  q = np.zeros(1) , R = 1 ):
+        """ Total Inertia Matrix as a function of configuration and selected gear-ratio """  
+        
+        Ha = self.H( q ) + np.dot( R , np.dot( R , self.Ia ) )
+        
+        return Ha
+        
+        
+    ##############################
     def ddq_a(self, q = np.zeros(1) , dq = np.zeros(1) , T = np.zeros(1) , R = 1 , d = 0 ):
         """ Computed accelerations given actuator torques and gear ratio """  
         

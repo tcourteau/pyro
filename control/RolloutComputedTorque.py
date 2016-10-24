@@ -36,9 +36,9 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         
         
         self.horizon = 1
-        self.sim_dt  = 0.1
+        self.sim_dt  = 0.02
         self.sim_n   =  self.horizon / self.sim_dt + 1
-        
+               
     
     ############################
     def u_star( self , ddq_r , x  , t ):
@@ -64,7 +64,7 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         # Optimal dsicrete mode
         i_star = Q.argmin()
         
-        print Q , i_star, t , x
+        #print Q , i_star, t , x
                         
         # Hysteresis
         if self.hysteresis:
@@ -168,6 +168,4 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
 
     
 
-
-        
         

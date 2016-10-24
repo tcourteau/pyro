@@ -27,7 +27,7 @@ R      =  Proto.SingleRevoluteDSDM()
 R.ubar =  np.array([0.0,474])
 
 R.M             = 1
-R.ext_cst_force = 0.2
+R.ext_cst_force = -0.2
 
 """ Define control model """
 
@@ -47,7 +47,6 @@ x_goal  = np.array([0,0])
 """  CTC controller """
 
 CTC_controller     = RminCTC.RminComputedTorqueController( R_ctl )
-R.ctl              = CTC_controller.ctl
 
 CTC_controller.goal         = x_goal
 CTC_controller.w0           = 1.0
@@ -73,12 +72,12 @@ Rollout.horizon      = 0.2
 
 """  Assign controller """
 
-#R.ctl              = CTC_controller.ctl
-R.ctl              = Rollout.ctl
+R.ctl              = CTC_controller.ctl
+#R.ctl              = Rollout.ctl
 
 """ Simulation """
 
-tf = 10
+tf = 5
 dt = 0.01
 
 R.computeSim( x_start , tf , n = int( tf / dt  ) + 1 , solver = 'euler' ) 

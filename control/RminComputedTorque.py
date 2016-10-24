@@ -33,6 +33,10 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         self.min_delay        = -10000   # default is not constraint
         self.last_shift_t     = -1
         
+        # Integral action with dist observer (beta)
+        self.dist_obs_active = False
+        self.obs             = ExtDistObserver( R )
+        
     ############################
     def reset_hysteresis( self ):
         """ Reset all memorized info in controlled, ex: before restarting a simulation """
@@ -55,6 +59,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         u                  = self.u_star( ddq_r , x , t )
         
+        
         return u
         
         
@@ -73,6 +78,11 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         ddq_r          = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
         u              = self.u_star( ddq_r , x , t )
+        
+        # Disturbance Observer Test
+        if self.dist_obs_active:
+            self.obs.update_estimate( x , u , t )
+            self.R.ext_cst_force = self.obs.f_ext_hat
         
         return u
         
@@ -131,7 +141,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         # Optimal dsicrete mode
         i_star = Q.argmin()
         
-        print Q , i_star , t , x
+        #print Q , i_star , t , x
                         
         # Hysteresis
         if self.hysteresis:
@@ -225,6 +235,10 @@ class RfixComputedTorqueController( RminComputedTorqueController ):
         CTC.ComputedTorqueController.__init__( self , R  )
         
         self.R_index = R_index    # Fixed gear ratio index
+        
+        # Integral action with dist observer (beta)
+        self.dist_obs_active = False
+        self.obs             = ExtDistObserver( R )
 
         
     ############################
@@ -251,4 +265,67 @@ class RfixComputedTorqueController( RminComputedTorqueController ):
         
 
         
+        
+
+'''
+################################################################################
+'''
+
+    
+class ExtDistObserver:
+    """ Integral Action for COmputed Torque """
+    ############################
+    def __init__( self , R ):
+        """ """
+        
+        self.R          = R  # Model of the robot used by the controller
+        
+        # INIT
+        self.f_ext_hat  = np.zeros( self.R.dof ) # F_ext estimate
+        self.init       = True
+        
+    
+    ############################
+    def update_estimate( self , x , u , t ):
+        
+        [ q , dq ] = self.R.x2q( x )
+        R          = u[1]
+        dx_hat     = self.R.fc( x , u , t )
+        
+        [ dq_hat , ddq_hat ] = self.R.x2q( dx_hat )   # from state vector (x) to angle and speeds (q,dq)
+        
+        if self.init:
+            # First time calling the function
+        
+            self.dq_last     = dq       # save speed of last step
+            self.ddq_hat     = ddq_hat  # predicted acc
+            self.t_last      = t
+            
+            self.init        = False
+            
+        else:
+            # Steady state
+            
+            dt       = (  t - self.t_last  )
+            ddq_real = ( dq - self.dq_last ) / dt
+            
+            ddq_e    = self.ddq_hat - ddq_real
+            
+            # Only for 1-DoF hybrid robot for NOW
+            # TODO
+            
+            H    = self.R.H_all( q , R )
+            dist = - np.dot( H , ddq_e )
+            
+            # No filter
+            #self.f_ext_hat = dist
+            
+            self.f_ext_hat = 0.9 * self.f_ext_hat + 0.1 * dist
+            
+            print dt, R, self.f_ext_hat
+            
+            # Memory
+            self.dq_last     = dq       # save speed of last step
+            self.ddq_hat     = ddq_hat  # predicted acc
+            self.t_last      = t
         
