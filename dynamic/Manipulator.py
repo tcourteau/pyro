@@ -536,6 +536,21 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     ##############################
+    def H_all(self, q = np.zeros(2) , R = 0 ):
+        """ 
+        Inertia matrix of the manipulator
+        ----------------------------------
+        
+        This function exist to make algo designed for Hybrid Manipulator working
+        directly with the regular manipulator class:
+        -- disturbance observer
+        
+        """  
+        
+        return self.H( q )
+        
+        
+    ##############################
     def e_kinetic(self, q = np.zeros(2) , dq = np.zeros(2) ):
         """ Compute kinetic energy of manipulator """  
         
