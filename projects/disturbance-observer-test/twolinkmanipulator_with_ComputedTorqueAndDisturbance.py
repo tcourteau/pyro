@@ -16,7 +16,7 @@ import numpy as np
 
 # Define real dynamic system
 R               =  M.TwoLinkManipulator()
-R.f_dist_steady = np.array([ 44.78 , 0 ])
+R.f_dist_steady = np.array([ 10 , 10 ])
 
 # Define approx dynamic system used by controller
 R_hat              =  M.TwoLinkManipulator()

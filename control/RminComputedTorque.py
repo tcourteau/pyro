@@ -5,8 +5,9 @@ Created on Sat Mar  5 14:59:30 2016
 @author: alex
 """
 
-from AlexRobotics.dynamic  import Hybrid_Manipulator   as HM
-from AlexRobotics.control  import ComputedTorque       as CTC
+from AlexRobotics.dynamic    import Hybrid_Manipulator              as HM
+from AlexRobotics.control    import ComputedTorque                  as CTC
+from AlexRobotics.estimation import ManipulatorDisturbanceObserver  as OBS
 
 
 import numpy as np
@@ -35,7 +36,8 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         # Integral action with dist observer (beta)
         self.dist_obs_active = False
-        self.obs             = ExtDistObserver( R )
+        self.obs             = OBS.DistObserver( R )
+        self.obs.ishybrid    = True
         
     ############################
     def reset_hysteresis( self ):
@@ -82,7 +84,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         # Disturbance Observer Test
         if self.dist_obs_active:
             self.obs.update_estimate( x , u , t )
-            self.R.ext_cst_force = self.obs.f_ext_hat
+            self.R.f_dist_steady = self.obs.f_ext_hat
         
         return u
         
@@ -238,7 +240,8 @@ class RfixComputedTorqueController( RminComputedTorqueController ):
         
         # Integral action with dist observer (beta)
         self.dist_obs_active = False
-        self.obs             = ExtDistObserver( R )
+        self.obs             = OBS.DistObserver( R )
+        self.obs.ishybrid    = True
 
         
     ############################

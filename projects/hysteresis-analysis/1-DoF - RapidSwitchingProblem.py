@@ -27,7 +27,7 @@ R      =  Proto.SingleRevoluteDSDM()
 R.ubar =  np.array([0.0,474])
 
 R.M             = 1
-R.ext_cst_force = -0.2
+R.ext_cst_force = -0.1
 
 """ Define control model """
 
@@ -57,6 +57,7 @@ CTC_controller.traj_ref_pts = 'interpol'
 CTC_controller.hysteresis   = False
 CTC_controller.hys_level    = 0#1.0
 CTC_controller.min_delay    = 0.2
+CTC_controller.dist_obs_active = True
 
 """  Rollout Controller """
 
@@ -68,21 +69,22 @@ Rollout.zeta         = 0.7
 Rollout.n_gears      = 2
 Rollout.hysteresis   = True
 Rollout.min_delay    = 0.2
-Rollout.horizon      = 0.2
+Rollout.horizon      = 0.3
+Rollout.dist_obs_active = True
 
 """  Assign controller """
 
-R.ctl              = CTC_controller.ctl
-#R.ctl              = Rollout.ctl
+#R.ctl              = CTC_controller.ctl
+R.ctl              = Rollout.ctl
 
 """ Simulation """
 
-tf = 5
+tf = 10
 dt = 0.01
 
 R.computeSim( x_start , tf , n = int( tf / dt  ) + 1 , solver = 'euler' ) 
 
-#R.animateSim()
+R.animateSim()
 
 
 """ Plot """
