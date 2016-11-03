@@ -23,7 +23,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         HM.HybridThreeLinkManipulator.__init__(self, n , m )
         
         # Ploting param
-        self.n_pts   = 8 # number of pts to plot on the manipulator 
+        self.n_pts   = 9 # number of pts to plot on the manipulator 
         self.dim_pts = 3 # number of dimension for each pts 
         self.axis_to_plot = [0,2]  # axis to plot for 2D plot
         
@@ -54,6 +54,10 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         b6  = np.sqrt( b1 **2 + b2 **2 )  # distance between pivots on main tube
         b7  = np.arctan( b2 / b1 )         # angle difference between 
         self.b = np.array([ b0 , b1 , b2 , b3 , b4 , b5 , b6 , b7])
+        
+        
+        # Second link
+        self.l1 = 0.5  # Length of link 1
         
         
         self.lw = 1
@@ -114,9 +118,15 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         s2 = np.sin( theta_2 )
         c2 = np.cos( theta_2 )
         
-        
         base  = [ theta_0 , s0 , c0 , theta_2 , s2 , c2 , theta_3, s3 , c3 ]
-        link1 = []
+        
+        theta_1 = q[1]
+        s1      = np.sin( theta_1 )
+        c1      = np.cos( theta_1 )
+        s01     = np.sin( theta_0 + theta_1 )
+        c01     = np.cos( theta_0 + theta_1 )
+        
+        link1 = [ theta_1 , s1 , c1 , s01 , c01 ]
         link2 = []
         
         
@@ -145,9 +155,12 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         p7 = [ self.b[0] * s0 , 0 , self.b[0] * c0 ]
         
         ### Seconde DOF ###
-        #TODO
         
-        return np.array([p0,p1,p2,p3,p4,p5,p6,p7])
+        [ theta_1 , s1 , c1 , s01 , c01 ] = link1
+        
+        p8 = [ self.l1 * s01 + p7[0] , 0 , self.l1 * c01 + p7[2] ]
+        
+        return np.array([p0,p1,p2,p3,p4,p5,p6,p7,p8])
         
                     
     ##############################
@@ -627,5 +640,5 @@ if __name__ == "__main__":
     
     R  = TestPendulum()
     
-    R.plotAnimation( [0.1,0,0,0,0,0])
+    BA.plotAnimation( [0.1,1.2,0,0,0,0])
     
