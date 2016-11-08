@@ -30,7 +30,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         self.hysteresis       = False
         self.hys_level        = 1
         self.last_gear_i      = 0 # Default gear
-        self.min_delay        = -10000   # default is not constraint
+        self.min_delay        = -10000   # default is no constraint
         self.last_shift_t     = 0
         
     ############################
