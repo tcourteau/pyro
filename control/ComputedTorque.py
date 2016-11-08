@@ -5,7 +5,8 @@ Created on Sat Mar  5 14:59:30 2016
 @author: alex
 """
 
-from AlexRobotics.dynamic import Manipulator   as M
+from AlexRobotics.dynamic    import Manipulator                     as M
+from AlexRobotics.estimation import ManipulatorDisturbanceObserver  as OBS
 
 
 from scipy.interpolate import interp1d
@@ -42,6 +43,10 @@ class ComputedTorqueController:
         
         # For manual acc control
         self.ddq_manual_setpoint = np.zeros( self.R.dof )
+        
+        # Integral action with dist observer (beta)
+        self.dist_obs_active = False
+        self.obs             = OBS.DistObserver( R )
     
     
     ############################
@@ -67,7 +72,7 @@ class ComputedTorqueController:
 
         ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
-        F                  = self.computed_torque( ddq_r , x )
+        F                  = self.computed_torque( ddq_r , x , t )
         
         return F
         
@@ -86,7 +91,7 @@ class ComputedTorqueController:
 
         ddq_r          = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
-        F              = self.computed_torque( ddq_r , x )
+        F              = self.computed_torque( ddq_r , x , t )
         
         return F
         
@@ -101,13 +106,13 @@ class ComputedTorqueController:
 
         ddq_r          = self.ddq_manual_setpoint
         
-        F              = self.computed_torque( ddq_r , x )
+        F              = self.computed_torque( ddq_r , x , t )
         
         return F
     
         
     ############################
-    def computed_torque( self , ddq_r , x ):
+    def computed_torque( self , ddq_r , x , t ):
         """ 
         
         Given actual state, compute torque necessarly for a given acceleration vector
@@ -117,6 +122,11 @@ class ComputedTorqueController:
         [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         F = self.R.F( q , dq , ddq_r ) # Generalized force necessarly
+        
+        # Dist obs:
+        if self.dist_obs_active:
+            self.obs.update_estimate(  x , F , t )
+            self.R.f_dist_steady = self.obs.f_ext_hat
         
         return F
         
@@ -210,7 +220,11 @@ class ComputedTorqueController:
         
         return ddq , dq , q
         
-    
+        
+        
+        
 
+
+        
         
         

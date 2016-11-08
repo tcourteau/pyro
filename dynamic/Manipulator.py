@@ -52,6 +52,9 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         self.xbar = np.zeros(n)
         self.ubar = np.array([0,0])
         
+        # Default Disturbance
+        self.f_dist_steady = np.zeros( self.dof )
+        
         self.setparams()
         
         # Ploting param
@@ -352,6 +355,21 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     ##############################
+    def F_dist( self , t ):
+        """
+        Compute Disturbance forces expressed directly in joint-space
+        ---------------------------
+        -- By default, a constant disturbance can be setted
+        -- Override this function with a specific function of noise model for simulations
+                
+        """  
+
+        f_dist = self.f_dist_steady
+        
+        return f_dist
+        
+        
+    ##############################
     def e_potential(self, q = np.zeros(2) ):
         """ Compute potential energy of manipulator """  
         
@@ -424,7 +442,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
     
     ##############################
-    def F(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2)):
+    def F(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) , t = 0 ):
         """ Computed torques given a trajectory (inverse dynamic) """  
         
         H   = self.H( q )
@@ -437,8 +455,11 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         J_e = self.jacobian_endeffector( q )
         f_e = self.F_ext( q , dq )
         
+        # Disturbance force
+        f_d = self.F_dist( t )
+        
         # Generalized forces
-        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G - np.dot( J_e.T , f_e )
+        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G - np.dot( J_e.T , f_e ) + f_d
         
         # Actuator effort
         e = np.dot( np.linalg.inv( B ) , F )
@@ -447,7 +468,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         
     ##############################
-    def ddq(self, q = np.zeros(2) , dq = np.zeros(2) , e = np.zeros(2)):
+    def ddq(self, q = np.zeros(2) , dq = np.zeros(2) , e = np.zeros(2) , t = 0 ):
         """ Computed accelerations given torques"""  
         
         H = self.H( q )
@@ -460,7 +481,10 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         J_e = self.jacobian_endeffector( q )
         f_e = self.F_ext( q , dq )
         
-        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , e ) + np.dot( J_e.T , f_e ) - np.dot( C , dq ) - np.dot( D , dq ) - G ) )
+        # Disturbance force
+        f_d = self.F_dist( t )
+        
+        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , e ) + np.dot( J_e.T , f_e ) - f_d - np.dot( C , dq ) - np.dot( D , dq ) - G ) )
         
         return ddq
         
@@ -480,11 +504,11 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         
         """
         
-        [ q , dq ] = self.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
+        [ q , dq ] = self.x2q( x )       # from state vector (x) to angle and speeds (q,dq)
         
-        ddq = self.ddq( q , dq , u ) # compute state derivative 
+        ddq = self.ddq( q , dq , u , t ) # compute joint acceleration 
         
-        dx = self.q2x( dq , ddq )    # from angle and speeds diff (dq,ddq) to state vector diff (dx)
+        dx = self.q2x( dq , ddq )        # from angle and speeds diff (dq,ddq) to state vector diff (dx)
         
         return dx
         
@@ -509,6 +533,21 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         x[ self.dof : self.n   ] = dq
         
         return x
+        
+        
+    ##############################
+    def H_all(self, q = np.zeros(2) , R = 0 ):
+        """ 
+        Inertia matrix of the manipulator
+        ----------------------------------
+        
+        This function exist to make algo designed for Hybrid Manipulator working
+        directly with the regular manipulator class:
+        -- disturbance observer
+        
+        """  
+        
+        return self.H( q )
         
         
     ##############################
@@ -626,7 +665,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         """ 
         Show Animation of the simulation 
         ----------------------------------
-        time_factor_video < 0 --> Slow motion video        
+        time_factor_video < 1 --> Slow motion video        
         
         """  
         
@@ -754,6 +793,9 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         # Default State and inputs        
         self.xbar = np.zeros(n)
         self.ubar = np.array([0])
+        
+        # Default Disturbance
+        self.f_dist_steady = np.zeros( self.dof )
         
         self.setparams()
         
@@ -954,7 +996,7 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         
     
     ##############################
-    def F(self, q = np.zeros(1) , dq = np.zeros(1) , ddq = np.zeros(1)):
+    def F(self, q = np.zeros(1) , dq = np.zeros(1) , ddq = np.zeros(1) , t = 0 ):
         """ Computed torques given a trajectory (inverse dynamic) """  
         
         H = self.H( q )
@@ -963,8 +1005,13 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         G = self.G( q )
         B = self.B( q )
         
+        # Disturbance force
+        f_d = self.F_dist( t )
+        
         # Generalized forces
-        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G
+        F = np.dot( H , ddq ) + np.dot( C , dq ) + np.dot( D , dq ) + G - self.F_ext( q , dq ) + f_d
+        
+        #  TODO include external forces for 1-DOF as vector (fix dimensions mistmach)
         
         # Actuator effort
         e = ( 1./ B ) * F 
@@ -973,7 +1020,7 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         
         
     ##############################
-    def ddq(self, q = np.zeros(1) , dq = np.zeros(1) , e = np.zeros(1) ):
+    def ddq(self, q = np.zeros(1) , dq = np.zeros(1) , e = np.zeros(1) , t = 0 ):
         """ Computed accelerations given torques"""  
         
         H = self.H( q )
@@ -982,9 +1029,12 @@ class OneLinkManipulator( TwoLinkManipulator ) :
         G = self.G( q )
         B = self.B( q )
         
-        ddq = np.dot( 1./H ,  ( np.dot( B , e ) - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
+        # Disturbance force
+        f_d = self.F_dist( t )
         
-        #  TODO include external forces for 1-DOF
+        ddq = np.dot( 1./H ,  ( np.dot( B , e ) + self.F_ext( q , dq ) - f_d - np.dot( C , dq ) - np.dot( D , dq ) - G  ) )
+        
+        #  TODO include external forces for 1-DOF as vector (fix dimensions mistmach)
         
         return ddq
                 
@@ -1101,6 +1151,9 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         # Default State and inputs        
         self.xbar = np.zeros(n)
         self.ubar = np.array([0,0,0])
+        
+        # Default Disturbance
+        self.f_dist_steady = np.zeros( self.dof )
         
         self.setparams()
         

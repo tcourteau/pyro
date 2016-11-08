@@ -5,8 +5,9 @@ Created on Sat Mar  5 14:59:30 2016
 @author: alex
 """
 
-from AlexRobotics.dynamic  import Hybrid_Manipulator   as HM
-from AlexRobotics.control  import ComputedTorque       as CTC
+from AlexRobotics.dynamic    import Hybrid_Manipulator              as HM
+from AlexRobotics.control    import ComputedTorque                  as CTC
+from AlexRobotics.estimation import ManipulatorDisturbanceObserver  as OBS
 
 
 import numpy as np
@@ -31,7 +32,12 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         self.hys_level        = 1
         self.last_gear_i      = 0 # Default gear
         self.min_delay        = -10000   # default is not constraint
-        self.last_shift_t     = 0
+        self.last_shift_t     = -1
+        
+        # Integral action with dist observer (beta)
+        self.dist_obs_active = False
+        self.obs             = OBS.DistObserver( R )
+        self.obs.ishybrid    = True
         
     ############################
     def reset_hysteresis( self ):
@@ -55,6 +61,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         
         u                  = self.u_star( ddq_r , x , t )
         
+        
         return u
         
         
@@ -73,6 +80,11 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         ddq_r          = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
         u              = self.u_star( ddq_r , x , t )
+        
+        # Disturbance Observer Test
+        if self.dist_obs_active:
+            self.obs.update_estimate( x , u , t )
+            self.R.f_dist_steady = self.obs.f_ext_hat
         
         return u
         
@@ -125,11 +137,13 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
                 
                 # Bad option
                 Q[i] = 9999999999 # INF
-               # print 'bad option'
+                #print 'bad option'
             
         
         # Optimal dsicrete mode
         i_star = Q.argmin()
+        
+        #print Q , i_star , t , x
                         
         # Hysteresis
         if self.hysteresis:
@@ -209,6 +223,52 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
 
     
 
+'''
+################################################################################
+'''
+
+    
+class RfixComputedTorqueController( RminComputedTorqueController ):
+    """ Feedback law  """
+    ############################
+    def __init__( self , R = HM.HybridTwoLinkManipulator() , R_index = 0 ):
+        """ """
+        
+        CTC.ComputedTorqueController.__init__( self , R  )
+        
+        self.R_index = R_index    # Fixed gear ratio index
+        
+        # Integral action with dist observer (beta)
+        self.dist_obs_active = False
+        self.obs             = OBS.DistObserver( R )
+        self.obs.ishybrid    = True
 
         
+    ############################
+    def reset_hysteresis( self ):
+        """ Reset all memorized info in controlled, ex: before restarting a simulation """
+        
+        pass
+        
+
+    
+    ############################
+    def u_star( self , ddq_r , x  , t ):
+        """      
+        only one gear option
+        """
+        
+        Ratio  = self.uD( self.R_index )
+        
+        Torque = self.computed_torque( ddq_r , x , Ratio ) 
+         
+        u  = np.append( Torque , Ratio )
+        
+        return u
+        
+
+        
+        
+
+
         
