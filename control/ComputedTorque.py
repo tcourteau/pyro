@@ -339,18 +339,4 @@ class SlidingModeController( ComputedTorqueController ):
         return F
         
         
-    ############################
-    def manual_acc_ctl( self , x , t = 0 ):
-        """ 
-        
-        Given desired acc, compute torques
-        
-        """
-
-        ddq_r          = self.ddq_manual_setpoint
-        
-        F              = self.computed_torque( ddq_r , x )
-        
-        return F
-        
-        
+       
