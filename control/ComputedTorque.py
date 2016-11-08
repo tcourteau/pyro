@@ -294,7 +294,7 @@ class SlidingModeController( ComputedTorqueController ):
         
         F_computed      = self.R.F( q , dq , ddq_r )   # Generalized force necessarly
         
-        F_discontinuous = self.K( q , t ) * np.sign( s )
+        F_discontinuous = np.dot( self.K( q , t ) ,  np.sign( s ) )
         
         F_tot = F_computed - F_discontinuous
         
