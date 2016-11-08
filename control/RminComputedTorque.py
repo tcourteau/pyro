@@ -37,7 +37,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         # Integral action with dist observer (beta)
         self.dist_obs_active = False
         self.obs             = OBS.DistObserver( R )
-        self.obs.ishybrid    = True
+
         
     ############################
     def reset_hysteresis( self ):
