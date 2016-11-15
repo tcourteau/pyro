@@ -45,7 +45,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         """ Set kinetic parameters here """
         
         # First link kinematic
-        b0  = 0.9   # 2x2 tubing length
+        b0  = 0.8   # 2x2 tubing length
         b1  = 0.12  # pivot distance from 2x2 tubing base
         b2  = 0.11  # pivot height from 2x2 tubing mid-line
         b3  = 0.32  # rod length
@@ -63,7 +63,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         self.l2 = 0.3
         
         
-        self.lw = 1
+        self.lw = 1.3
         
     #############################
     def setDynamicParams(self):
