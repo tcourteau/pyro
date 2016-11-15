@@ -16,15 +16,18 @@ R  =  HM.HybridTwoLinkManipulator()
 
 
 # Assign controller
-CTC_controller     = RminCTC.RminSlidingModeController( R )
-#CTC_controller     = RminCTC.RfixSlidingModeController( R , 1 )
-R.ctl              = CTC_controller.ctl
+Ctl                = RminCTC.RminSlidingModeController( R )
+#Ctl                = RminCTC.RminComputedTorqueController( R )
+#Ctl               = RminCTC.RfixSlidingModeController( R , 3 )
+R.ctl              = Ctl.ctl
 
-CTC_controller.lam           = 1.0
-CTC_controller.D             = 10.0
 
-CTC_controller.hysteresis    = True
-CTC_controller.min_delay     = 0.5
+Ctl.w0            = 1.0
+Ctl.lam           = 1.0
+Ctl.D             = 10.0
+
+Ctl.hysteresis    = True
+Ctl.min_delay     = 0.5
 
 
 
@@ -33,7 +36,7 @@ CTC_controller.min_delay     = 0.5
 tf = 10
 x_start = np.array([-4,-2,1,1])
 
-n  = int( np.round( tf / 0.01 ) ) + 1
+n  = int( np.round( tf / 0.05 ) ) + 1
 R.plotAnimation( x_start , tf , n , solver = 'euler' )
 R.Sim.plot_CL('x') 
 R.Sim.plot_CL('u')

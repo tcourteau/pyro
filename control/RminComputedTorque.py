@@ -293,20 +293,22 @@ class RminSlidingModeController( RminComputedTorqueController , CTC.SlidingModeC
         
         
     ############################
-    def sliding_torque( self , ddq_r , s , x , R , t ):
+    def sliding_torque( self , ddq_r , s , x , k , t ):
         """ 
         
         Given actual state, compute torque necessarly to guarantee convergence
+        
+        k = discrete mode
         
         """
         
         [ q , dq ] = self.R.x2q( x )                       # from state vector (x) to angle and speeds (q,dq)
         
-        F_computed      = self.R.T( q , dq , ddq_r , R )   # Generalized force necessarly
+        F_computed      = self.R.T( q , dq , ddq_r , k )   # Generalized force necessarly
         
         F_discontinuous = np.dot( self.K( q , t ) ,  np.sign( s ) )
         
-        F_tot = F_computed - F_discontinuous
+        F_tot = F_computed - F_discontinuous # np.dot( np.linalg.inv( self.R.R[k] ) , F_discontinuous ) 
         
         return F_tot
         

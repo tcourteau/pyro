@@ -278,7 +278,7 @@ class SlidingModeController( ComputedTorqueController ):
         
         
     ############################
-    def K( self , q ,t  ):
+    def K( self , q , t ):
         """ Discontinuous gain matrix """
         
         K = np.diag( np.ones( self.R.dof ) ) * self.D
