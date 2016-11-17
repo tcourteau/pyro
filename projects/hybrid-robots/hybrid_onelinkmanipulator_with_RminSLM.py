@@ -12,32 +12,41 @@ from AlexRobotics.control  import RminComputedTorque   as RminCTC
 import numpy as np
 import matplotlib.pyplot as plt
 
-R  =  HM.HybridTwoLinkManipulator()
+R  =  HM.HybridOneLinkManipulator()
 
 
 # Assign controller
-Ctl                = RminCTC.RminSlidingModeController( R )
+#Ctl                = RminCTC.RminSlidingModeController( R )
 #Ctl                = RminCTC.RminComputedTorqueController( R )
-#Ctl               = RminCTC.RfixSlidingModeController( R , 3 )
+Ctl               = RminCTC.RfixSlidingModeController( R , 1 )
 R.ctl              = Ctl.ctl
 
 
+Ctl.n_gears       = 2
 Ctl.w0            = 1.0
 Ctl.lam           = 1.0
-Ctl.D             = 10.0
+Ctl.nab           = 1.0
+Ctl.D             = 0
 
-Ctl.hysteresis    = True
+Ctl.hysteresis    = False
 Ctl.min_delay     = 0.5
 
 
+""" Simulation and plotting """
 
-# Plot
+# Ploting a trajectory
+x_start = np.array([-3,0])
+tf      = 10
+dt      = 0.001
+n       = int( tf / dt ) + 1
 
-tf = 10
-x_start = np.array([-4,-2,1,1])
-
-n  = int( np.round( tf / 0.01 ) ) + 1
 R.plotAnimation( x_start , tf , n , solver = 'euler' )
-R.Sim.plot_CL('x') 
-R.Sim.plot_CL('u')
-#R.phase_plane_trajectory([0,0,3],x_start,tf,True,False,False,True)
+
+# Time plot
+R.Sim.plot_CL()
+
+#PhasePlane Plot
+R.Sim.phase_plane_trajectory( traj_CL=True, traj_OL=False, PP_CL=True, PP_OL=True )
+
+# Hold figures alive
+plt.show()

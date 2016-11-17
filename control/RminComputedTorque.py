@@ -288,8 +288,34 @@ class RminSlidingModeController( RminComputedTorqueController , CTC.SlidingModeC
         
         RminComputedTorqueController.__init__( self , R  )
         
-        self.lam = 1  # Sliding surface slope
-        self.D   = 1  # Discontinuous gain
+        self.lam = 1   # Sliding surface slope
+        self.D   = 1   # Discontinuous gain
+        self.nab = 0.1 # min convergence rate
+        
+    
+    ############################
+    def K( self , q , k , t ):
+        """ Discontinuous gain matrix """
+        
+        dist_max = np.diag( np.ones( self.R.dof ) ) * self.D
+        conv_min = np.diag( np.ones( self.R.dof ) ) * self.nab
+        
+        H      = self.R.H_all( q , k )
+        
+        if (self.R.dof == 1) :
+            H_inv  = 1./ H
+            R_inv  = 1./ self.R.R[k]
+        else:
+            H_inv  = np.linalg.inv( H )
+            R_inv  = np.linalg.inv( self.R.R[k] ) 
+        
+        Diag_Gain = np.diag( np.diag(  np.dot( H_inv , dist_max ) + conv_min  )) # take only the diagonal value
+        
+        K = np.dot( R_inv ,  np.dot( H , Diag_Gain ))
+        
+        print K
+        
+        return K
         
         
     ############################
@@ -304,9 +330,9 @@ class RminSlidingModeController( RminComputedTorqueController , CTC.SlidingModeC
         
         [ q , dq ] = self.R.x2q( x )                       # from state vector (x) to angle and speeds (q,dq)
         
-        F_computed      = self.R.T( q , dq , ddq_r , k )   # Generalized force necessarly
+        F_computed      = self.R.T( q , dq , ddq_r , self.uD(k) )   # Generalized force necessarly
         
-        F_discontinuous = np.dot( self.K( q , t ) ,  np.sign( s ) )
+        F_discontinuous = np.dot( self.K( q , k , t ) ,  np.sign( s ) )
         
         F_tot = F_computed - F_discontinuous # np.dot( np.linalg.inv( self.R.R[k] ) , F_discontinuous ) 
         
@@ -371,7 +397,7 @@ class RminSlidingModeController( RminComputedTorqueController , CTC.SlidingModeC
         #for all gear ratio options
         for i in xrange( self.n_gears ):
             
-            T[i] = self.sliding_torque( ddq_r , s , x , self.uD(i) , t ) 
+            T[i] = self.sliding_torque( ddq_r , s , x , i , t ) 
             
             # Verify validity
             u_test  = np.append( T[i] , self.uD(i) )
@@ -451,8 +477,9 @@ class RfixSlidingModeController( RminSlidingModeController ):
         self.R_index = R_index    # Fixed gear ratio index
         
         # Slding Params
-        self.lam = 1  # Sliding surface slope
-        self.D   = 1  # Discontinuous gain
+        self.lam = 1   # Sliding surface slope
+        self.D   = 1   # Discontinuous gain
+        self.nab = 0.1 # min convergence rate
         
         # Integral action with dist observer (beta)
         self.dist_obs_active = False
@@ -474,9 +501,11 @@ class RfixSlidingModeController( RminSlidingModeController ):
         only one gear option
         """
         
-        Ratio  = self.uD( self.R_index )
+        #Ratio  = self.uD( self.R_index )
         
-        Torque = self.sliding_torque( ddq_r , s , x , Ratio , t ) 
+        Torque = self.sliding_torque( ddq_r , s , x , self.R_index , t ) 
+        
+        Ratio  = self.uD( self.R_index )
          
         u  = np.append( Torque , Ratio )
         

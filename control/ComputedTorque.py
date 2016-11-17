@@ -244,8 +244,9 @@ class SlidingModeController( ComputedTorqueController ):
         
         # Params
         
-        self.lam = 1  # Sliding surface slope
-        self.D   = 1  # Discontinuous gain
+        self.lam = 1   # Sliding surface slope
+        self.D   = 1   # Discontinuous gain
+        self.nab = 0.1 # Min convergence rate
         
         
         
@@ -281,7 +282,10 @@ class SlidingModeController( ComputedTorqueController ):
     def K( self , q , t ):
         """ Discontinuous gain matrix """
         
-        K = np.diag( np.ones( self.R.dof ) ) * self.D
+        dist_max = np.diag( np.ones( self.R.dof ) ) * self.D
+        conv_min = np.diag( np.ones( self.R.dof ) ) * self.nab
+        
+        K = dist_max + np.dot( self.R.H_all( q ) , conv_min ) 
         
         return K
         
