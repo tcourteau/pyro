@@ -52,7 +52,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         """ Reset all memorized info in controlled, ex: before restarting a simulation """
         
         self.last_gear_i      = 0 # Default gear
-        self.last_shift_t     = 0
+        self.last_shift_t     = -1
         
         
     ############################
@@ -300,20 +300,20 @@ class RminSlidingModeController( RminComputedTorqueController , CTC.SlidingModeC
         dist_max = np.diag( np.ones( self.R.dof ) ) * self.D
         conv_min = np.diag( np.ones( self.R.dof ) ) * self.nab
         
-        H      = self.R.H_all( q , k )
-        
         if (self.R.dof == 1) :
+            H      = self.R.H_all( q , self.uD( k ) )
             H_inv  = 1./ H
-            R_inv  = 1./ self.R.R[k]
+            R_inv  = 1./ self.uD( k )
         else:
+            H      = self.R.H_all( q , k )
             H_inv  = np.linalg.inv( H )
             R_inv  = np.linalg.inv( self.R.R[k] ) 
-        
+            
         Diag_Gain = np.diag( np.diag(  np.dot( H_inv , dist_max ) + conv_min  )) # take only the diagonal value
         
         K = np.dot( R_inv ,  np.dot( H , Diag_Gain ))
         
-        print K
+        #print H , R_inv , K
         
         return K
         

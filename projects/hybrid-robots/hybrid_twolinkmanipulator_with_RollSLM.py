@@ -22,15 +22,15 @@ Rollout     = RollCTC.RolloutSlidingModeController( R_ctl )
 
 Rollout.goal         = np.array([0,0,0,0])
 Rollout.FixCtl.lam   = 1.0
-Rollout.FixCtl.D     = 2
+Rollout.FixCtl.D     = 2.0
+Rollout.FixCtl.nab   = 1.0
 Rollout.n_gears      = 4
 Rollout.hysteresis   = True
-Rollout.min_delay    = 0.2
-Rollout.horizon      = 0.2
+Rollout.min_delay    = 0.5
+Rollout.horizon      = 0.5
 
 
 R.ctl              = Rollout.ctl
-
 
 
 # Plot

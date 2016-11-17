@@ -50,8 +50,9 @@ R_ctl  =  HM.HybridTwoLinkManipulator()
 Rollout     = RollCTC.RolloutSlidingModeController( R_ctl )
 
 Rollout.goal         = np.array([0,0,0,0])
-Rollout.FixCtl.lam   = 10.0
-Rollout.FixCtl.D     = 2
+Rollout.FixCtl.lam   = 1
+Rollout.FixCtl.D     = 0
+Rollout.FixCtl.nab   = 1
 Rollout.n_gears      = 4
 Rollout.hysteresis   = True
 Rollout.min_delay    = 0.2

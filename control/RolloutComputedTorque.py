@@ -42,6 +42,11 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         self.horizon = 1
         self.sim_dt  = 0.02
         self.sim_n   =  self.horizon / self.sim_dt + 1
+        
+        
+        # Domain check in simulation?
+        self.domain_check     = True
+        self.domain_fail_cost = 1
                
     
     ############################
@@ -114,8 +119,8 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         self.Sim.H = np.zeros( ( self.R.n , self.R.n ) )
         self.Sim.R = np.diag( np.append( np.ones( self.R.dof ) , 0 ) )
         
-        self.Sim.domain_check     = True
-        self.Sim.domain_fail_cost = 1
+        self.Sim.domain_check     = self.domain_check
+        self.Sim.domain_fail_cost = self.domain_fail_cost
         
         #Compute
         self.Sim.compute()
@@ -200,6 +205,10 @@ class RolloutSlidingModeController( RCTC.RminSlidingModeController ,  RolloutCom
         self.horizon = 1
         self.sim_dt  = 0.02
         self.sim_n   =  self.horizon / self.sim_dt + 1
+        
+        # Domain check in simulation?
+        self.domain_check     = True
+        self.domain_fail_cost = 1
                
     
     ############################
@@ -220,7 +229,21 @@ class RolloutSlidingModeController( RCTC.RminSlidingModeController ,  RolloutCom
             self.FixCtl.R_index = i
             
             # Simulate from t to (t+1) with this controller
-            Q[i] = self.Rollout( x , t )
+            #Q[i] = self.Rollout( x , t )
+            
+            # Verify gear selection validity
+            u_test  = np.append( np.zeros( self.R.dof ) , self.uD(i) )
+            
+            if self.R.isavalidinput( x , u_test ):
+                # valid option
+                
+                # Simulate from t to (t+1) with this controller
+                Q[i] = self.Rollout( x , t )
+                
+            else:
+                
+                # Bad option
+                Q[i] = 9999999999 # INF
             
         
         # Optimal dsicrete mode
