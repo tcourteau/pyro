@@ -14,7 +14,13 @@ import numpy as np
 R_ctl  =  Proto.SingleRevoluteDSDM()
 R      =  Proto.SingleRevoluteDSDM()
 
-R_ctl.ext_cst_force = -1
+
+
+
+# Load mass
+R.M                 = 0.5
+R_ctl.M             = 1
+R_ctl.ext_cst_force = 0
 
 
 # Assign controller
@@ -26,7 +32,7 @@ Ctl.n_gears       = 2
 Ctl.w0            = 1.0
 Ctl.lam           = 1.0
 Ctl.nab           = 1.0
-Ctl.D             = 2.0
+Ctl.D             = 0
 Ctl.hysteresis    = True
 Ctl.min_delay     = 0.5
 Ctl.goal         = np.array([0,0])
