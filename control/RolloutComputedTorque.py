@@ -244,6 +244,7 @@ class RolloutSlidingModeController( RCTC.RminSlidingModeController ,  RolloutCom
                 
                 # Bad option
                 Q[i] = 9999999999 # INF
+                #print 'Bad options'
             
         
         # Optimal dsicrete mode

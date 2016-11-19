@@ -359,6 +359,23 @@ class RminSlidingModeController( RminComputedTorqueController , CTC.SlidingModeC
         
         
     ############################
+    def manual_acc_ctl( self , x , t = 0 ):
+        """ 
+        
+        experimental 
+        
+        """
+
+        s              = self.ddq_manual_setpoint   # control directly discontinuous term
+        
+        ddq_r          =   np.zeros( self.R.dof )
+        
+        u              = self.u_star( ddq_r , x , s , t )
+        
+        return u
+        
+        
+    ############################
     def fixed_goal_ctl( self , x , t = 0 ):
         """ 
         

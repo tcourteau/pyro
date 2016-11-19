@@ -73,7 +73,7 @@ class SingleRevoluteDSDM( HM.HybridOneLinkManipulator ) :
         self.I1 = 0.0 # Neglect
         
         # load
-        self.M  = 1.0
+        self.M  = 0.2
         
         self.g = 9.81 * 1
         
@@ -133,7 +133,8 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         self.u_lb = np.array([ - 0.5 ,  - 0.5 , 0   ])
         
         # High-force Max speed
-        self.dq_max_HF = 0.9 # [rad/sec]
+        self.dq1_max_HF = 0.3 # [rad/sec]
+        self.dq2_max_HF = 0.9 # [rad/sec]
         
         self.setparams()
         
@@ -150,15 +151,19 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         # add w_max constraint
         
         # if High-force mode
-        if u[1] == self.R[1] :
+        if u[1] == 1 or u[1] == 3 :
             
             dq1 = x[2]
+            
+            ans = ans or ( dq1 >  self.dq1_max_HF )
+            ans = ans or ( dq1 < -self.dq1_max_HF )
+            
+        if u[1] == 2 or u[1] == 3 :
+            
             dq2 = x[3]
             
-            ans = ans or ( dq1 >  self.dq_max_HF )
-            ans = ans or ( dq1 < -self.dq_max_HF )
-            ans = ans or ( dq2 >  self.dq_max_HF )
-            ans = ans or ( dq2 < -self.dq_max_HF )
+            ans = ans or ( dq2 >  self.dq2_max_HF )
+            ans = ans or ( dq2 < -self.dq2_max_HF )
             
         return not(ans)
         
@@ -168,13 +173,13 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         """ Set model parameters here """
         
         self.l1  = 0.25
-        self.lc1 = 0.1
+        self.lc1 = 0.2
         self.l2  = 0.25
-        self.lc2 = 0.1
+        self.lc2 = 0.2
         
         self.m1 = 1
         self.I1 = 0      # neglect
-        self.m2 = 0.25
+        self.m2 = 0.3
         self.I2 = 0      # neglect
         
         # load
@@ -236,4 +241,6 @@ if __name__ == "__main__":
     
     R2 = TwoPlanarSerialDSDM()
     
-    R2.plotAnimation([ 3.14 , -3.0 , 0 ,0 ])
+    R2.ubar = np.array([ 0 , 0 , 3 ])
+    
+    R2.plotAnimation([ 0.1 , -0.1 , 0 ,0 ])
