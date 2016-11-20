@@ -26,13 +26,13 @@ Ctl               = RollCTC.RolloutSlidingModeController( R_ctl )
 R.ctl              = Ctl.ctl
 
 Ctl.n_gears       = 4
-Ctl.w0            = 1.0
+Ctl.w0            = 8.0
 Ctl.lam           = 1.0
 Ctl.nab           = 1.0
 Ctl.D             = 1.0
 Ctl.hysteresis    = True
 Ctl.min_delay     = 0.5
-Ctl.goal         = np.array([-2,+2,0,0])
+Ctl.goal         = np.array([-3.3,-2,0,0])
 Ctl.FixCtl.lam   = Ctl.lam 
 Ctl.FixCtl.nab   = Ctl.nab 
 Ctl.FixCtl.D     = Ctl.D
@@ -47,7 +47,7 @@ R_ctl.u_lb = np.array([-10,-10,0])
 """ Simulation and plotting """
 
 # Ploting a trajectory
-x_start = np.array([-4,-2,0,0])
+x_start = np.array([-2.0,2.0,0,0])
 tf      = 10
 dt      = 0.01
 n       = int( tf / dt ) + 1

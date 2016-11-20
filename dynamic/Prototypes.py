@@ -151,19 +151,23 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         # add w_max constraint
         
         # if High-force mode
-        if u[1] == 1 or u[1] == 3 :
+        if u[2] == 2 or u[2] == 3 :
             
             dq1 = x[2]
             
             ans = ans or ( dq1 >  self.dq1_max_HF )
             ans = ans or ( dq1 < -self.dq1_max_HF )
             
-        if u[1] == 2 or u[1] == 3 :
+            print 'dq1 too high'
+            
+        if u[2] == 1 or u[2] == 3 :
             
             dq2 = x[3]
             
             ans = ans or ( dq2 >  self.dq2_max_HF )
             ans = ans or ( dq2 < -self.dq2_max_HF )
+            
+            print 'dq2 too high'
             
         return not(ans)
         
@@ -177,9 +181,9 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         self.l2  = 0.25
         self.lc2 = 0.2
         
-        self.m1 = 1
+        self.m1 = 2
         self.I1 = 0      # neglect
-        self.m2 = 0.3
+        self.m2 = 0.4
         self.I2 = 0      # neglect
         
         # load
@@ -212,6 +216,7 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         # Actuator elbow
         a1r1   = 72.0
         a1r2   = 1225
+
         # Actuator wrist
         a2r1   = 23.2   # 5.8 * 4
         a2r2   = 474.0  # 123 * 52/18 *4/3
@@ -221,7 +226,7 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         R3 = np.diag([ a1r1 , a2r2 ])
         R4 = np.diag([ a1r2 , a2r2 ])
         
-        self.R = [ R1 , R2 , R3 , R4 ]
+        self.R = [ R1 , R3 , R2 , R4 ]
         
     
         
