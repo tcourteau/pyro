@@ -151,23 +151,23 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         # add w_max constraint
         
         # if High-force mode
-        if u[2] == 2 or u[2] == 3 :
+        if (u[2] == 2.) or (u[2] == 3.) :
             
             dq1 = x[2]
             
             ans = ans or ( dq1 >  self.dq1_max_HF )
             ans = ans or ( dq1 < -self.dq1_max_HF )
             
-            print 'dq1 too high'
+            #print 'dq1 too high'
             
-        if u[2] == 1 or u[2] == 3 :
+        if ( u[2] == 1) or (u[2] == 3) :
             
             dq2 = x[3]
             
             ans = ans or ( dq2 >  self.dq2_max_HF )
             ans = ans or ( dq2 < -self.dq2_max_HF )
             
-            print 'dq2 too high'
+            #print 'dq2 too high'
             
         return not(ans)
         

@@ -234,6 +234,8 @@ class RolloutSlidingModeController( RCTC.RminSlidingModeController ,  RolloutCom
             # Verify gear selection validity
             u_test  = np.append( np.zeros( self.R.dof ) , self.uD(i) )
             
+            
+            
             if self.R.isavalidinput( x , u_test ):
                 # valid option
                 
@@ -245,6 +247,7 @@ class RolloutSlidingModeController( RCTC.RminSlidingModeController ,  RolloutCom
                 # Bad option
                 Q[i] = 9999999999 # INF
                 #print 'Bad options'
+                #print x , u_test
             
         
         # Optimal dsicrete mode
