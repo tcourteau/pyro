@@ -191,6 +191,7 @@ class ValueIteration1DOF:
         
         # Initial evaluation
         
+        # For all state nodes
         for i in xrange(self.Nx0):
             for j in xrange(self.Nx1):
                 
@@ -199,6 +200,7 @@ class ValueIteration1DOF:
                 # Compute cost of initial states
                 self.J[i,j] = self.h( x )
                 
+                # For all control actions
                 for k in xrange( self.Nu0 ):
                     
                     u = np.array([ self.U[k] ])
@@ -222,16 +224,17 @@ class ValueIteration1DOF:
         # Get interpolation of current cost space
         J_interpol = interpol2D( self.X[0] , self.X[1] , self.J , bbox=[None, None, None, None], kx=1, ky=1,)
         
+        # For all states
         for i in xrange(self.Nx0):
             for j in xrange(self.Nx1):
                 
                 # Actual state vector
                 x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
-                #print x
-                
-                # One steps costs
+
+                # One steps costs - Q values
                 Q = np.zeros( self.Nu0  ) 
                 
+                # For all control actions
                 for k in xrange( self.Nu0 ):
                     
                     # Current u vector to test
@@ -258,18 +261,18 @@ class ValueIteration1DOF:
                         # Not allowable states or inputs/states combinations
                         Q[k] = self.INF
                         
-                    #print x,u,x_next,C[k]
                         
                 self.Jnew[i,j]          = Q.min()
                 self.action_policy[i,j] = Q.argmin()
                 self.u0_policy[i,j]     = self.U[ self.action_policy[i,j] ]
                 
-                # Impossible situation
+                # Impossible situation ( unaceptable situation for any control action )
                 if self.Jnew[i,j] > (self.INF-1) :
                     self.action_policy[i,j]      = -1
                     self.u0_policy[i,j]          =  0
-                
         
+        
+        # Convergence check        
         delta = self.J - self.Jnew
         j_max     =self.Jnew.max()
         delta_max = delta.max()
@@ -283,10 +286,7 @@ class ValueIteration1DOF:
     ################################
     def compute_steps(self, l = 50, plot = False):
         """ compute number of step """
-        
-        #self.first_step()
-        #self.plot_J()
-        
+               
         for i in xrange(l):
             print 'Step:',i
             self.compute_step()
@@ -1127,7 +1127,7 @@ class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) :
         
         # Discrete options
         self.U[0:self.Nu0,1]  = 1 # Gear #1
-        self.U[self.Nu0:,1]   = 5 # Gear #2
+        self.U[self.Nu0:,1]   = 10 # Gear #2
         
         
         
