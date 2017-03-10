@@ -5,7 +5,7 @@ Created on Sun Mar  6 15:27:04 2016
 @author: alex
 """
 
-save_fig      = False
+save_fig      = True
 path          = 'data/'
 
 from AlexRobotics.planning import RandomTree           as RPRT
@@ -34,7 +34,7 @@ x_goal  = np.array([0,0])
 
 RRT = RPRT.RRT( R , x_start )
 
-T1 = 1.0
+T1 = 5.0
 T2 = 3.0
 R1 = 1
 R2 = 10
@@ -44,8 +44,8 @@ RRT.U = np.array([ [T1,R1],[0.0,R1],[-T1,R1],[T1,R2],[0.0,R2],[-T1,R2],
 
 RRT.dt                    = 0.1
 RRT.goal_radius           = 0.4
-RRT.max_nodes             = 10000
-RRT.max_solution_time     = 8
+RRT.max_nodes             = 8000
+RRT.max_solution_time     = 6
 
 RRT.low_pass_filter.set_freq_to( fc = 1.5 , dt = RRT.dt )
 
@@ -67,9 +67,9 @@ CTC_controller.w0           = 1.0
 CTC_controller.zeta         = 0.7
 CTC_controller.n_gears      = 2
 CTC_controller.traj_ref_pts = 'interpol'
-CTC_controller.hysteresis   = False
+CTC_controller.hysteresis   = True
 CTC_controller.hys_level    = 1.0
-CTC_controller.min_delay    = 0.5
+CTC_controller.min_delay    = 0.1
 
 
 """ Value Iteration """
@@ -102,15 +102,18 @@ u_rrt = R.Sim.u_sol_CL
 R.Sim.plot_CL()
 
 R.Sim.fontsize = 7
-t_ticks = [0,2,4,6,8,10,12,14]
+t_ticks = [0,2,4,6,8,10]
+R.Sim.plots[0].set_ylim(    -6,1 )
 R.Sim.plots[0].set_yticks( [-4,0] )
+R.Sim.plots[1].set_ylim(    -5,5 )
 R.Sim.plots[1].set_yticks( [-4,0, 4] )
+R.Sim.plots[2].set_ylim(    -10,10 )
 R.Sim.plots[2].set_yticks( [-8,0,8] )
 R.Sim.plots[3].set_ylim(    0,11 )
 R.Sim.plots[3].set_yticks( [1,10] )
-R.Sim.plots[3].set_xlim(    0,10 )
 R.Sim.plots[3].set_xticks( t_ticks )
-#R.Sim.fig.set_size_inches(4,2.5)
+R.Sim.plots[3].set_xlim(    0,10 )
+R.Sim.fig.set_size_inches(2,1.5)
 R.Sim.fig.canvas.draw()
 if save_fig:
     R.Sim.fig.savefig( 'output/vs_rrt.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
@@ -118,6 +121,8 @@ if save_fig:
 # Compute integral cost
 R.Sim.Q = np.diag([0,0])
 R.Sim.R = np.diag([1,0])
+
+CTC_controller.reset_hysteresis()
 
 R.Sim.compute()
 
@@ -141,15 +146,18 @@ R.Sim.compute()
 R.Sim.plot_CL()
 
 R.Sim.fontsize = 7
-t_ticks = [0,2,4,6,8,10,12,14]
+t_ticks = [0,2,4,6,8,10]
+R.Sim.plots[0].set_ylim(    -6,1 )
 R.Sim.plots[0].set_yticks( [-4,0] )
+R.Sim.plots[1].set_ylim(    -5,5 )
 R.Sim.plots[1].set_yticks( [-4,0, 4] )
+R.Sim.plots[2].set_ylim(    -10,10 )
 R.Sim.plots[2].set_yticks( [-8,0,8] )
 R.Sim.plots[3].set_ylim(    0,11 )
 R.Sim.plots[3].set_yticks( [1,10] )
-R.Sim.plots[3].set_xlim(    0,10 )
 R.Sim.plots[3].set_xticks( t_ticks )
-#R.Sim.fig.set_size_inches(4,2.5)
+R.Sim.plots[3].set_xlim(    0,10 )
+R.Sim.fig.set_size_inches(2,1.5)
 R.Sim.fig.canvas.draw()
 if save_fig:
     R.Sim.fig.savefig( 'output/vs_vi.pdf' , format='pdf', bbox_inches='tight', pad_inches=0.05)
