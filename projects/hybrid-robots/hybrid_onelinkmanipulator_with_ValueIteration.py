@@ -24,8 +24,8 @@ path = 'data/'
 
 ValueIterationAlgo.first_step()
 ValueIterationAlgo.load_data( path + 'R1H' + cost_function )
-ValueIterationAlgo.compute_steps(50)
-#ValueIterationAlgo.compute_steps(1)
+#ValueIterationAlgo.compute_steps(50)
+ValueIterationAlgo.compute_steps(1)
 ValueIterationAlgo.save_data( path + 'R1H' + cost_function ) 
 
 # Plot Value Iteration Results
