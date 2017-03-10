@@ -68,9 +68,9 @@ CTC_controller.zeta         = 0.7
 CTC_controller.n_gears      = 2
 #CTC_controller.traj_ref_pts = 'closest'
 CTC_controller.traj_ref_pts = 'interpol'
-CTC_controller.hysteresis   = True
+CTC_controller.hysteresis   = False
 CTC_controller.hys_level    = 1.0
-CTC_controller.min_delay    = 0.1
+CTC_controller.min_delay    = 0.5
 
 
 """ Simulation """

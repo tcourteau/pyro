@@ -1273,6 +1273,12 @@ class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) :
         u[0] = self.b_u0( x[0] , x[1] )
         u[1] = np.round( self.b_u1( x[0] , x[1] ) )
         
+        # Quick fix
+        if u[1] > 5 :
+            u[1] = 10
+        elif u[1] <= 5:
+            u[1] = 1
+        
         return u
         
         
