@@ -323,7 +323,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         
     ############################
-    def compute_a0_fwd_kinematic( self , plot = False  ):
+    def compute_a0_fwd_kinematic( self , plot = False  , fsize = 7 ):
         """ 
         Create and interpol function for fwd kinematic 
         -----------------------------------------------
@@ -344,6 +344,10 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         if plot:
             # For validation
+            #fsize = 5
+            
+            matplotlib.rc('xtick', labelsize=fsize )
+            matplotlib.rc('ytick', labelsize=fsize )
             
             linear_approx = np.arange( 0.05 , 0.33 , 0.01)
             angles_approx = np.zeros( linear_approx.size )
@@ -355,8 +359,8 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
             fig.canvas.set_window_title('First Link kinematic')
             plt.plot( linear, angles * 180 / np.pi , 'b-')
             plt.plot( linear_approx, angles_approx * 180 / np.pi , 'r-')
-            plot.set_xlabel( 'Linear displacement [meter]' , fontsize=5)
-            plot.set_ylabel( 'Angle 0 [deg]' , fontsize=5)
+            plot.set_xlabel( 'Linear displacement [meter]' , fontsize=fsize)
+            plot.set_ylabel( 'Angle 0 [deg]' , fontsize=fsize)
             plot.grid(True)
             fig.tight_layout()        
     
@@ -627,5 +631,7 @@ if __name__ == "__main__":
     
     R  = TestPendulum()
     
-    R.plotAnimation( [0.1,0,0,0,0,0])
+    #R.plotAnimation( [0.1,0,0,0,0,0])
+    
+    BA.compute_a0_fwd_kinematic( True , 9 )
     
