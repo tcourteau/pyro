@@ -20,7 +20,8 @@ dt = 0.001
 # Define controller
 CTC_controller      = CTC.SlidingModeController( R )
 CTC_controller.lam  = 1
-CTC_controller.D    = 10
+CTC_controller.nab  = 1
+CTC_controller.D    = 0
 
 # Asign feedback law to the dynamic system
 R.ctl = CTC_controller.ctl

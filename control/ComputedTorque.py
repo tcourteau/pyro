@@ -15,9 +15,13 @@ import numpy as np
 
 
 '''
-################################################################################
+###############################################################################
+### Controllers for Manipulators-class robots
+###############################################################################
 '''
 
+
+##########################################################################
     
 class ComputedTorqueController:
     """ Feedback law  """
@@ -240,8 +244,9 @@ class SlidingModeController( ComputedTorqueController ):
         
         # Params
         
-        self.lam = 1  # Sliding surface slope
-        self.D   = 1  # Discontinuous gain
+        self.lam = 1   # Sliding surface slope
+        self.D   = 1   # Discontinuous gain
+        self.nab = 0.1 # Min convergence rate
         
         
         
@@ -274,10 +279,13 @@ class SlidingModeController( ComputedTorqueController ):
         
         
     ############################
-    def K( self , q ,t  ):
+    def K( self , q , t ):
         """ Discontinuous gain matrix """
         
-        K = np.diag( np.ones( self.R.dof ) ) * self.D
+        dist_max = np.diag( np.ones( self.R.dof ) ) * self.D
+        conv_min = np.diag( np.ones( self.R.dof ) ) * self.nab
+        
+        K = dist_max + np.dot( self.R.H_all( q ) , conv_min ) 
         
         return K
         
@@ -339,18 +347,4 @@ class SlidingModeController( ComputedTorqueController ):
         return F
         
         
-    ############################
-    def manual_acc_ctl( self , x , t = 0 ):
-        """ 
-        
-        Given desired acc, compute torques
-        
-        """
-
-        ddq_r          = self.ddq_manual_setpoint
-        
-        F              = self.computed_torque( ddq_r , x )
-        
-        return F
-        
-        
+       
