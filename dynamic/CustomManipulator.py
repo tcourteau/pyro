@@ -23,7 +23,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         HM.HybridThreeLinkManipulator.__init__(self, n , m )
         
         # Ploting param
-        self.n_pts   = 9 # number of pts to plot on the manipulator 
+        self.n_pts   = 10 # number of pts to plot on the manipulator 
         self.dim_pts = 3 # number of dimension for each pts 
         self.axis_to_plot = [0,2]  # axis to plot for 2D plot
         
@@ -45,7 +45,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         """ Set kinetic parameters here """
         
         # First link kinematic
-        b0  = 0.9   # 2x2 tubing length
+        b0  = 0.8   # 2x2 tubing length
         b1  = 0.12  # pivot distance from 2x2 tubing base
         b2  = 0.11  # pivot height from 2x2 tubing mid-line
         b3  = 0.32  # rod length
@@ -57,10 +57,13 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         
         
         # Second link
-        self.l1 = 0.5  # Length of link 1
+        self.l1 = 0.3  # Length of link 1
+        
+        # Third Link
+        self.l2 = 0.3
         
         
-        self.lw = 1
+        self.lw = 1.3
         
     #############################
     def setDynamicParams(self):
@@ -127,7 +130,14 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         c01     = np.cos( theta_0 + theta_1 )
         
         link1 = [ theta_1 , s1 , c1 , s01 , c01 ]
-        link2 = []
+        
+        theta_2 = q[2]
+        s2      = np.sin( theta_2 )
+        c2      = np.cos( theta_2 )
+        s012    = np.sin( theta_0 + theta_1 + theta_2 )
+        c012    = np.cos( theta_0 + theta_1 + theta_2 )
+        
+        link2 = [ theta_2 , s2 , c2 , s012 , c012 ]
         
         
         return [base,link1,link2]
@@ -154,13 +164,21 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         p6 = [ 0 , 0 , 0 ]
         p7 = [ self.b[0] * s0 , 0 , self.b[0] * c0 ]
         
-        ### Seconde DOF ###
+        ### Second DOF ###
         
         [ theta_1 , s1 , c1 , s01 , c01 ] = link1
         
         p8 = [ self.l1 * s01 + p7[0] , 0 , self.l1 * c01 + p7[2] ]
         
-        return np.array([p0,p1,p2,p3,p4,p5,p6,p7,p8])
+        
+        ### Third DOF ###
+        
+        [ theta_2 , s2 , c2 , s012 , c012 ] = link2
+        
+        p9 = [ self.l2 * s012 + p8[0] , 0 , self.l2 * c012 + p8[2] ]
+        
+        
+        return np.array([p0,p1,p2,p3,p4,p5,p6,p7,p8,p9])
         
                     
     ##############################
