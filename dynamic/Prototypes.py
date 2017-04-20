@@ -44,7 +44,7 @@ class SingleRevoluteDSDM( HM.HybridOneLinkManipulator ) :
         
         ans = False # set to True if something is bad
         
-        for i in xrange(self.m):
+        for i in range(self.m):
             ans = ans or ( u[i] < self.u_lb[i] )
             ans = ans or ( u[i] > self.u_ub[i] )
             
@@ -144,7 +144,7 @@ class TwoPlanarSerialDSDM( HM.HybridTwoLinkManipulator ) :
         
         ans = False # set to True if something is bad
         
-        for i in xrange(self.m):
+        for i in range(self.m):
             ans = ans or ( u[i] < self.u_lb[i] )
             ans = ans or ( u[i] > self.u_ub[i] )
             

@@ -675,7 +675,7 @@ class TwoLinkManipulator( RDDS.DynamicSystem ) :
         # Compute pts localization
         self.PTS = np.zeros(( self.n_pts , self.dim_pts , self.Sim.n ))
         
-        for i in xrange( self.Sim.n ):
+        for i in range( self.Sim.n ):
             
             [ q , dq ]      = self.x2q(  self.Sim.x_sol_CL[i,:]  )
             self.PTS[:,:,i] = self.fwd_kinematic( q )  # Forward kinematic
@@ -1513,7 +1513,7 @@ class ThreeLinkManipulator( TwoLinkManipulator ) :
         # Compute pts localization
         self.PTS = np.zeros(( self.n_pts , self.dim_pts , self.Sim.n ))
         
-        for i in xrange( self.Sim.n ):
+        for i in range( self.Sim.n ):
             
             [ q , dq ]      = self.x2q(  self.Sim.x_sol_CL[i,:]  )
             self.PTS[:,:,i] = self.fwd_kinematic( q )  # Forward kinematic

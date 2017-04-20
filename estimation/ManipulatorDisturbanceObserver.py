@@ -69,7 +69,7 @@ class DistObserver:
             self.f_ext_hat = 0.90 * self.f_ext_hat + 0.1 * dist
             
             # Debug
-            print 'Dist:', self.f_ext_hat
+            print('Dist: ', self.f_ext_hat )
             
             # Memory
             self.dq_last     = dq       # save speed of last step

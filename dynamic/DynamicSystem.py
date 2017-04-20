@@ -106,7 +106,7 @@ class DynamicSystem:
     def isavalidstate(self , x ):
         """ check if x is in the state domain """
         ans = False
-        for i in xrange(self.n):
+        for i in range(self.n):
             ans = ans or ( x[i] < self.x_lb[i] )
             ans = ans or ( x[i] > self.x_ub[i] )
             
@@ -118,7 +118,7 @@ class DynamicSystem:
         """ check if u is in the control inputs domain given x """
         ans = False
         
-        for i in xrange(self.m):
+        for i in range(self.m):
             ans = ans or ( u[i] < self.u_lb[i] )
             ans = ans or ( u[i] > self.u_ub[i] )
 
@@ -464,7 +464,7 @@ class Simulation:
             # Compute control inputs
             self.u_sol_CL   = np.zeros(( self.n , self.DS.m ))  
             
-            for i in xrange(self.n):
+            for i in range(self.n):
                 
                 # u & x
                 u = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
@@ -495,7 +495,7 @@ class Simulation:
             self.x_sol_OL[0,:] = self.x0
             self.x_sol_CL[0,:] = self.x0
             
-            for i in xrange(self.n):
+            for i in range(self.n):
                 
                 # u & x
                 u = self.DS.ctl( self.x_sol_CL[i,:] , self.t[i] )
@@ -544,7 +544,7 @@ class Simulation:
         
         
         # For all states
-        for i in xrange( self.DS.n ):
+        for i in range( self.DS.n ):
             plots[i].plot( self.t , self.x_sol_OL[:,i] , 'b')
             plots[i].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=self.fontsize )
             plots[i].grid(True)
@@ -590,7 +590,7 @@ class Simulation:
         
         if plot == 'All' or plot == 'x':
             # For all states
-            for i in xrange( self.DS.n ):
+            for i in range( self.DS.n ):
                 plots[j].plot( self.t , self.x_sol_CL[:,i] , 'b')
                 plots[j].set_ylabel(self.DS.state_label[i] +'\n'+ self.DS.state_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
@@ -598,7 +598,7 @@ class Simulation:
             
         if plot == 'All' or plot == 'u':
             # For all inputs
-            for i in xrange( self.DS.m ):
+            for i in range( self.DS.m ):
                 plots[j].plot( self.t , self.u_sol_CL[:,i] , 'r')
                 plots[j].set_ylabel(self.DS.input_label[i] + '\n' + self.DS.input_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
