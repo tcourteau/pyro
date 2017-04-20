@@ -125,7 +125,7 @@ class RminComputedTorqueController( CTC.ComputedTorqueController ):
         T = np.zeros( ( self.n_gears , self.R.dof ) )
         
         #for all gear ratio options
-        for i in xrange( self.n_gears ):
+        for i in range( self.n_gears ):
             
             T[i] = self.computed_torque( ddq_r , x , self.uD(i) ) 
             
@@ -412,7 +412,7 @@ class RminSlidingModeController( RminComputedTorqueController , CTC.SlidingModeC
         T = np.zeros( ( self.n_gears , self.R.dof ) )
         
         #for all gear ratio options
-        for i in xrange( self.n_gears ):
+        for i in range( self.n_gears ):
             
             T[i] = self.sliding_torque( ddq_r , s , x , i , t ) 
             

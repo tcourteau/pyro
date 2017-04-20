@@ -126,7 +126,7 @@ class RRT:
         
         else:
             # Check only last X nodes
-            for i in xrange(self.max_distance_compute):
+            for i in range(self.max_distance_compute):
                 node = self.Nodes[ len(self.Nodes) - i - 1 ]
                 d = node.distanceTo( x_target )
                 if d < min_distance:
@@ -205,7 +205,7 @@ class RRT:
     ############################
     def compute_steps(self , n , plot = False ):    
         """ """
-        for i in xrange( n ):
+        for i in range( n ):
             self.one_step()
             
         if plot:
@@ -269,7 +269,7 @@ class RRT:
                 
             # Tree reset
             if no_nodes == self.max_nodes:
-                print '\nSearch Fail: Reseting Tree'
+                print('\nSearch Fail: Reseting Tree')
                 #self.plot_2D_Tree()
                 no_nodes = 0
                 self.Nodes = []
@@ -281,7 +281,7 @@ class RRT:
                     
                 
         
-        print '\nSucces!!!!: Path to goal found'
+        print('\nSucces!!!!: Path to goal found')
         
         
         # Compute Path

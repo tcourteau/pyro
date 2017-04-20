@@ -61,7 +61,7 @@ class RolloutComputedTorqueController( RCTC.RminComputedTorqueController ):
         Q = np.zeros( self.n_gears )
         
         #for all gear ratio options
-        for i in xrange( self.n_gears ):
+        for i in range( self.n_gears ):
             
             # Assign the fixed gear
             self.FixCtl.R_index = i
@@ -223,7 +223,7 @@ class RolloutSlidingModeController( RCTC.RminSlidingModeController ,  RolloutCom
         Q = np.zeros( self.n_gears )
         
         #for all gear ratio options
-        for i in xrange( self.n_gears ):
+        for i in range( self.n_gears ):
             
             # Assign the fixed gear
             self.FixCtl.R_index = i

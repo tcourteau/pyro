@@ -192,8 +192,8 @@ class ValueIteration1DOF:
         # Initial evaluation
         
         # For all state nodes
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 
                 x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
                 
@@ -201,7 +201,7 @@ class ValueIteration1DOF:
                 self.J[i,j] = self.h( x )
                 
                 # For all control actions
-                for k in xrange( self.Nu0 ):
+                for k in range( self.Nu0 ):
                     
                     u = np.array([ self.U[k] ])
                     
@@ -225,8 +225,8 @@ class ValueIteration1DOF:
         J_interpol = interpol2D( self.X[0] , self.X[1] , self.J , bbox=[None, None, None, None], kx=1, ky=1,)
         
         # For all states
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 
                 # Actual state vector
                 x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
@@ -235,7 +235,7 @@ class ValueIteration1DOF:
                 Q = np.zeros( self.Nu0  ) 
                 
                 # For all control actions
-                for k in xrange( self.Nu0 ):
+                for k in range( self.Nu0 ):
                     
                     # Current u vector to test
                     u = np.array([ self.U[k] ])                 
@@ -277,7 +277,7 @@ class ValueIteration1DOF:
         j_max     =self.Jnew.max()
         delta_max = delta.max()
         delta_min = delta.min()
-        print 'Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min
+        print('Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min)
         
         self.J = self.Jnew.copy()
         
@@ -287,8 +287,8 @@ class ValueIteration1DOF:
     def compute_steps(self, l = 50, plot = False):
         """ compute number of step """
                
-        for i in xrange(l):
-            print 'Step:',i
+        for i in range(l):
+            print('Step:',i)
             self.compute_step()
             if plot:
                 self.plot_J_update()
@@ -383,8 +383,8 @@ class ValueIteration1DOF:
         yname = self.DS.state_label[1] + ' ' + self.DS.state_units[1]
         
         ## Saturation function for cost
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 if self.J[i,j] >= maxJ :
                     self.Jplot[i,j] = maxJ
                 else:
@@ -442,7 +442,7 @@ class ValueIteration1DOF:
             
         except:
             
-            print ' Failed to load DP data ' 
+            print('Failed to load DP data ' )
         
         
     ################################
@@ -466,7 +466,7 @@ class ValueIteration1DOF:
         J_quad = 0
         J_ener = 0
                 
-        for i in xrange( X.shape[0] ):
+        for i in range( X.shape[0] ):
             
             J_time = J_time + self.g_time(  X[i,:] , U[i,:] )        / self.dt * self.DS.Sim.tf / self.DS.Sim.n
             J_quad = J_quad + self.g_quadratic(  X[i,:] , U[i,:] )   / self.dt * self.DS.Sim.tf / self.DS.Sim.n
@@ -689,15 +689,15 @@ class QLearning1DOF:
         
         # Initial evaluation
         
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 
                 x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
                 
                 # Compute cost of initial states
                 self.J[i,j] = self.h( x )
                 
-                for k in xrange( self.Nu0 ):
+                for k in range( self.Nu0 ):
                     
                     self.Q[i,j,k]  = self.J[i,j] # Initial Q-value is only local cost
                     
@@ -813,7 +813,7 @@ class QLearning1DOF:
         n_plot  = 1000.
         n_print = 100.
         
-        for i in xrange( n_trial ):
+        for i in range( n_trial ):
             
             self.exp_n = self.exp_n + 1
 
@@ -826,7 +826,7 @@ class QLearning1DOF:
                 x = x0
             
             if (i/n_print-int(i/n_print)) < 0.00001 :
-                print 'Experiment #',self.exp_n
+                print('Experiment #',self.exp_n)
             
             if (i/n_plot-int(i/n_plot)) < 0.00001 and show :
             # Show behavior so far
@@ -863,7 +863,7 @@ class QLearning1DOF:
         if plot:
             self.DS.PTS = np.zeros((2,2,n))
             
-            for i in xrange(n):
+            for i in range(n):
                             
                 self.DS.PTS[:,:,i] = self.DS.fwd_kinematic( self.DS.Sim.x_sol_CL[i,0] ) # Forward kinematic
 
@@ -880,7 +880,7 @@ class QLearning1DOF:
             
         #Learning
         
-        for i in xrange(n):      
+        for i in range(n):      
         
             self.Qlearn3( self.DS.Sim.x_sol_CL[i,:] ,  self.DS.Sim.u_sol_CL[i,:] )
             
@@ -892,8 +892,8 @@ class QLearning1DOF:
         # Get interpolation of current cost space
         J_interpol = interpol2D( self.X[0] , self.X[1] , self.J , bbox=[None, None, None, None], kx=1, ky=1,)
         
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 
                 # Actual state vector
                 x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
@@ -902,7 +902,7 @@ class QLearning1DOF:
                 # One steps costs
                 C = np.zeros( self.Nu0 * 2 ) 
                 
-                for k in xrange( self.Nu0 * 2 ):
+                for k in range( self.Nu0 * 2 ):
                     
                     # Current u vector to test
                     u = self.U[k]                    
@@ -944,7 +944,7 @@ class QLearning1DOF:
         j_max     = self.Jnew.max()
         delta_max = delta.max()
         delta_min = delta.min()
-        print 'Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min
+        print('Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min)
         
         self.J = self.Jnew.copy()
         
@@ -959,8 +959,8 @@ class QLearning1DOF:
         #self.first_step()
         #self.plot_J()
         
-        for i in xrange(l):
-            print 'Step:',i
+        for i in range(l):
+            print('Step:',i)
             self.compute_step()
             if plot:
                 self.plot_J_update()
@@ -1000,8 +1000,8 @@ class QLearning1DOF:
         yname = self.DS.state_label[1] + ' ' + self.DS.state_units[1]
         
         ## Saturation function for cost
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 if self.J[i,j] >= maxJ :
                     self.Jplot[i,j] = maxJ
                 else:
@@ -1161,15 +1161,15 @@ class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) :
         
         # Initial evaluation
         
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 
                 x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
                 
                 # Compute cost of initial states
                 self.J[i,j] = self.h( x )
                 
-                for k in xrange( self.Nu0 * 2 ):
+                for k in range( self.Nu0 * 2 ):
                     
                     u = self.U[k] 
                     
@@ -1193,8 +1193,8 @@ class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) :
         # Get interpolation of current cost space
         J_interpol = interpol2D( self.X[0] , self.X[1] , self.J , bbox=[None, None, None, None], kx=1, ky=1,)
         
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 
                 # Actual state vector
                 x = np.array([ self.X[0][i]  ,  self.X[1][j] ])
@@ -1203,7 +1203,7 @@ class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) :
                 # One steps costs
                 Q = np.zeros( self.Nu0 * 2 ) 
                 
-                for k in xrange( self.Nu0 * 2 ):
+                for k in range( self.Nu0 * 2 ):
                     
                     # Current u vector to test
                     u =  self.U[k]            
@@ -1248,7 +1248,7 @@ class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) :
         j_max     =self.Jnew.max()
         delta_max = delta.max()
         delta_min = delta.min()
-        print 'Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min
+        print('Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min)
         
         self.J = self.Jnew.copy()
         
@@ -1319,8 +1319,8 @@ class ValueIteration_hybrid_1DOF( ValueIteration1DOF ) :
         yname = self.DS.state_label[1] + ' ' + self.DS.state_units[1]
         
         ## Saturation function for cost
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 if self.J[i,j] >= maxJ :
                     self.Jplot[i,j] = maxJ
                 else:
