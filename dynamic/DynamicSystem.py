@@ -429,7 +429,7 @@ class Simulation:
         self.t0 = 0
         self.tf = tf
         self.n  = int(n)
-        self.dt = ( tf + 0.0 ) / ( n - 1 )
+        self.dt = ( tf + 0.0 - self.t0 ) / ( n - 1 )
         
         self.x0 = np.zeros( self.DS.n )
         
@@ -440,14 +440,19 @@ class Simulation:
         
         # Cost computing
         self.J = 0
-        self.Q = np.diag( np.ones( self.DS.n) )
-        self.R = np.diag( np.ones( self.DS.m) )
+        self.Q = np.diag( np.ones( self.DS.n) )  # State cost per unit of time
+        self.R = np.diag( np.ones( self.DS.m) )  # Input cost per unit of time
+        self.H = np.diag( np.ones( self.DS.n) )  # Final State cost per unit of time
+        
+        self.domain_check     = False
+        self.domain_fail_cost = 10
         
     ##############################
     def compute(self):
         """ Integrate trought time """
         
         self.t  = np.linspace( self.t0 , self.tf , self.n )
+        self.dt = ( self.tf + 0.0 - self.t0 ) / ( self.n - 1 )
         
         self.J  = 0
         
@@ -469,6 +474,13 @@ class Simulation:
                 xQx    = np.dot( x.T , np.dot( self.Q , x ) )
                 uRu    = np.dot( u.T , np.dot( self.R , u ) )
                 self.J = self.J + ( xQx + uRu ) * self.dt
+                
+                # domain check
+                if self.domain_check:
+                    if not( self.DS.isavalidstate( x ) ):
+                        self.J = self.J + self.domain_fail_cost 
+                    if not( self.DS.isavalidinput( x , u ) ):
+                        self.J = self.J + self.domain_fail_cost 
                 
                 self.u_sol_CL[i,:] = u
                 
@@ -499,6 +511,18 @@ class Simulation:
                 if i+1<self.n:
                     self.x_sol_CL[i+1,:] = self.DS.fd( self.x_sol_CL[i,:] , self.u_sol_CL[i,:] , self.dt )
                     self.x_sol_OL[i+1,:] = self.DS.fd( self.x_sol_OL[i,:] , self.DS.ubar       , self.dt )
+                    
+                    
+                # domain check
+                if self.domain_check:
+                    if not( self.DS.isavalidstate( x ) ):
+                        self.J = self.J + self.domain_fail_cost 
+                    if not( self.DS.isavalidinput( x , u ) ):
+                        self.J = self.J + self.domain_fail_cost 
+                    
+                    
+        # Final cost
+        self.J = self.J + np.dot( x.T , np.dot( self.H , x ) )
 
             
     
@@ -593,7 +617,7 @@ class Simulation:
         
         
     #############################
-    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = True , PP_OL = False ):
+    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = False , PP_OL = True ):
         """ """
         
         y1 = self.DS.axis_to_plot[0] # State for x-axis of plot

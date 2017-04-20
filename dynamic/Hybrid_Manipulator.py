@@ -19,7 +19,7 @@ from AlexRobotics.dynamic import Manipulator   as M
 #########################################################################################################       
         
 class HybridOneLinkManipulator( M.OneLinkManipulator ) :
-    """ 2DOF Manipulator Class """
+    """ Hybrid robot with variable gear-ratio """
     
     
     ############################
@@ -79,7 +79,16 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
         
         
     ##############################
-    def ddq_a(self, q = np.zeros(1) , dq = np.zeros(1) , T = np.zeros(1) , R = 1 , d = 0 ):
+    def H_all(self,  q = np.zeros(1) , R = 1 ):
+        """ Total Inertia Matrix as a function of configuration and selected gear-ratio """  
+        
+        Ha = self.H( q ) + np.dot( R , np.dot( R , self.Ia ) )
+        
+        return Ha
+        
+        
+    ##############################
+    def ddq_a(self, q = np.zeros(1) , dq = np.zeros(1) , T = np.zeros(1) , R = 1 , t = 0 ):
         """ Computed accelerations given actuator torques and gear ratio """  
         
         
@@ -92,7 +101,10 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
         
         G  = self.G( q )
         
-        ddq = np.dot( 1. / Ha  ,  ( np.dot( R , T ) - np.dot( Ca , dq ) - G  + d ) )
+        # Disturbance force
+        f_d = self.F_dist( t )
+        
+        ddq = np.dot( 1. / Ha  ,  ( np.dot( R , T ) + self.F_ext( q , dq ) - f_d - np.dot( Ca , dq ) - G ) )
         
         return ddq
         
@@ -117,7 +129,7 @@ class HybridOneLinkManipulator( M.OneLinkManipulator ) :
         q  = x[0]
         dq = x[1]
         
-        ddq = self.ddq_a( q , dq , u[0] , u[1] )
+        ddq = self.ddq_a( q , dq , u[0] , u[1] ) # Include hybrid input
         
         dx[0] = dq
         dx[1] = ddq
@@ -183,12 +195,12 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         
         
     ##############################
-    def T(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) , uD = 0 ):
+    def T(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) , uD = 0 , t = 0 ):
         """ Computed acutator torques given a trajectory and gear ratio """ 
         
         R = self.R[uD]
         
-        e = self.F( q , dq , ddq )         # actuator efforts computed for manipulator side only
+        e = self.F( q , dq , ddq , t )     # actuator efforts computed for manipulator side only
         
         Tl = self.Tlosses( q , dq , ddq )  # see alex logbook : virtual effort related to motor losses (inertial and viscous rotor forces)
         
@@ -198,11 +210,11 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         
         
     ##############################
-    def ddq_a(self, q = np.zeros(2) , dq = np.zeros(2) , T = np.zeros(2) , uD = 0 ):
+    def ddq_a(self, q = np.zeros(2) , dq = np.zeros(2) , T = np.zeros(2) , uD = 0 , t = 0 ):
         """ Computed accelerations given actuator torques and gear ratio """  
         
         R = self.R[ int(uD) ]
-        B = np.dot( self.B( q ) , R.T   )    # Transfor to rotor space        
+        B = np.dot( self.jacobian_actuators( q ).T , R.T   )    # Transfor to rotor space        
         
         H_all = self.H( q ) + np.dot( B , np.dot( self.Ia , B.T ) )
         
@@ -222,9 +234,10 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         J_e = self.jacobian_endeffector( q )
         f_e = self.F_ext( q , dq )
         
+        # Disturbance force
+        f_d = self.F_dist( t )
         
-        ddq = np.dot( np.linalg.inv( H_all ) ,  ( np.dot( B , T ) + np.dot( J_e.T , f_e ) - np.dot( CD_all , dq ) - G ) )
-
+        ddq = np.dot( np.linalg.inv( H_all ) ,  ( np.dot( B , T ) + np.dot( J_e.T , f_e ) - f_d - np.dot( CD_all , dq ) - G ) )
         
         return ddq
         
@@ -248,7 +261,7 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         
         [ q , dq ] = self.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
-        ddq = self.ddq_a( q , dq , u[0:self.dof] , u[self.dof] )
+        ddq = self.ddq_a( q , dq , u[0:self.dof] , u[self.dof] , t )
         
         dx = self.q2x( dq , ddq )    # from angle and speeds diff (dq,ddq) to state vector diff (dx)
         
@@ -256,12 +269,22 @@ class HybridTwoLinkManipulator( M.TwoLinkManipulator ) :
         
         
     ##############################
-    def e_kinetic(self, q = np.zeros(2) , dq = np.zeros(2) , uD = 0 ):
+    def H_all(self, q = np.zeros(2) , R_index = 0 ):
+        """ Computed total indertia matrix """  
+        
+        R = self.R[ int(R_index) ]
+        B = np.dot( self.jacobian_actuators( q ).T , R.T   )    # Transfor to rotor space        
+        
+        H_all = self.H( q ) + np.dot( B , np.dot( self.Ia , B.T ) )       
+        
+        return H_all
+        
+        
+    ##############################
+    def e_kinetic(self, q = np.zeros(2) , dq = np.zeros(2) , R_index = 0 ):
         """ Compute kinetic energy of manipulator """  
         
-        R = self.R[ int(uD) ]
-        
-        Ha = self.H( q ) + np.dot( R , np.dot( R , self.Ia ) )        
+        Ha = self.H_all( q , R_index )      
         
         e_k = 0.5 * np.dot( dq , np.dot( Ha , dq ) )
         
@@ -327,12 +350,12 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         
         
     ##############################
-    def T(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) , uD = 0 ):
+    def T(self, q = np.zeros(2) , dq = np.zeros(2) , ddq = np.zeros(2) , uD = 0 , t = 0 ):
         """ Computed acutator torques given a trajectory and gear ratio """ 
         
         R = self.R[uD]
         
-        e = self.F( q , dq , ddq )         # actuator efforts computed for manipulator side only
+        e = self.F( q , dq , ddq , t )     # actuator efforts computed for manipulator side only
         
         Tl = self.Tlosses( q , dq , ddq )  # see alex logbook : virtual effort related to motor losses (inertial and viscous rotor forces)
         
@@ -342,11 +365,11 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         
         
     ##############################
-    def ddq_a(self, q = np.zeros(2) , dq = np.zeros(2) , T = np.zeros(2) , uD = 0 ):
+    def ddq_a(self, q = np.zeros(2) , dq = np.zeros(2) , T = np.zeros(2) , uD = 0 , t = 0 ):
         """ Computed accelerations given actuator torques and gear ratio """  
         
         R = self.R[ int(uD) ]
-        B = np.dot( self.B( q ) , R.T   )    # Transfor to rotor space        
+        B = np.dot( self.jacobian_actuators( q ).T , R.T   )    # Transfor to rotor space        
         
         H_all = self.H( q ) + np.dot( B , np.dot( self.Ia , B.T ) )
         
@@ -366,15 +389,16 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         J_e = self.jacobian_endeffector( q )
         f_e = self.F_ext( q , dq )
         
+        # Disturbance force
+        f_d = self.F_dist( t )
         
-        ddq = np.dot( np.linalg.inv( H_all ) ,  ( np.dot( B , T ) + np.dot( J_e.T , f_e ) - np.dot( CD_all , dq ) - G ) )
-        
+        ddq = np.dot( np.linalg.inv( H_all ) ,  ( np.dot( B , T ) + np.dot( J_e.T , f_e ) - f_d - np.dot( CD_all , dq ) - G ) )
         
         return ddq
         
         
     #############################
-    def fc(self, x = np.zeros(6) , u = np.zeros(4) , t = 0 ):
+    def fc(self, x = np.zeros(4) , u = np.zeros(3) , t = 0 ):
         """ 
         Continuous time function evaluation
         
@@ -392,7 +416,7 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         
         [ q , dq ] = self.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
-        ddq = self.ddq_a( q , dq , u[0:self.dof] , u[self.dof] )
+        ddq = self.ddq_a( q , dq , u[0:self.dof] , u[self.dof] , t )
         
         dx = self.q2x( dq , ddq )    # from angle and speeds diff (dq,ddq) to state vector diff (dx)
         
@@ -400,12 +424,22 @@ class HybridThreeLinkManipulator( M.ThreeLinkManipulator ) :
         
         
     ##############################
-    def e_kinetic(self, q = np.zeros(3) , dq = np.zeros(3) , uD = 0 ):
+    def H_all(self, q = np.zeros(2) , R_index = 0 ):
+        """ Computed total indertia matrix """  
+        
+        R = self.R[ int(R_index) ]
+        B = np.dot( self.jacobian_actuators( q ).T , R.T   )    # Transfor to rotor space        
+        
+        H_all = self.H( q ) + np.dot( B , np.dot( self.Ia , B.T ) )       
+        
+        return H_all
+        
+        
+    ##############################
+    def e_kinetic(self, q = np.zeros(2) , dq = np.zeros(2) , R_index = 0 ):
         """ Compute kinetic energy of manipulator """  
         
-        R = self.R[ int(uD) ]
-        
-        Ha = self.H( q ) + np.dot( R , np.dot( R , self.Ia ) )        
+        Ha = self.H_all( q , R_index )      
         
         e_k = 0.5 * np.dot( dq , np.dot( Ha , dq ) )
         

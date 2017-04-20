@@ -5,7 +5,8 @@ Created on Sat Mar  5 14:59:30 2016
 @author: alex
 """
 
-from AlexRobotics.dynamic import Manipulator   as M
+from AlexRobotics.dynamic    import Manipulator                     as M
+from AlexRobotics.estimation import ManipulatorDisturbanceObserver  as OBS
 
 
 from scipy.interpolate import interp1d
@@ -14,9 +15,13 @@ import numpy as np
 
 
 '''
-################################################################################
+###############################################################################
+### Controllers for Manipulators-class robots
+###############################################################################
 '''
 
+
+##########################################################################
     
 class ComputedTorqueController:
     """ Feedback law  """
@@ -42,6 +47,10 @@ class ComputedTorqueController:
         
         # For manual acc control
         self.ddq_manual_setpoint = np.zeros( self.R.dof )
+        
+        # Integral action with dist observer (beta)
+        self.dist_obs_active = False
+        self.obs             = OBS.DistObserver( R )
     
     
     ############################
@@ -67,7 +76,7 @@ class ComputedTorqueController:
 
         ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
-        F                  = self.computed_torque( ddq_r , x )
+        F                  = self.computed_torque( ddq_r , x , t )
         
         return F
         
@@ -86,7 +95,7 @@ class ComputedTorqueController:
 
         ddq_r          = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
         
-        F              = self.computed_torque( ddq_r , x )
+        F              = self.computed_torque( ddq_r , x , t )
         
         return F
         
@@ -101,13 +110,13 @@ class ComputedTorqueController:
 
         ddq_r          = self.ddq_manual_setpoint
         
-        F              = self.computed_torque( ddq_r , x )
+        F              = self.computed_torque( ddq_r , x , t )
         
         return F
     
         
     ############################
-    def computed_torque( self , ddq_r , x ):
+    def computed_torque( self , ddq_r , x , t ):
         """ 
         
         Given actual state, compute torque necessarly for a given acceleration vector
@@ -117,6 +126,11 @@ class ComputedTorqueController:
         [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
         
         F = self.R.F( q , dq , ddq_r ) # Generalized force necessarly
+        
+        # Dist obs:
+        if self.dist_obs_active:
+            self.obs.update_estimate(  x , F , t )
+            self.R.f_dist_steady = self.obs.f_ext_hat
         
         return F
         
@@ -210,7 +224,127 @@ class ComputedTorqueController:
         
         return ddq , dq , q
         
-    
+        
 
+'''
+################################################################################
+'''
+
+    
+class SlidingModeController( ComputedTorqueController ):
+    """ Feedback law  """
+    
+    
+    ############################
+    def __init__( self , R = M.TwoLinkManipulator() ):
+        """ """
+        
+        ComputedTorqueController.__init__( self , R  )
         
         
+        # Params
+        
+        self.lam = 1   # Sliding surface slope
+        self.D   = 1   # Discontinuous gain
+        self.nab = 0.1 # Min convergence rate
+        
+        
+        
+        
+    ############################
+    def compute_sliding_variables( self , ddq_d , dq_d , q_d , x ):
+        """ 
+        
+        Given desired trajectory and actual state
+        
+        """
+        
+        [ q , dq ] = self.R.x2q( x )   # from state vector (x) to angle and speeds (q,dq)
+        
+        q_e   = q  -  q_d
+        dq_e  = dq - dq_d
+        
+        s      = dq_e  + self.lam * q_e
+        dq_r   = dq_d  - self.lam * q_e
+        ddq_r  = ddq_d - self.lam * dq_e
+        
+        #ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
+        
+        # Save for Debug
+        self.q_e   = q_e
+        self.dq_e  = dq_e
+        self.ddq_r = ddq_r
+        
+        return [ s , dq_r , ddq_r ]
+        
+        
+    ############################
+    def K( self , q , t ):
+        """ Discontinuous gain matrix """
+        
+        dist_max = np.diag( np.ones( self.R.dof ) ) * self.D
+        conv_min = np.diag( np.ones( self.R.dof ) ) * self.nab
+        
+        K = dist_max + np.dot( self.R.H_all( q ) , conv_min ) 
+        
+        return K
+        
+        
+    ############################
+    def sliding_torque( self , ddq_r , s , x , t ):
+        """ 
+        
+        Given actual state, compute torque necessarly to guarantee convergence
+        
+        """
+        
+        [ q , dq ] = self.R.x2q( x )     # from state vector (x) to angle and speeds (q,dq)
+        
+        F_computed      = self.R.F( q , dq , ddq_r )   # Generalized force necessarly
+        
+        F_discontinuous = np.dot( self.K( q , t ) ,  np.sign( s ) )
+        
+        F_tot = F_computed - F_discontinuous
+        
+        return F_tot
+        
+        
+        
+        
+    ############################
+    def traj_following_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired loaded trajectory and actual state, compute torques
+        
+        """
+        
+        ddq_d , dq_d , q_d    = self.get_traj( t )
+
+        [ s , dq_r , ddq_r ]  = self.compute_sliding_variables( ddq_d , dq_d , q_d , x )
+        
+        F                     = self.sliding_torque( ddq_r , s , x , t )
+        
+        return F
+        
+        
+    ############################
+    def fixed_goal_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired fixed goal state and actual state, compute torques
+        
+        """
+        
+        ddq_d          =   np.zeros( self.R.dof )
+
+        [ q_d , dq_d ] = self.R.x2q( self.goal  )   # from state vector (x) to angle and speeds (q,dq)
+
+        [ s , dq_r , ddq_r ]  = self.compute_sliding_variables( ddq_d , dq_d , q_d , x )
+        
+        F                     = self.sliding_torque( ddq_r , s , x , t )
+        
+        return F
+        
+        
+       
