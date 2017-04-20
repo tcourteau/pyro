@@ -27,6 +27,7 @@ RRT    =  RandomTree.RRT( Robot , x_start = [ -3.0 , 0.0 ] )
 PD     =  linear.PD(  kp = 5 , kd = 2 ) 
 PID    =  linear.PID( kp = 5  , kd = 2  , ki = 4 ) 
 
+
 ###########################
 # Offline  Plannning
 ###########################
@@ -47,7 +48,7 @@ PID    =  linear.PID( kp = 5  , kd = 2  , ki = 4 )
 # Simulation
 ###########################
 
-#Robot.plotAnimation( x0 = [ -3.0 , 0.0 ] , tf=20, n=20001, solver='euler' )
+Robot.plotAnimation( x0 = [ -3.0 , 0.0 ] , tf=20, n=20001, solver='euler' )
 
 ###########################
 # Plots
@@ -84,13 +85,18 @@ PID    =  linear.PID( kp = 5  , kd = 2  , ki = 4 )
 
 
 
+###########################
+# Objectives
+###########################
+
+x_start = np.array([-3.0,0])
+x_goal  = np.array([0,0])
+
 
 ############################
 # Params
 ############################
 
-x_start = np.array([-3.0,0])
-x_goal  = np.array([0,0])
 
 tmax = 8                            # max motor torque
 Robot.u_ub = np.array([ tmax])      # Control Upper Bounds
