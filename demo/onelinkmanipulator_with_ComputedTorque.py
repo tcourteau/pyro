@@ -15,13 +15,11 @@ import numpy             as np
 
 # Define dynamic system
 R  =  M.OneLinkManipulator()
-dt = 0.05
+dt = 0.001
 
 # Define controller
-CTC_controller      = CTC.SlidingModeController( R )
-CTC_controller.lam  = 1
-CTC_controller.nab  = 1
-CTC_controller.D    = 0
+CTC_controller     = CTC.ComputedTorqueController( R )
+CTC_controller.w0  = 1
 
 # Asign feedback law to the dynamic system
 R.ctl = CTC_controller.ctl

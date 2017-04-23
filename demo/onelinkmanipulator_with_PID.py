@@ -5,8 +5,8 @@ Created on Thu Jun  2 11:43:58 2016
 @author: alex
 """
 
-from AlexRobotics.dynamic  import Manipulator    as M
-from AlexRobotics.control  import ComputedTorque as CTC
+from AlexRobotics.dynamic  import Manipulator   as M
+from AlexRobotics.control  import linear        as RCL
 
 import matplotlib.pyplot as plt
 import numpy             as np
@@ -15,23 +15,23 @@ import numpy             as np
 
 # Define dynamic system
 R  =  M.OneLinkManipulator()
-dt = 0.05
+dt = 0.001
 
 # Define controller
-CTC_controller      = CTC.SlidingModeController( R )
-CTC_controller.lam  = 1
-CTC_controller.nab  = 1
-CTC_controller.D    = 0
+kp = 5
+kd = 5
+ki = 5  # --> Lead to a limit cycle
+PID_controller     = RCL.PID( kp , kd , ki , dt ) 
 
 # Asign feedback law to the dynamic system
-R.ctl = CTC_controller.ctl
+R.ctl = PID_controller.u
 
 
 """ Simulation and plotting """
 
 # Ploting a trajectory
 x_start = np.array([-3,0])
-tf      = 10
+tf      = 30
 n       = int( tf / dt ) + 1
 
 R.plotAnimation( x_start , tf , n , solver = 'euler' )
