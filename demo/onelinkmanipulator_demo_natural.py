@@ -122,3 +122,6 @@ Robot.Sim.plot_CL()
 
 
 
+# Hold script in console
+import matplotlib.pyplot as plt
+plt.show()

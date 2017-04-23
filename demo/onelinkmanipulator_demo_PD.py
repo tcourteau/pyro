@@ -122,3 +122,11 @@ Robot.Sim.plot_CL()
 
 
 
+# Hold script in console
+import matplotlib.pyplot as plt
+plt.show()
+
+#import matplotlib
+#if not( matplotlib.is_interactive() ):
+#    print('Holding Figures')
+#    plt.show()

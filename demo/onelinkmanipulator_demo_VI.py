@@ -121,4 +121,6 @@ Robot.Sim.plot_CL()
 #BoeingArm.plot3DAnimation( x0 = np.array([0.2,0,0,0,0,0]) )
 
 
-
+# Hold script in console
+import matplotlib.pyplot as plt
+plt.show()
