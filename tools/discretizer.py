@@ -18,7 +18,7 @@ from scipy.interpolate import griddata
 '''
 
 
-class GridDynamicSystem1DOF:
+class GridDynamicSystem2D:
     """ Create a discrete gird state-action space for 1 DOF continous dynamic system, one continuous input u """
     
     ############################
@@ -142,8 +142,8 @@ class GridDynamicSystem1DOF:
 
         if self.uselookuptable:
             # Evaluation lookup tables      
-            self.U_ok          = np.zeros( ( self.nodes_n , self.actions_n ) , dtype = bool )
-            self.X_next        = np.zeros( ( self.nodes_n , self.actions_n , self.DS.n ) , dtype = float ) # lookup table for dynamic
+            self.action_isok   = np.zeros( ( self.nodes_n , self.actions_n ) , dtype = bool )
+            self.x_next        = np.zeros( ( self.nodes_n , self.actions_n , self.DS.n ) , dtype = float ) # lookup table for dynamic
             
             # For all state nodes        
             for node in range( self.nodes_n ):  
@@ -162,8 +162,8 @@ class GridDynamicSystem1DOF:
                         x_ok = self.DS.isavalidstate(x_next)
                         u_ok = self.DS.isavalidinput(x,u)
                         
-                        self.X_next[ node,  action, : ] = x_next
-                        self.U_ok[ node, action]        = u_ok
+                        self.x_next[ node,  action, : ] = x_next
+                        self.action_isok[ node, action]        = ( u_ok & x_ok )
                 
 
 
@@ -182,4 +182,4 @@ if __name__ == "__main__":
     # Define dynamic system
     R  =  M.OneLinkManipulator()
     
-    dR = GridDynamicSystem1DOF( R )
+    dR = GridDynamicSystem2D( R )
