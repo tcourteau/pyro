@@ -174,7 +174,7 @@ class ValueIteration1DOF:
         
         
         self.J             = np.zeros( self.gridsize )
-        self.action_policy = np.zeros( self.gridsize )
+        self.action_policy = np.zeros( self.gridsize , dtype = int )
         self.u0_policy     = np.zeros( self.gridsize )
         self.Jnew          = np.zeros( self.gridsize )
         self.Jplot         = np.zeros( self.gridsize )
@@ -437,7 +437,7 @@ class ValueIteration1DOF:
             # Dyan prog data
             self.X              = np.load( name + '_X'  + '.npy' )
             self.J              = np.load( name + '_J'  + '.npy' )
-            self.action_policy  = np.load( name + '_a'  + '.npy' )
+            self.action_policy  = np.load( name + '_a'  + '.npy' ).astype(int)
             self.u0_policy      = np.load( name + '_u0' + '.npy' )
             
         except:
@@ -450,10 +450,10 @@ class ValueIteration1DOF:
         """ Save optimal controller policy and cost to go """
         
         # Dyan prog data
-        np.save( name + '_X'  , self.X             )
-        np.save( name + '_J'  , self.J             )
-        np.save( name + '_a'  , self.action_policy )
-        np.save( name + '_u0' , self.u0_policy     )
+        np.save( name + '_X'  , self.X                        )
+        np.save( name + '_J'  , self.J                        )
+        np.save( name + '_a'  , self.action_policy.astype(int))
+        np.save( name + '_u0' , self.u0_policy                )
         
     ################################
     def compute_traj_cost(self):
