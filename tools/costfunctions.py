@@ -18,7 +18,7 @@ class PureQuadratic:
         # Parameters
         self.n    = n
         self.m    = m
-        self.INF  = 1000       #  default large cost
+        self.INF  = 5000      #  default large cost
         
         # Quadratic cost
         self.Q     = np.diag( np.ones( n ) )

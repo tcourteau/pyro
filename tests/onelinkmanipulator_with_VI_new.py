@@ -29,6 +29,20 @@ Vi = VI.ValueIteration_2D( dR , CF )
 
 Vi.initialize()
 
-Vi.compute_steps(200)
+Vi.plot_J()
+
+Vi.compute_steps(50)
 
 Vi.plot_J()
+
+Vi.assign_interpol_controller()
+
+Vi.plot_policy(0)
+
+Vi.save_data()
+
+# Simulation and animation
+x0   = [3,0]
+tf   = 10
+R.plotAnimation( x0 , tf )
+R.Sim.phase_plane_trajectory()

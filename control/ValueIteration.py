@@ -117,7 +117,7 @@ class ValueIteration_2D:
         
         # Convergence check        
         delta = self.J - self.Jnew
-        j_max     =self.Jnew.max()
+        j_max     = self.Jnew.max()
         delta_max = delta.max()
         delta_min = delta.min()
         print('Max:',j_max,'Delta max:',delta_max, 'Delta min:',delta_min)
@@ -133,8 +133,6 @@ class ValueIteration_2D:
         for i in range(l):
             print('Step:',i)
             self.compute_step()
-            if plot:
-                self.plot_J_update()
                 
                 
     ################################
@@ -144,7 +142,7 @@ class ValueIteration_2D:
         xname = self.DS.state_label[0] + ' ' + self.DS.state_units[0]
         yname = self.DS.state_label[1] + ' ' + self.DS.state_units[1]
         
-        self.Jplot = self.J
+        self.Jplot = self.J.copy()
         
         ###################    
         
@@ -160,88 +158,94 @@ class ValueIteration_2D:
         plt.axis([self.DS.x_lb[0] , self.DS.x_ub[0], self.DS.x_lb[1] , self.DS.x_ub[1]])
         plt.colorbar()
         plt.grid(True)
-        plt.tight_layout()  
-                
-
+        plt.tight_layout()
+        
+    
     ################################
-    def plot_J_nice(self, maxJ = 10):
+    def plot_policy(self, i = 0 ):
         """ print graphic """
         
         xname = self.DS.state_label[0] + ' ' + self.DS.state_units[0]
         yname = self.DS.state_label[1] + ' ' + self.DS.state_units[1]
         
-        ## Saturation function for cost
-        for i in range(self.dDS.x0_n):
-            for j in range(self.dDS.x1_n):
-                if self.J[i,j] >= maxJ :
-                    self.Jplot[i,j] = maxJ
-                else:
-                    self.Jplot[i,j] = self.J[i,j]
+        policy_plot = self.u_policy_grid[i].copy()
         
         ###################    
         
         fs = 10
         
         self.fig1 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
-        self.fig1.canvas.set_window_title('Cost-to-go')
+        self.fig1.canvas.set_window_title('Policy for u[%i]'%i)
         self.ax1  = self.fig1.add_subplot(1,1,1)
         
         plt.ylabel(yname, fontsize = fs)
         plt.xlabel(xname, fontsize = fs)
-        self.im1 = plt.pcolormesh( self.dDS.xd[0] , self.dDS.xd[1]  , self.Jplot.T )
+        self.im1 = plt.pcolormesh( self.dDS.xd[0] , self.dDS.xd[1] , policy_plot.T )
         plt.axis([self.DS.x_lb[0] , self.DS.x_ub[0], self.DS.x_lb[1] , self.DS.x_ub[1]])
         plt.colorbar()
         plt.grid(True)
-        plt.tight_layout()       
+        plt.tight_layout() 
+
         
-#
-#        
-#    ################################
-#    def assign_interpol_controller(self):
-#        """ controller from optimal actions """
-#        
-#        self.b_u0 = interpol2D( self.X[0] , self.X[1] , self.u0_policy , bbox=[None, None, None, None], kx=1, ky=1,)
-#        
-#        self.DS.ctl = self.feedback_law_interpol
-#        
-#        
-#        
-#    ################################
-#    def feedback_law_interpol(self, x , t = 0 ):
-#        """ controller from optimal actions """
-#        
-#        u = np.zeros( self.DS.m )
-#        
-#        u[0] = self.b_u0( x[0] , x[1] )
-#        
-#        return u
-#        
-#    ################################
-#    def load_data(self, name = 'DP_data'):
-#        """ Save optimal controller policy and cost to go """
-#        
-#        try:
-#            
-#            # Dyan prog data
-#            self.X              = np.load( name + '_X'  + '.npy' )
-#            self.J              = np.load( name + '_J'  + '.npy' )
-#            self.action_policy  = np.load( name + '_a'  + '.npy' ).astype(int)
-#            self.u0_policy      = np.load( name + '_u0' + '.npy' )
-#            
-#        except:
-#            
-#            print('Failed to load DP data ' )
-#        
-#        
-#    ################################
-#    def save_data(self, name = 'DP_data'):
-#        """ Save optimal controller policy and cost to go """
-#        
-#        # Dyan prog data
-#        np.save( name + '_X'  , self.X                        )
-#        np.save( name + '_J'  , self.J                        )
-#        np.save( name + '_a'  , self.action_policy.astype(int))
-#        np.save( name + '_u0' , self.u0_policy                )
+    ################################
+    def assign_interpol_controller(self):
+        """ controller from optimal actions """
+        
+        # Compute grid of u
+        self.u_policy_grid    = [ None ]
+        self.u_policy_grid[0] = np.zeros( self.dDS.xgriddim , dtype = float )
+        
+        # For all state nodes        
+        for node in range( self.dDS.nodes_n ):  
+            
+                i = self.dDS.nodes_index[ node , 0 ]
+                j = self.dDS.nodes_index[ node , 1 ]
+                
+                if ( self.action_policy[i,j] == -1 ):
+                    self.u_policy_grid[0][i,j] = 0 
+                    
+                else:
+                    self.u_policy_grid[0][i,j] = self.dDS.actions_input[ self.action_policy[i,j] , 0 ]
+        
+
+        # Compute Interpol function
+        self.x2u0 = interpol2D( self.dDS.xd[0] , self.dDS.xd[1] , self.u_policy_grid[0] , bbox=[None, None, None, None], kx=1, ky=1,)
+        
+        # Asign Controller
+        self.DS.ctl = self.ctl_interpol
+        
+        
+        
+    ################################
+    def ctl_interpol(self, x , t = 0 ):
+        """ controller from optimal actions """
+        
+        u = np.zeros( self.DS.m )
+        
+        u[0] = self.x2u0( x[0] , x[1] )
+        
+        return u
+        
+    ################################
+    def load_data(self, name = 'test_data'):
+        """ Save optimal controller policy and cost to go """
+        
+        try:
+
+            self.J              = np.load( name + '_J'  + '.npy' )
+            self.action_policy  = np.load( name + '_a'  + '.npy' ).astype(int)
+            
+        except:
+            
+            print('Failed to load DP data ' )
+        
+        
+    ################################
+    def save_data(self, name = 'DP_data'):
+        """ Save optimal controller policy and cost to go """
+        
+        np.save( name + '_J'  , self.J                        )
+        np.save( name + '_a'  , self.action_policy.astype(int))
 
         
         
