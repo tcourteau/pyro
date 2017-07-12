@@ -40,7 +40,7 @@ PID    =  linear.PID( kp = 5  , kd = 2  , ki = 4 )
 ###########################
 
 #Robot.ctl             = RRT.trajectory_controller
-#Robot.ctl             = CTC.ctl
+Robot.ctl             = CTC.ctl
 #Robot.ctl             = PD.u
 #Robot.ctl             = PID.u
 
@@ -54,8 +54,8 @@ Robot.plotAnimation( x0 = [ -3.0 , 0.0 ] , tf=20, n=20001, solver='euler' )
 # Plots
 ###########################
 
-#Robot.Sim.phase_plane_trajectory()
-#Robot.Sim.plot_CL()
+Robot.Sim.phase_plane_trajectory()
+Robot.Sim.plot_CL()
 
 
 ###########################

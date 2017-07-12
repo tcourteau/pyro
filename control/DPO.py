@@ -48,7 +48,7 @@ class ValueIteration1DOF:
         # Predefined cost params
         if cost == 'time':
             
-            print('Minimium time optimization')
+            #print('Minimium time optimization')
             self.g    = self.g_time
             self.h    = self.h_target
             self.Nu0  = 3
@@ -56,7 +56,7 @@ class ValueIteration1DOF:
             
         elif cost == 'quadratic':
             
-            print('Quadratic cost optimization')
+            #print('Quadratic cost optimization')
             self.g      = self.g_quadratic
             self.h      = self.h_zero       # no final cost
             self.Nu0    = 21
@@ -64,7 +64,7 @@ class ValueIteration1DOF:
             
         elif cost == 'energy':
             
-            print('Minimium energy optimization')
+            #print('Minimium energy optimization')
             self.g    = self.g_energy
             self.h    = self.h_target
             self.INF  = 6
