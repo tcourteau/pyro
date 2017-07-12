@@ -31,7 +31,8 @@ Vi.initialize()
 
 Vi.plot_J()
 
-Vi.compute_steps(50)
+#Vi.compute_steps(50)
+Vi.load_data()
 
 Vi.plot_J()
 
@@ -42,7 +43,7 @@ Vi.plot_policy(0)
 Vi.save_data()
 
 # Simulation and animation
-x0   = [3,0]
+x0   = [-4,2]
 tf   = 10
 R.plotAnimation( x0 , tf )
 R.Sim.phase_plane_trajectory()
