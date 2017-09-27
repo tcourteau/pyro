@@ -19,7 +19,7 @@ from scipy.interpolate import griddata
 
 
 class GridDynamicSystem2D:
-    """ Create a discrete gird state-action space for 1 DOF continous dynamic system, one continuous input u """
+    """ Create a discrete gird state-action space for a 2D continous dynamic system, one continuous input u """
     
     ############################
     def __init__(self, sys , dt = 0.05 , x0_n = 101 , x1_n = 101 , u0_n = 11 ):
@@ -44,7 +44,7 @@ class GridDynamicSystem2D:
         """  """
 
         self.discretizespace()
-        self.discretizeactions()
+        self.discretizeactions() 
         
         print('\nDiscretization:\n---------------------------------')
         print('State space dimensions:', self.DS.n , ' Input space dimension:', self.DS.m )

@@ -25,7 +25,7 @@ kd = 2
 PD_controller     = RCL.PD( kp , kd )
 
 # Asign feedback law to the dynamic system
-pendulum.ctl = PD_controller.u
+pendulum.ctl = PD_controller.ctl
 
 
 """ Simulation and plotting """

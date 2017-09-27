@@ -24,7 +24,7 @@ q_d = np.array([ np.pi, -np.pi * 0.25 , -np.pi * 0.25 ])
 PD_controller     = RCL.PD_nDOF( kp , kd , q_d )
 
 # Asign feedback law to the dynamic system
-R.ctl = PD_controller.u
+R.ctl = PD_controller.ctl
 
 
 """ Simulation and plotting """
