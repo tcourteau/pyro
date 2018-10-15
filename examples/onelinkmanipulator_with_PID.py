@@ -24,7 +24,7 @@ ki = 5  # --> Lead to a limit cycle
 PID_controller     = RCL.PID( kp , kd , ki , dt ) 
 
 # Asign feedback law to the dynamic system
-R.ctl = PID_controller.u
+R.ctl = PID_controller.ctl
 
 
 """ Simulation and plotting """

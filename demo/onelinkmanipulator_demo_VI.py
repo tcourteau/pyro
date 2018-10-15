@@ -81,8 +81,8 @@ VI.load_data( 'data/' + 'R1' + 'quadratic' )
 VI.compute_steps(1)
 #
 ## Plot Value Iteration Results
-#ValueIterationAlgo.plot_raw()
-#ValueIterationAlgo.plot_J_nice( 2 )
+VI.plot_raw()
+VI.plot_J_nice( 2 )
 
 ###########################
 # Assign controller
