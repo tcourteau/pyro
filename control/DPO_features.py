@@ -219,7 +219,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
             J_next   = self.j_hat( x_next )
             J_sample = self.INF
         
-        #print "Next: ",J_next, "Sample: ", J_sample
+        #print("Next: ",J_next, "Sample: ", J_sample)
         
         # Value function error
         error  = J_sample  -  self.j_hat( x )
@@ -258,7 +258,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         Q_list = np.zeros( self.Nu0 )
         
         # for all possible actions
-        for k in xrange( self.Nu0 ):
+        for k in range( self.Nu0 ):
             
             u = self.U[k]
             
@@ -300,7 +300,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         n_plot  = 20.
         n_print = 1.
         
-        for i in xrange( n_trial ):
+        for i in range( n_trial ):
             
             self.exp_n = self.exp_n + 1
 
@@ -349,7 +349,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         if plot:
             self.DS.PTS = np.zeros((2,2,n))
             
-            for i in xrange(n):
+            for i in range(n):
                             
                 self.DS.PTS[:,:,i] = self.DS.fwd_kinematic( self.DS.Sim.x_sol_CL[i,0] ) # Forward kinematic
 
@@ -366,7 +366,7 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
             
         #Learning
         
-        for i in xrange(n-1):    
+        for i in range(n-1):    
             
             x      = self.DS.Sim.x_sol_CL[i,:]
             u      = self.DS.Sim.u_sol_CL[i,:]
@@ -393,8 +393,8 @@ class TD_Greedy_1DOF_Features( DPO.QLearning1DOF ):
         self.J    = np.zeros(  ( self.Nx0  , self.Nx1 ) )
         
         ## Compute J_hat on grid
-        for i in xrange(self.Nx0):
-            for j in xrange(self.Nx1):
+        for i in range(self.Nx0):
+            for j in range(self.Nx1):
                 x = np.array( [ self.X[0][i] , self.X[1][j] ])
                 self.J[i,j]  = self.j_hat( x )
         
@@ -478,7 +478,7 @@ class TD_Greedy_hybrid_1DOF_Features( TD_Greedy_1DOF_Features ):
         Q_list = np.zeros( self.Nu0 * 2 )
         
         # for all possible actions
-        for k in xrange( self.Nu0 * 2 ):
+        for k in range( self.Nu0 * 2 ):
             
             u = self.U[k]
             
@@ -707,7 +707,7 @@ class TD_Greedy_hybrid_2DOF_Features( TD_Greedy_1DOF_Features ):
         Q_list = np.zeros( self.Nu )
         
         # for all possible actions
-        for k in xrange( self.Nu ):
+        for k in range( self.Nu ):
             
             u = self.U[k]
             
@@ -832,7 +832,7 @@ class TD_Greedy_hybrid_2DOF_Features( TD_Greedy_1DOF_Features ):
         n_plot  = 20.
         n_print = 1.
         
-        for i in xrange( n_trial ):
+        for i in range( n_trial ):
             
             self.exp_n = self.exp_n + 1
 
@@ -847,8 +847,8 @@ class TD_Greedy_hybrid_2DOF_Features( TD_Greedy_1DOF_Features ):
                 x = x0
             
             if (i/n_print-int(i/n_print)) < 0.00001 :
-                print 'Experiment #',self.exp_n
-                print 'Weight =',self.W
+                print('Experiment #',self.exp_n)
+                print('Weight =',self.W)
             
             if (i/n_plot-int(i/n_plot)) < 0.00001 and show :
             # Show behavior so far

@@ -37,7 +37,7 @@ class BoeingArm( HM.HybridThreeLinkManipulator ) :
         self.setDynamicParams()
         self.setActuatorParams()
         
-        print 'Loaded Boeing Arm Manipulator !'
+        print('Loaded Boeing Arm Manipulator !')
         
         
     #############################
