@@ -15,7 +15,7 @@ import numpy             as np
 
 # Define dynamic system
 R  =  M.OneLinkManipulator()
-dt = 0.001
+dt = 0.05
 
 # Define controller
 CTC_controller      = CTC.SlidingModeController( R )

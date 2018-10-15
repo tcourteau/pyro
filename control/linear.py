@@ -21,7 +21,7 @@ class PD:
         self.kd = kd
         
     ############################
-    def u( self , x , t = 0 ):
+    def ctl( self , x , t = 0 ):
         """ 
         u = f( x , t ) 
         x = [ position ; speed ]
@@ -57,7 +57,7 @@ class PID:
         
         
     ############################
-    def u( self , x , t = 0 ):
+    def ctl( self , x , t = 0 ):
         """ 
         u = f( x , t ) 
         x = [ position ; speed ] --> state must be defined this way
@@ -104,7 +104,7 @@ class PD_nDOF:
     
         
     ############################
-    def u( self , x , t = 0 ):
+    def ctl( self , x , t = 0 ):
         """ 
         u = f( x , t ) 
         x = [ position ; speed ]  state must be defined this way
