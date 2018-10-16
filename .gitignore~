@@ -1,7 +1,0 @@
-# Compiled source #
-###################
-*.pyc
-
-# Output fig or video, etc #
-############################
-output/
