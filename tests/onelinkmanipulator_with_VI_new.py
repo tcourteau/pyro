@@ -6,8 +6,8 @@ Created on Wed Jul 12 12:34:32 2017
 """
 
 from AlexRobotics.dynamic import Manipulator    as M
-from AlexRobotics.tools   import CostFunctions
-from AlexRobotics.tools   import Discretizer
+from AlexRobotics.tools   import costfunctions
+from AlexRobotics.tools   import discretizer
 from AlexRobotics.control import ValueIteration as VI
 
 
@@ -20,10 +20,10 @@ R  =  M.OneLinkManipulator()
 """ VI parameters """
 
 # Discrete world 
-dR = Discretizer.GridDynamicSystem2D( R )
+dR = discretizer.GridDynamicSystem2D( R )
 
 # Cost Function
-CF = CostFunctions.PureQuadratic( R.n , R.m )
+CF = costfunctions.PureQuadratic( R.n , R.m )
 
 Vi = VI.ValueIteration_2D( dR , CF )
 
