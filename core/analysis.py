@@ -16,13 +16,13 @@ matplotlib.rcParams['ps.fonttype']  = 42
         
 
 ##########################################################################
-# Simulation and Plotting Tools 
+# Phase Plot Object
 ##########################################################################
         
 class PhasePlot:
     """ 
     Continous dynamic system phase plot 
-    
+    ---------------------------------------------------
     x_axis : index of state to display as x axis
     y_axis : index of state to display as y axis
     
@@ -66,7 +66,6 @@ class PhasePlot:
         y = np.linspace( self.y_axis_min , self.y_axis_max , self.y_axis_n )
         
         self.X, self.Y = np.meshgrid( x, y)
-        
         
     ##############################
     def compute_vector_field(self):
@@ -128,12 +127,18 @@ class PhasePlot:
 
        
 ##########################################################################
+# Simulation Object
 ##########################################################################
     
 class Simulation:
-    """ Simulation Class for open-loop ContinuousDynamicalSystem """
-    
-    
+    """ 
+    Simulation Class for open-loop ContinuousDynamicalSystem 
+    --------------------------------------------------------
+    ContinuousDynamicSystem : Instance of ContinuousDynamicSystem
+    tf : final time
+    n  : number if point
+    solver : 'ode' or 'euler'
+    """
     ############################
     def __init__(self, ContinuousDynamicSystem , tf = 10 , n = 10001 , solver = 'ode' ):
         
@@ -148,18 +153,6 @@ class Simulation:
         # Ploting
         self.fontsize = 5
         
-        # Output computing
-        
-        # Cost computing
-        self.compute_cost = False
-        self.J = 0
-        
-        
-    ##############################
-    def set_cost_function(self, CostFunction ):
-        """ TODO """
-        pass
-
         
     ##############################
     def compute(self):
@@ -188,7 +181,6 @@ class Simulation:
                 if self.compute_cost:
                     #TODO
                     pass
-                
                 
         elif self.solver == 'euler':
             

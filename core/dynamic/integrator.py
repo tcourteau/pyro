@@ -10,6 +10,8 @@ import numpy as np
 from AlexRobotics.core import system
 
 
+#############################################################################
+
 class DoubleIntegrator( system.ContinuousDynamicSystem ):
     """ 
     DoubleIntegrator Example for a ContinuousDynamicSystem
@@ -72,7 +74,8 @@ class DoubleIntegrator( system.ContinuousDynamicSystem ):
         
         return dx
     
-    
+##############################################################################
+        
 class SimpleIntegrator( system.ContinuousDynamicSystem ):
     """ 
     SimpleIntegrator Example for a ContinuousDynamicSystem
