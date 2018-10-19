@@ -7,7 +7,7 @@ Created on Fri Aug 07 11:51:55 2015
 
 import numpy as np
 
-from AlexRobotics.core import simulation
+from AlexRobotics.core import analysis
 
        
 '''
@@ -36,7 +36,7 @@ class ContinuousDynamicSystem:
     def __init__(self):
         """ """
         
-        # System minimum parameters to be implemented
+        # System parameters to be implemented
         
         # Dimensions
         self.n = 1   
@@ -44,6 +44,7 @@ class ContinuousDynamicSystem:
         self.p = 1
         
         # Labels
+        self.name = 'ContinuousDynamicSystem'
         self.state_label = []
         self.input_label = []
         self.output_label = []
@@ -54,10 +55,10 @@ class ContinuousDynamicSystem:
         self.output_units = []
         
         # Define the domain
-        self.x_ub = np.zeros(self.n) # States Upper Bounds
-        self.x_lb = np.zeros(self.n) # States Lower Bounds
-        self.u_ub = np.zeros(self.m) # Control Upper Bounds
-        self.u_lb = np.zeros(self.m) # Control Lower Bounds
+        self.x_ub = np.zeros(self.n) +10 # States Upper Bounds
+        self.x_lb = np.zeros(self.n) +10 # States Lower Bounds
+        self.u_ub = np.zeros(self.m) +1  # Control Upper Bounds
+        self.u_lb = np.zeros(self.m) +1  # Control Lower Bounds
         
         # Default State and inputs        
         self.xbar = np.zeros(self.n)
@@ -90,7 +91,7 @@ class ContinuousDynamicSystem:
     
     """
     ###########################################################################################
-    # Thefollowing functions can be overloaded when necessary by child classes
+    # The following functions can be overloaded when necessary by child classes
     ###########################################################################################
     """
     
@@ -109,7 +110,7 @@ class ContinuousDynamicSystem:
         
         """
         
-        y = np.zeros(self.o) # Output vector
+        #y = np.zeros(self.p) # Output vector
         
         y = x      # default output is all states
         
@@ -134,7 +135,6 @@ class ContinuousDynamicSystem:
     def isavalidinput(self , x , u):
         """ check if u is in the control inputs domain given x """
         ans = False
-        
         for i in range(self.m):
             ans = ans or ( u[i] < self.u_lb[i] )
             ans = ans or ( u[i] > self.u_ub[i] )
@@ -147,6 +147,26 @@ class ContinuousDynamicSystem:
     # No need to overwrite the following functions for custom dynamic systems
     #########################################################################
     """
+    
+    #############################
+    def fo( self , x , t ):
+        """ 
+        Continuous time foward dynamics evaluation dx = f( x , u = ubar , t )
+        for default constant control input (open-loop)
+        
+        INPUTS
+        x  : state vector             n x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        dx : state derivative vector  n x 1
+        
+        """
+        
+        dx = self.f( x , self.ubar , t )
+        
+        return dx
+    
         
     #############################
     def x_next( self , x , u , dt = 0.1 ):
@@ -159,13 +179,13 @@ class ContinuousDynamicSystem:
         
         x_next = np.zeros(self.n) # k+1 State vector
         
-        x_next = self.fc(x,u) * dt + x
+        x_next = self.f(x,u) * dt + x
         
         return x_next
         
         
     #############################
-    def phase_plane(self , x_axis = 0 , y_axis = 1 ):
+    def plot_phase_plane(self , x_axis = 0 , y_axis = 1 ):
         """ 
         Plot Phase Plane vector field of the system
         ------------------------------------------------
@@ -175,9 +195,28 @@ class ContinuousDynamicSystem:
         
         """
 
-        self.PP = simulation.PhasePlot( self , x_axis , y_axis )
+        self.pp = analysis.PhasePlot( self , x_axis , y_axis )
         
-        self.PP.plot()
+        self.pp.plot()
+        
+        
+    #############################
+    def plot_trajectory(self , x0 , tf = 10 ):
+        """ 
+        Simulation of time evolution of the system
+        ------------------------------------------------
+        
+        x0 : initial time
+        tf : final time
+        
+        """
+
+        self.sim = analysis.Simulation( self , tf )
+        
+        self.sim.x0 = x0
+        self.sim.compute()
+        
+        self.sim.plot()
         
         
     #############################
@@ -233,8 +272,6 @@ class DoubleIntegrator( ContinuousDynamicSystem ):
     DoubleIntegrator Example for a ContinuousDynamicSystem
     
     """
-    
-        
         
     #############################
     def setparams(self):
@@ -249,7 +286,7 @@ class DoubleIntegrator( ContinuousDynamicSystem ):
         
     
     #############################
-    def fc(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
+    def f(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
         """ 
         Continuous time foward dynamics evaluation
         
@@ -274,158 +311,6 @@ class DoubleIntegrator( ContinuousDynamicSystem ):
         return dx
         
         
-
-##########################################################################
-# Simulation and Plotting Tools
-##########################################################################
-       
-'''
-################################################################################
-'''
-
-      
-        
-class PhasePlot:
-    """ 
-    Dynamic system phase plot 
-    
-    y1axis : index of state to display as x axis
-    y2axis : index of state to display as y axis
-    
-    CL     : show closed-loop vector field?
-    OL     : show open-loop vector field?
-    
-    """
-    ############################
-    def __init__(self, DynamicSystem , y1 = 0 ,  y2 = 1 , OL = True , CL = True  ):
-        
-        self.DS = DynamicSystem
-        
-        self.f_OL  = self.DS.fc                # dynamic function
-        self.f_CL  = self.DS.fc_ClosedLoop
-        
-        self.y1axis = y1  # State to plot on y1 axis
-        self.y2axis = y2  # State to plot on y2 axis
-        
-        self.OL = OL
-        self.CL = CL
-        
-        self.y1min = self.DS.x_lb[ self.y1axis ]
-        self.y1max = self.DS.x_ub[ self.y1axis ]
-        self.y2min = self.DS.x_lb[ self.y2axis ]
-        self.y2max = self.DS.x_ub[ self.y2axis ]
-        
-        self.y1n = 21
-        self.y2n = 21 
-        
-        self.x = self.DS.xbar              # Zero state
-        self.u = self.DS.ubar              # Control input
-        self.t = 0                         # Current time
-        
-        
-        # Plotting params
-        self.color_OL = 'b'
-        self.color_CL = 'r'
-        
-        self.figsize    = (3, 2)
-        self.dpi        = 300
-        self.linewidth  = 0.005
-        self.streamplot = False
-        self.arrowstyle = '->'
-        self.headlength = 4.5
-        self.fontsize   = 6
-        
-        self.traj_OL    = False
-        self.traj_CL    = True
-        
-        self.compute()
-        
-        
-    ##############################
-    def compute(self):
-        """ Compute vector field """
-        
-        y1 = np.linspace( self.y1min , self.y1max , self.y1n )
-        y2 = np.linspace( self.y2min , self.y2max , self.y2n )
-        
-        self.X, self.Y = np.meshgrid( y1, y2)
-        
-        self.v_OL, self.w_OL = np.zeros(self.X.shape), np.zeros(self.X.shape)
-        self.v_CL, self.w_CL = np.zeros(self.X.shape), np.zeros(self.X.shape)
-        
-        for i in range(self.y1n):
-            for j in range(self.y2n):
-                
-                # Actual states
-                y1 = self.X[i, j]
-                y2 = self.Y[i, j]
-                x  = self.x             # default value for all states
-                x[ self.y1axis ] = y1
-                x[ self.y2axis ] = y2
-                
-                # States derivative open loop
-                dx_OL = self.f_OL( x , self.u , self.t ) 
-                
-                # States derivative closed loop
-                dx_CL = self.f_CL( x , self.t ) 
-                
-                # Assign vector components
-                self.v_OL[i,j] = dx_OL[ self.y1axis ]
-                self.w_OL[i,j] = dx_OL[ self.y2axis ]
-                self.v_CL[i,j] = dx_CL[ self.y1axis ]
-                self.w_CL[i,j] = dx_CL[ self.y2axis ]
-                
-                
-                
-    ##############################
-    def plot(self, sim = None ):
-        """ Plot phase plane """
-        
-        matplotlib.rc('xtick', labelsize = self.fontsize )
-        matplotlib.rc('ytick', labelsize = self.fontsize ) 
-        
-        self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi, frameon=True)
-        
-        self.phasefig.canvas.set_window_title('Phase plane')
-        
-        if self.OL:
-            #streamplot
-            if self.streamplot:
-                self.Q_OL = plt.streamplot( self.X, self.Y, self.v_OL, self.w_OL, color=self.color_OL,  linewidth = self.linewidth , arrowstyle = self.arrowstyle , arrowsize = self.headlength )
-            else:
-                self.Q_OL = plt.quiver( self.X, self.Y, self.v_OL, self.w_OL, color=self.color_OL,  linewidth = self.linewidth )#, headlength = self.headlength )
-        if self.CL:
-            if self.streamplot:
-                self.Q_CL = plt.streamplot( self.X, self.Y, self.v_CL, self.w_CL, color=self.color_CL ,  linewidth = self.linewidth , arrowstyle = self.arrowstyle , arrowsize = self.headlength )
-            else:
-                self.Q_CL = plt.quiver( self.X, self.Y, self.v_CL, self.w_CL, color=self.color_CL,  linewidth = self.linewidth , headlength = self.headlength )
-        
-        plt.xlabel(self.DS.state_label[ self.y1axis ] + ' ' + self.DS.state_units[ self.y1axis ] , fontsize = self.fontsize)
-        plt.ylabel(self.DS.state_label[ self.y2axis ] + ' ' + self.DS.state_units[ self.y2axis ] , fontsize = self.fontsize)
-        plt.xlim([ self.y1min , self.y1max ])
-        plt.ylim([ self.y2min , self.y2max ])
-        plt.grid(True)
-        plt.tight_layout()
-        
-        
-        # Print Sim trajectory if passed as argument
-        if not( sim == None ):
-            #Simulation loading
-            xs_OL = sim.x_sol_OL
-            xs_CL = sim.x_sol_CL
-            
-            # Phase trajectory OL' 
-            if self.traj_OL:
-                plt.plot(xs_OL[:,0], xs_OL[:,1], 'b-') # path
-                plt.plot([xs_OL[0,0]], [xs_OL[0,1]], 'o') # start
-                plt.plot([xs_OL[-1,0]], [xs_OL[-1,1]], 's') # end
-            
-            # Phase trajectory CL
-            if self.traj_CL:
-                plt.plot(xs_CL[:,0], xs_CL[:,1], 'r-') # path
-                plt.plot([xs_CL[-1,0]], [xs_CL[-1,1]], 's') # end
-        
-
 
        
 '''
@@ -673,12 +558,4 @@ class Simulation:
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    # Default is double integrator
-    DS = DynamicSystem()
-    
-    # Phase plane behavior with open-loop u=3, strating at [-5,-5] for 7 sec
-    DS.ubar = np.array([3])
-    x0      = np.array([-5,-5])
-    tf      = 7
-    
-    DS.phase_plane_trajectory( x0 , tf )
+    pass

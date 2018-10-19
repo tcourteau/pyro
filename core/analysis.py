@@ -18,12 +18,6 @@ matplotlib.rcParams['ps.fonttype']  = 42
 ##########################################################################
 # Simulation and Plotting Tools 
 ##########################################################################
-       
-'''
-################################################################################
-'''
-
-      
         
 class PhasePlot:
     """ 
@@ -102,7 +96,7 @@ class PhasePlot:
         matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
         self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi, frameon=True)
-        self.phasefig.canvas.set_window_title('Phase plane')
+        self.phasefig.canvas.set_window_title('Phase plane of ' + self.cds.name )
         
     ##############################
     def plot_vector_field(self):
@@ -133,38 +127,39 @@ class PhasePlot:
         self.plot_finish()
 
        
-'''
-################################################################################
-'''
-
-
+##########################################################################
+##########################################################################
     
 class Simulation:
-    """ Time simulation of a dynamic system  """
+    """ Simulation Class for ContinuousDynamicalSystem """
+    
+    
     ############################
-    def __init__(self, DynamicSystem , tf = 10 , n = 10001 , solver = 'ode' ):
+    def __init__(self, ContinuousDynamicSystem , tf = 10 , n = 10001 , solver = 'ode' ):
         
-        self.cds = DynamicSystem
+        self.cds = ContinuousDynamicSystem
         self.t0 = 0
         self.tf = tf
         self.n  = int(n)
         self.dt = ( tf + 0.0 - self.t0 ) / ( n - 1 )
-        
         self.x0 = np.zeros( self.cds.n )
-        
         self.solver = solver
         
         # Ploting
         self.fontsize = 5
         
-        # Cost computing
-        self.J = 0
-        self.Q = np.diag( np.ones( self.cds.n) )  # State cost per unit of time
-        self.R = np.diag( np.ones( self.cds.m) )  # Input cost per unit of time
-        self.H = np.diag( np.ones( self.cds.n) )  # Final State cost per unit of time
+        # Output computing
         
-        self.domain_check     = False
-        self.domain_fail_cost = 10
+        # Cost computing
+        self.compute_cost = False
+        self.J = 0
+        
+        
+    ##############################
+    def set_cost_function(self, CostFunction ):
+        """ TODO """
+        pass
+
         
     ##############################
     def compute(self):
@@ -177,115 +172,55 @@ class Simulation:
         
         if self.solver == 'ode':
         
-            self.x_sol_OL = odeint( self.cds.fc_OpenLoop   , self.x0 , self.t)
-            self.x_sol_CL = odeint( self.cds.fc_ClosedLoop , self.x0 , self.t)
-            
-            # Compute control inputs
-            self.u_sol_CL   = np.zeros(( self.n , self.cds.m ))  
+            self.x_sol = odeint( self.cds.fo , self.x0 , self.t)   
+
+            # Compute output values
+            self.y_sol = np.zeros(( self.n , self.cds.p ))  
             
             for i in range(self.n):
+
+                x = self.x_sol[i,:]  
+                u = self.cds.ubar
+                t = self.t[i]
                 
-                # u & x
-                u = self.cds.ctl( self.x_sol_CL[i,:] , self.t[i] )
-                x = self.x_sol_CL[i,:]
+                self.y_sol[i,:] = self.cds.h( x , u , t )
                 
-                # integral cost
-                xQx    = np.dot( x.T , np.dot( self.Q , x ) )
-                uRu    = np.dot( u.T , np.dot( self.R , u ) )
-                self.J = self.J + ( xQx + uRu ) * self.dt
-                
-                # domain check
-                if self.domain_check:
-                    if not( self.cds.isavalidstate( x ) ):
-                        self.J = self.J + self.domain_fail_cost 
-                    if not( self.cds.isavalidinput( x , u ) ):
-                        self.J = self.J + self.domain_fail_cost 
-                
-                self.u_sol_CL[i,:] = u
+                if self.compute_cost:
+                    #TODO
+                    pass
                 
                 
         elif self.solver == 'euler':
             
-            self.x_sol_OL = np.zeros((self.n,self.cds.n))
-            self.x_sol_CL = np.zeros((self.n,self.cds.n))
-            self.u_sol_CL = np.zeros((self.n,self.cds.m))
+            self.x_sol = np.zeros((self.n,self.cds.n))
+            self.y_sol = np.zeros((self.n,self.cds.p))
             
             # Initial State    
-            self.x_sol_OL[0,:] = self.x0
-            self.x_sol_CL[0,:] = self.x0
+            self.x_sol[0,:] = self.x0
             
             for i in range(self.n):
                 
-                # u & x
-                u = self.cds.ctl( self.x_sol_CL[i,:] , self.t[i] )
-                x = self.x_sol_CL[i,:]
-                
-                # integral cost
-                xQx    = np.dot( x.T , np.dot( self.Q , x ) )
-                uRu    = np.dot( u.T , np.dot( self.R , u ) )
-                self.J = self.J + ( xQx + uRu ) * self.dt
-                
-                self.u_sol_CL[i,:] = u.copy()
+                x = self.x_sol[i,:]
+                u = self.cds.ubar
+                t = self.t[i]
                 
                 if i+1<self.n:
-                    self.x_sol_CL[i+1,:] = self.cds.fd( self.x_sol_CL[i,:] , self.u_sol_CL[i,:] , self.dt )
-                    self.x_sol_OL[i+1,:] = self.cds.fd( self.x_sol_OL[i,:] , self.cds.ubar       , self.dt )
+                    self.x_sol[i+1,:] = self.cds.f( x , u , t ) * self.dt + x
+                
+                self.y_sol[i,:] = self.cds.h( x , u , t )
                     
-                    
-                # domain check
-                if self.domain_check:
-                    if not( self.cds.isavalidstate( x ) ):
-                        self.J = self.J + self.domain_fail_cost 
-                    if not( self.cds.isavalidinput( x , u ) ):
-                        self.J = self.J + self.domain_fail_cost 
-                    
-                    
-        # Final cost
-        self.J = self.J + np.dot( x.T , np.dot( self.H , x ) )
-
-            
-    
-    ##############################
-    def plot_OL(self, show = True ):
-        """ 
-        Create a figure with trajectories for all states of the Open-Loop simulation
-        
-        """
-        
-        matplotlib.rc('xtick', labelsize=self.fontsize )
-        matplotlib.rc('ytick', labelsize=self.fontsize )
-        
-        l = self.cds.n
-        
-        simfig , plots = plt.subplots( l , sharex=True,figsize=(4, 3),dpi=300, frameon=True)
-        
-        simfig.canvas.set_window_title('Open loop trajectory')
-        
-        
-        # For all states
-        for i in range( self.cds.n ):
-            plots[i].plot( self.t , self.x_sol_OL[:,i] , 'b')
-            plots[i].set_ylabel(self.cds.state_label[i] +'\n'+ self.cds.state_units[i] , fontsize=self.fontsize )
-            plots[i].grid(True)
-               
-        plots[l-1].set_xlabel('Time [sec]', fontsize=self.fontsize )
-        
-        simfig.tight_layout()
-        
-        if show:
-            simfig.show()
-        
-        self.fig   = simfig
-        self.plots = plots
-        
+                if self.compute_cost:
+                    #TODO
+                    pass
+       
         
     ##############################
-    def plot_CL(self, plot = 'All' , show = True ):
+    def plot(self, plot = 'x' , show = True ):
         """
-        Create a figure with trajectories for all states and control inputs
+        Create a figure with trajectories for all states and outputs
         plot = 'All'
         plot = 'x'
-        plot = 'u'        
+        plot = 'y'        
         
         """
         
@@ -294,32 +229,31 @@ class Simulation:
         
         # Number of subplots
         if plot == 'All':
-            l = self.cds.m + self.cds.n
+            l = self.cds.n + self.cds.p
         elif plot == 'x':
             l = self.cds.n
-        elif plot == 'u':
-            l = self.cds.m
+        elif plot == 'y':
+            l = self.cds.p
             
         simfig , plots = plt.subplots(l, sharex=True,figsize=(4, 3),dpi=300, frameon=True)
         
-        simfig.canvas.set_window_title('Closed loop trajectory')
+        simfig.canvas.set_window_title('Open loop trajectory' + self.cds.name)
         
-
         j = 0 # plot index
         
         if plot == 'All' or plot == 'x':
             # For all states
             for i in range( self.cds.n ):
-                plots[j].plot( self.t , self.x_sol_CL[:,i] , 'b')
+                plots[j].plot( self.t , self.x_sol[:,i] , 'b')
                 plots[j].set_ylabel(self.cds.state_label[i] +'\n'+ self.cds.state_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
             
-        if plot == 'All' or plot == 'u':
+        if plot == 'All' or plot == 'y':
             # For all inputs
-            for i in range( self.cds.m ):
-                plots[j].plot( self.t , self.u_sol_CL[:,i] , 'r')
-                plots[j].set_ylabel(self.cds.input_label[i] + '\n' + self.cds.input_units[i] , fontsize=self.fontsize )
+            for i in range( self.cds.p ):
+                plots[j].plot( self.t , self.y_sol[:,i] , 'r')
+                plots[j].set_ylabel(self.cds.output_label[i] + '\n' + self.cds.output_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
                
