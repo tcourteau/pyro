@@ -220,50 +220,22 @@ class ContinuousDynamicSystem:
         
         
     #############################
-    def phase_plane_trajectory(self , x0 = [0,0,0,0] , tf = 10 , CL = True, OL = False , PP_CL = True , PP_OL = False ):
+    def plot_phase_plane_trajectory(self , x0 , tf = 10 , x_axis = 0 , y_axis = 1):
         """ 
         Simulates the system and plot the trajectory in the Phase Plane 
         ------------------------------------------------
-        
-        x0 : starting state
-        t  : simulation time
-        
-        CL : show closed-loop trajectory?
-        OL : show open-loop trajectory?        
-        
-        PP_CL : show closed-loop vector field?
-        PP_OL : show open-loop vector field?
+        x0 : initial time
+        tf : final time
+        x_axis : index of state on x axis
+        y_axis : index of state on y axis
         
         """
         
-        y1 = self.axis_to_plot[0] 
-        y2 = self.axis_to_plot[1]
+        self.sim = analysis.Simulation( self , tf )
         
-        # Quiver
-        self.PP = PhasePlot( self , y1 , y2 , PP_OL , PP_CL )
-        self.PP.u = self.ubar
-        self.PP.compute()
-        self.PP.plot()
-        
-        #Simulation
-        self.Sim = Simulation( self , tf )
-        self.Sim.x0 = x0
-        self.Sim.compute()
-        xs_OL = self.Sim.x_sol_OL
-        xs_CL = self.Sim.x_sol_CL
-        
-        # Phase trajectory OL
-        if OL:
-            plt.plot(xs_OL[:,0], xs_OL[:,1], 'b-') # path
-            plt.plot([xs_OL[0,0]], [xs_OL[0,1]], 'o') # start
-            plt.plot([xs_OL[-1,0]], [xs_OL[-1,1]], 's') # end
-        
-        # Phase trajectory CL
-        if CL:
-            plt.plot(xs_CL[:,0], xs_CL[:,1], 'r-') # path
-            plt.plot([xs_CL[-1,0]], [xs_CL[-1,1]], 's') # end
-        
-        plt.tight_layout()
+        self.sim.x0 = x0
+        self.sim.compute()
+        self.sim.phase_plane_trajectory( x_axis , y_axis )
         
         
 

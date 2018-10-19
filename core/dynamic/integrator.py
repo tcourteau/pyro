@@ -158,6 +158,9 @@ if __name__ == "__main__":
     x0 = np.array([0,0])
     di.plot_trajectory( x0 )
     
+    # Phase plane trajectory
+    di.plot_phase_plane_trajectory( x0 )
+    
     # Simple integrator
     si = SimpleIntegrator()
     

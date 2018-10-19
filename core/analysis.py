@@ -131,7 +131,7 @@ class PhasePlot:
 ##########################################################################
     
 class Simulation:
-    """ Simulation Class for ContinuousDynamicalSystem """
+    """ Simulation Class for open-loop ContinuousDynamicalSystem """
     
     
     ############################
@@ -221,7 +221,6 @@ class Simulation:
         plot = 'All'
         plot = 'x'
         plot = 'y'        
-        
         """
         
         matplotlib.rc('xtick', labelsize=self.fontsize )
@@ -237,7 +236,7 @@ class Simulation:
             
         simfig , plots = plt.subplots(l, sharex=True,figsize=(4, 3),dpi=300, frameon=True)
         
-        simfig.canvas.set_window_title('Open loop trajectory' + self.cds.name)
+        simfig.canvas.set_window_title('Open loop trajectory for ' + self.cds.name)
         
         j = 0 # plot index
         
@@ -270,32 +269,14 @@ class Simulation:
         
         
     #############################
-    def phase_plane_trajectory(self ,  traj_CL = True, traj_OL = False , PP_CL = False , PP_OL = True ):
+    def phase_plane_trajectory(self , x_axis , y_axis ):
         """ """
-        
-        y1 = self.cds.axis_to_plot[0] # State for x-axis of plot
-        y2 = self.cds.axis_to_plot[1] # State for y-axis of plot
-        
-        # Quiver
-        self.PP = PhasePlot( self.cds , y1 , y2 , PP_OL , PP_CL )
-        self.PP.u = self.cds.ubar
-        self.PP.compute()
-        self.PP.plot()
-        
-        #Simulation loading
-        xs_OL = self.x_sol_OL
-        xs_CL = self.x_sol_CL
-        
-        # Phase trajectory OL' 
-        if traj_OL:
-            plt.plot(xs_OL[:,0], xs_OL[:,1], 'b-') # path
-            plt.plot([xs_OL[0,0]], [xs_OL[0,1]], 'o') # start
-            plt.plot([xs_OL[-1,0]], [xs_OL[-1,1]], 's') # end
-        
-        # Phase trajectory CL
-        if traj_CL:
-            plt.plot(xs_CL[:,0], xs_CL[:,1], 'r-') # path
-            plt.plot([xs_CL[-1,0]], [xs_CL[-1,1]], 's') # end
+        self.pp = PhasePlot( self.cds , x_axis , y_axis )
+        self.pp.plot()
+               
+        plt.plot(self.x_sol[:,0], self.x_sol[:,1], 'b-') # path
+        plt.plot([self.x_sol[0,0]], [self.x_sol[0,1]], 'o') # start
+        plt.plot([self.x_sol[-1,0]], [self.x_sol[-1,1]], 's') # end
         
         plt.tight_layout()
 
@@ -312,12 +293,4 @@ class Simulation:
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    # Default is double integrator
-    cds = DynamicSystem()
-    
-    # Phase plane behavior with open-loop u=3, strating at [-5,-5] for 7 sec
-    cds.ubar = np.array([3])
-    x0      = np.array([-5,-5])
-    tf      = 7
-    
-    cds.phase_plane_trajectory( x0 , tf )
+    pass
