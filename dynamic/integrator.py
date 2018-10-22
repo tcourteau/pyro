@@ -25,18 +25,18 @@ class DoubleIntegrator( system.ContinuousDynamicSystem ):
         # Dimensions
         self.n = 2   
         self.m = 1   
-        self.p = 2
+        self.p = 1
         
         # Labels
-        self.name = 'Double Integrator'
+        self.name = 'Double Integrator (1kg mass)'
         self.state_label = ['Position','Speed']
         self.input_label = ['Force']
-        self.output_label = ['Position','Speed']
+        self.output_label = ['Position']
         
         # Units
         self.state_units = ['[m]','[m/sec]']
         self.input_units = ['[N]']
-        self.output_units = ['[m]','[m/sec]']
+        self.output_units = ['[m]']
         
         # Define the domain
         self.x_ub = np.zeros(self.n) + 10 # States Upper Bounds
@@ -69,10 +69,34 @@ class DoubleIntegrator( system.ContinuousDynamicSystem ):
         # Example double intergrator
         # x[0]: position x[1]: speed
         
-        dx[0] = x[1]
-        dx[1] = u[0]
+        dx[0] = x[1]  # 
+        dx[1] = u[0]  # 
         
         return dx
+    
+    
+    #############################
+    def h( self , x , u , t ):
+        """ 
+        Output fonction y = h(x,u,t)
+        
+        INPUTS
+        x  : state vector             n x 1
+        u  : control inputs vector    m x 1
+        t  : time                     1 x 1
+        
+        OUTPUTS
+        y  : output derivative vector o x 1
+        
+        """
+        
+        y = np.zeros(self.p) # Output vector
+        
+        y[0] = x[0] # output is first state = position
+        
+        return y
+    
+    
     
 ##############################################################################
         
@@ -162,6 +186,7 @@ if __name__ == "__main__":
     # Simulation
     x0 = np.array([0,0])
     di.plot_trajectory( x0 )
+    di.sim.plot('y')
     
     # Cost computing
     di.sim.compute_cost()

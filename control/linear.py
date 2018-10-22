@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Oct 22 08:40:31 2018
+Created on Mon Oct 22 11:37:48 2018
 
 @author: alxgr
 """
 
 import numpy as np
 
-###########################################################################################
-# Mother Controller class
-###########################################################################################
+from AlexRobotics.core import control
 
-class StaticController:
+###########################################################################################
+# Simple proportionnal controller
+###########################################################################################
+        
+class ProportionnalSingleVariableController( control.StaticController ) :
     """ 
     Mother class for memoryless controllers
     ---------------------------------------
@@ -43,7 +45,8 @@ class StaticController:
         # default constant reference
         self.rbar = np.zeros(self.k)
         
-        raise NotImplementedError
+        # Gains
+        self.gain_p = 1
         
     
     #############################
@@ -63,37 +66,15 @@ class StaticController:
         
         u = np.zeros(self.m) # State derivative vector
         
-        raise NotImplementedError
+        e = r - y
+        u = e * self.gain_p
         
         return u
-    
-    
-    #########################################################################
-    # No need to overwrite the following functions for child classes
-    #########################################################################
-    
-    #############################
-    def cbar( self , y , t = 0 ):
-        """ 
-        Feedback static computation u = c( y, r = rbar, t) for
-        default reference
-        
-        INPUTS
-        y  : sensor signal vector     p x 1
-        t  : time                     1 x 1
-        
-        OUPUTS
-        u  : control inputs vector    m x 1
-        
-        """
-        
-        u = self.c( y , self.rbar , t )
-        
-        return u
-    
-    
-    
-    
+
+
+
+
+
 '''
 #################################################################
 ##################          Main                         ########
@@ -104,6 +85,13 @@ class StaticController:
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    pass
-
+    from AlexRobotics.core import analysis
+    from AlexRobotics.dynamic import integrator
     
+    # Double integrator
+    di = integrator.DoubleIntegrator()
+    si = integrator.SimpleIntegrator()
+    
+    # Controller 
+    psvc = ProportionnalSingleVariableController()
+    psvc.gain_p = 10

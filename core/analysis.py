@@ -168,7 +168,7 @@ class Simulation:
         
         if self.solver == 'ode':
         
-            self.x_sol = odeint( self.cds.fo , self.x0 , self.t)   
+            self.x_sol = odeint( self.cds.fbar , self.x0 , self.t)   
 
             # Compute inputs-output values
             self.y_sol = np.zeros(( self.n , self.cds.p ))  

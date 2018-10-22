@@ -149,7 +149,7 @@ class ContinuousDynamicSystem:
     """
     
     #############################
-    def fo( self , x , t ):
+    def fbar( self , x , t ):
         """ 
         Continuous time foward dynamics evaluation dx = f( x , u = ubar , t )
         for default constant control input (open-loop)
