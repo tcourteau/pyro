@@ -24,6 +24,8 @@ class ProportionnalSingleVariableController( control.StaticController ) :
     ---------------------------------------
     u = c( y , r , t )
     
+    m = p
+    
     """
     
     ###########################################################################################
@@ -35,12 +37,19 @@ class ProportionnalSingleVariableController( control.StaticController ) :
     def __init__(self):
         """ """
         
-        # System parameters to be implemented
-        
         # Dimensions
         self.k = 1   
         self.m = 1   
         self.p = 1
+        
+        # Label
+        self.name = 'Proportionnal Controller'
+        
+        # Reference signal info
+        self.ref_label = ['Ref.']
+        self.ref_units = ['[]']
+        self.r_ub      = np.zeros(self.k) + 10 # upper bounds
+        self.r_lb      = np.zeros(self.k) - 10 # lower bounds
         
         # default constant reference
         self.rbar = np.zeros(self.k)
@@ -87,6 +96,7 @@ if __name__ == "__main__":
     
     from AlexRobotics.core import analysis
     from AlexRobotics.dynamic import integrator
+    from AlexRobotics.core import control
     
     # Double integrator
     di = integrator.DoubleIntegrator()
@@ -94,4 +104,13 @@ if __name__ == "__main__":
     
     # Controller 
     psvc = ProportionnalSingleVariableController()
-    psvc.gain_p = 10
+    psvc.gain_p = 1
+    
+    # New cl-dynamic
+    clsi = control.ClosedLoopSystem( si ,  psvc )
+    clsi.plot_phase_plane_trajectory([10],10,0,0)
+    clsi.sim.plot('xu')
+    
+    cldi = control.ClosedLoopSystem( di ,  psvc )
+    cldi.plot_phase_plane_trajectory([10,0],20,0,1)
+    cldi.sim.plot('xu')

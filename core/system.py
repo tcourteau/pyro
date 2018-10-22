@@ -56,9 +56,9 @@ class ContinuousDynamicSystem:
         
         # Define the domain
         self.x_ub = np.zeros(self.n) +10 # States Upper Bounds
-        self.x_lb = np.zeros(self.n) +10 # States Lower Bounds
+        self.x_lb = np.zeros(self.n) -10 # States Lower Bounds
         self.u_ub = np.zeros(self.m) +1  # Control Upper Bounds
-        self.u_lb = np.zeros(self.m) +1  # Control Lower Bounds
+        self.u_lb = np.zeros(self.m) -1  # Control Lower Bounds
         
         # Default State and inputs        
         self.xbar = np.zeros(self.n)
