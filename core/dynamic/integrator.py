@@ -150,6 +150,8 @@ class SimpleIntegrator( system.ContinuousDynamicSystem ):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
+    from AlexRobotics.core import analysis
+    
     # Double integrator
     di = DoubleIntegrator()
     
@@ -161,6 +163,15 @@ if __name__ == "__main__":
     x0 = np.array([0,0])
     di.plot_trajectory( x0 )
     
+    # Cost computing
+    di.sim.compute_cost()
+    di.sim.plot('xuj')
+    
+    # Time cost
+    di.sim.cf = analysis.TimeCostFunction( di )
+    di.sim.compute_cost()
+    di.sim.plot('j')
+    
     # Phase plane trajectory
     di.plot_phase_plane_trajectory( x0 )
     
@@ -170,4 +181,10 @@ if __name__ == "__main__":
     # Phase plane
     si.ubar = np.array([1])
     si.plot_phase_plane(0,0) # only one state for two axis!
+    
+    # Simulation
+    si.plot_trajectory( np.array([2]) )
+    si.sim.compute_cost()
+    si.sim.plot('xuj')
+    si.sim.phase_plane_trajectory(0,0)
     

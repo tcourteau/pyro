@@ -28,6 +28,7 @@ class PureQuadratic:
         self.g      = self.g_quadratic
         self.h      = self.h_zero       # no final cost
         
+        return cost
         
     #############################
     def h(self,  x ):
@@ -57,7 +58,6 @@ class PureQuadratic:
          # On target not doing anything (don't count time at this point)
         cost = np.dot( x.T , np.dot(  self.Q , x ) ) + np.dot( u.T , np.dot(  self.R , u ) )
                 
-        return cost
         
 
         
