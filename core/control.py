@@ -8,6 +8,7 @@ Created on Mon Oct 22 08:40:31 2018
 import numpy as np
 
 from AlexRobotics.core import system
+from AlexRobotics.core import analysis
 
 ###########################################################################################
 # Mother Controller class
@@ -111,8 +112,10 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
     """ 
     Dynamic system connected with a static controller
     ---------------------------------------------
-    NOTE: Ignore any feedthough to avoid creating algebraic loop
-    new equations assume y = h(x,u,t) -- > y = h(x,t)
+    NOTE: 
+    Ignore any feedthough to avoid creating algebraic loop
+    This is only valid if the output function h is not a fonction of u
+    New equations assume y = h(x,u,t) -- > y = h(x,t)
 
     """
     ############################
@@ -131,7 +134,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         self.p = self.sys.p
         
         # Labels
-        self.name = 'Closed-Loop ' + self.sys.name + ' with ' + self.sys.name
+        self.name = 'Closed-Loop ' + self.sys.name + ' with ' + self.ctl.name
         self.state_label  = self.sys.state_label
         self.input_label  = self.ctl.ref_label
         self.output_label = self.sys.output_label
@@ -197,6 +200,76 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         y = self.sys.h( x , self.sys.ubar , t )
         
         return y
+    
+    #############################
+    def plot_phase_plane_CL(self , x_axis = 0 , y_axis = 1 ):
+        """ 
+        Plot Phase Plane vector field of the system
+        ------------------------------------------------
+        
+        x_axis : index of state on x axis
+        y_axis : index of state on y axis
+        
+        """
+
+        self.pp = analysis.PhasePlot( self , x_axis , y_axis )
+        
+        self.pp.compute_grid()
+        self.pp.plot_init()
+        
+        # Closed-loop Behavior
+        self.pp.color = 'r'
+        self.pp.compute_vector_field()
+        self.pp.plot_vector_field()
+        
+        # Open-Loop Behavior
+        self.pp.f     = self.sys.f
+        self.pp.ubar  = self.sys.ubar
+        self.pp.color = 'b'
+        self.pp.compute_vector_field()
+        self.plot_vector_field()
+        
+        self.plot_finish()
+        
+        
+    
+    #############################
+    def plot_trajectory_CL(self , x0 , tf = 10 ):
+        """ 
+        Simulation of time evolution of the system
+        ------------------------------------------------
+        x0 : initial time
+        tf : final time
+        
+        """
+
+        self.sim = analysis.CLosedLoopSimulation( self , tf )
+        
+        self.sim.x0 = x0
+        self.sim.compute()
+        
+        self.sim.plot()
+        
+        
+    #############################
+    def plot_phase_plane_trajectory_CL(self , x0 , tf = 10 , x_axis = 0 , y_axis = 1):
+        """ 
+        Simulates the system and plot the trajectory in the Phase Plane 
+        ------------------------------------------------
+        x0 : initial time
+        tf : final time
+        x_axis : index of state on x axis
+        y_axis : index of state on y axis
+        
+        """
+        
+        self.sim = analysis.CLosedLoopSimulation( self , tf )
+        
+        self.sim.x0 = x0
+        self.sim.compute()
+        self.sim.phase_plane_trajectory_CL( x_axis , y_axis )
+        
+        
     
 '''
 #################################################################

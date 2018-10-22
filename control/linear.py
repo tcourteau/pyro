@@ -112,5 +112,5 @@ if __name__ == "__main__":
     clsi.sim.plot('xu')
     
     cldi = control.ClosedLoopSystem( di ,  psvc )
-    cldi.plot_phase_plane_trajectory([10,0],20,0,1)
+    cldi.plot_phase_plane_trajectory_CL([10,0],20,0,1)
     cldi.sim.plot('xu')
