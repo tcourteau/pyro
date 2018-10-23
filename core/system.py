@@ -60,7 +60,7 @@ class ContinuousDynamicSystem:
             self.state_units.append('')
         for i in range(m):
             self.input_label.append('Input '+str(i))
-            self.state_units.append('')
+            self.input_units.append('')
         for i in range(p):
             self.output_label.append('Output '+str(i))
             self.output_units.append('')

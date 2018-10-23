@@ -92,7 +92,7 @@ class DoubleIntegrator( system.ContinuousDynamicSystem ):
         system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
     
         # Labels
-        self.name = 'Double Integrator (1kg mass)'
+        self.name = 'Double Integrator'
         self.state_label = ['Position','Speed']
         self.input_label = ['Force']
         self.output_label = ['Position']
@@ -162,7 +162,6 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
     DoubleIntegrator Example for a ContinuousDynamicSystem
     
     """
-    
     ############################
     def __init__(self):
         """ """
@@ -176,7 +175,7 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
         system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
         
         # Labels
-        self.name = 'Double Integrator (1kg mass)'
+        self.name = 'Triple Integrator'
         self.state_label = ['Position','Speed', 'Force']
         self.input_label = ['Gradient of Force']
         self.output_label = ['Position']
@@ -206,8 +205,9 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
         
         dx = np.zeros(self.n) # State derivative vector
         
-        # Example double intergrator
-        # x[0]: position x[1]: speed
+        # x[0]: position 
+        # x[1]: speed 
+        # x[2]: force
         
         dx[0] = x[1]  # 
         dx[1] = x[2]  # 

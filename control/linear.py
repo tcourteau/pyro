@@ -90,18 +90,23 @@ if __name__ == "__main__":
     from AlexRobotics.core import control
     
     # Double integrator
+    si = integrator.SimpleIntegrator()
     di = integrator.DoubleIntegrator()
-    #si = integrator.SimpleIntegrator()
+    ti = integrator.TripleIntegrator()
     
     # Controller 
-    psvc = ProportionnalSingleVariableController()
+    psvc      = ProportionnalSingleVariableController()
     psvc.gain = 1
     
     # New cl-dynamic
-    #clsi = control.ClosedLoopSystem( si ,  psvc )
-    #clsi.plot_phase_plane_trajectory([10],10,0,0)
-    #clsi.sim.plot('xu')
+    clsi = control.ClosedLoopSystem( si ,  psvc )
+    clsi.plot_phase_plane_trajectory_CL([10],10,0,0)
+    clsi.sim.plot('xu')
     
     cldi = control.ClosedLoopSystem( di ,  psvc )
-    cldi.plot_phase_plane_trajectory_CL([10,0],20,0,1)
+    cldi.plot_phase_plane_trajectory_CL([10,0],10,0,1)
     cldi.sim.plot('xu')
+    
+    clti = control.ClosedLoopSystem( ti ,  psvc )
+    clti.plot_phase_plane_trajectory_CL([10,0,0],10,1,2)
+    clti.sim.plot('xu')
