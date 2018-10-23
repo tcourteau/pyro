@@ -33,28 +33,31 @@ class StaticController:
     
     
     ############################
-    def __init__(self):
+    def __init__(self, k=1, m=1, p=1):
         """ """
         # System parameters to be implemented
         
         # Dimensions
-        self.k = 1   
-        self.m = 1   
-        self.p = 1
+        self.k = k   
+        self.m = m   
+        self.p = p
         
         # Label
-        self.name = 'Controller'
+        self.name = 'StaticController'
         
         # Reference signal info
         self.ref_label = []
         self.ref_units = []
-        self.r_ub      = np.zeros(self.k) + 10 # upper bounds
-        self.r_lb      = np.zeros(self.k) - 10 # lower bounds
+        
+        for i in range(k):
+            self.ref_label.append('Ref. '+str(i))
+            self.ref_units.append('')
+        
+        self.r_ub = np.zeros(self.k) + 10 # upper bounds
+        self.r_lb = np.zeros(self.k) - 10 # lower bounds
         
         # default constant reference
         self.rbar = np.zeros(self.k)
-        
-        raise NotImplementedError
         
     
     #############################

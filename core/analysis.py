@@ -282,7 +282,7 @@ class Simulation:
         if l == 1:
             plots = [plots]
         
-        simfig.canvas.set_window_title('Trajectory for ' + sys.name)
+        simfig.canvas.set_window_title('Trajectory for ' + self.cds.name)
         
         j = 0 # plot index
         
@@ -365,7 +365,7 @@ class CLosedLoopSimulation( Simulation ):
     #######################################################################
     def __init__(self, CLSystem , tf = 10 , n = 10001 , solver = 'ode' ):
         
-        super().__init__(CLSystem , tf, n, solver) 
+        Simulation.__init__(self, CLSystem , tf, n, solver) 
         
         self.sys = CLSystem.sys
         self.ctl = CLSystem.ctl
@@ -377,7 +377,7 @@ class CLosedLoopSimulation( Simulation ):
     ##############################
     def compute(self):
         
-        super().compute()
+        Simulation.compute(self)
         
         self.compute_inputs()
         

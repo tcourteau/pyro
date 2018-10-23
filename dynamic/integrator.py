@@ -10,6 +10,67 @@ import numpy as np
 from AlexRobotics.core import system
 
 
+##############################################################################
+        
+class SimpleIntegrator( system.ContinuousDynamicSystem ):
+    """ 
+    SimpleIntegrator Example for a ContinuousDynamicSystem
+    -------------------------------------------------------
+    mass driven by a speed input: dx [m/sec] = f(x,u,t) = u [m/sec]
+    
+    """
+    
+    ############################
+    def __init__(self):
+        """ """
+    
+        # Dimensions
+        self.n = 1   
+        self.m = 1   
+        self.p = 1
+        
+        # initialize standard params
+        system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
+        
+        # Labels
+        self.name = 'Simple Integrator'
+        self.state_label = ['Position']
+        self.input_label = ['Speed']
+        self.output_label = ['Position']
+        
+        # Units
+        self.state_units = ['[m]']
+        self.input_units = ['[m/sec]']
+        self.output_units = ['[m]']
+        
+    
+    #############################
+    def f(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
+        """ 
+        Continuous time foward dynamics evaluation
+        
+        dx = f(x,u,t)
+        
+        INPUTS
+        x  : state vector             n x 1
+        u  : control inputs vector    m x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        dx : state derivative vectror n x 1
+        
+        """
+        
+        dx = np.zeros(self.n) # State derivative vector
+        
+        # Example simpleintergrator
+        # x[0]: position u[0]: speed
+        
+        dx[0] = u[0]
+        
+        return dx
+
+
 #############################################################################
 
 class DoubleIntegrator( system.ContinuousDynamicSystem ):
@@ -21,12 +82,15 @@ class DoubleIntegrator( system.ContinuousDynamicSystem ):
     ############################
     def __init__(self):
         """ """
-    
+        
         # Dimensions
         self.n = 2   
         self.m = 1   
         self.p = 1
         
+        # initialize standard params
+        system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
+    
         # Labels
         self.name = 'Double Integrator (1kg mass)'
         self.state_label = ['Position','Speed']
@@ -38,21 +102,13 @@ class DoubleIntegrator( system.ContinuousDynamicSystem ):
         self.input_units = ['[N]']
         self.output_units = ['[m]']
         
-        # Define the domain
-        self.x_ub = np.zeros(self.n) + 10 # States Upper Bounds
-        self.x_lb = np.zeros(self.n) - 10 # States Lower Bounds
-        self.u_ub = np.zeros(self.m) + 10 # Control Upper Bounds
-        self.u_lb = np.zeros(self.m) - 10 # Control Lower Bounds
-        
-        # Default State and inputs        
-        self.xbar = np.zeros(self.n)
-        self.ubar = np.zeros(self.m)
-        
     
     #############################
     def f(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
         """ 
         Continuous time foward dynamics evaluation
+        
+        dx = f(x,u,t)
         
         INPUTS
         x  : state vector             n x 1
@@ -86,7 +142,7 @@ class DoubleIntegrator( system.ContinuousDynamicSystem ):
         t  : time                     1 x 1
         
         OUTPUTS
-        y  : output derivative vector o x 1
+        y  : output derivative vector p x 1
         
         """
         
@@ -116,6 +172,9 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
         self.m = 1   
         self.p = 1
         
+        # initialize standard params
+        system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
+        
         # Labels
         self.name = 'Double Integrator (1kg mass)'
         self.state_label = ['Position','Speed', 'Force']
@@ -127,21 +186,13 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
         self.input_units = ['[N/sec]']
         self.output_units = ['[m]']
         
-        # Define the domain
-        self.x_ub = np.zeros(self.n) + 10 # States Upper Bounds
-        self.x_lb = np.zeros(self.n) - 10 # States Lower Bounds
-        self.u_ub = np.zeros(self.m) + 10 # Control Upper Bounds
-        self.u_lb = np.zeros(self.m) - 10 # Control Lower Bounds
-        
-        # Default State and inputs        
-        self.xbar = np.zeros(self.n)
-        self.ubar = np.zeros(self.m)
-        
     
     #############################
     def f(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
         """ 
         Continuous time foward dynamics evaluation
+        
+        dx = f(x,u,t)
         
         INPUTS
         x  : state vector             n x 1
@@ -186,72 +237,6 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
         
         return y
     
-    
-    
-##############################################################################
-        
-class SimpleIntegrator( system.ContinuousDynamicSystem ):
-    """ 
-    SimpleIntegrator Example for a ContinuousDynamicSystem
-    -------------------------------------------------------
-    mass driven by a speed input: dx [m/sec] = f(x,u,t) = u [m/sec]
-    
-    """
-    
-    ############################
-    def __init__(self):
-        """ """
-    
-        # Dimensions
-        self.n = 1   
-        self.m = 1   
-        self.p = 1
-        
-        # Labels
-        self.name = 'Simple Integrator'
-        self.state_label = ['Position']
-        self.input_label = ['Speed']
-        self.output_label = ['Position']
-        
-        # Units
-        self.state_units = ['[m]']
-        self.input_units = ['[m/sec]']
-        self.output_units = ['[m]']
-        
-        # Define the domain
-        self.x_ub = np.zeros(self.n) + 10 # States Upper Bounds
-        self.x_lb = np.zeros(self.n) - 10 # States Lower Bounds
-        self.u_ub = np.zeros(self.m) + 10 # Control Upper Bounds
-        self.u_lb = np.zeros(self.m) - 10 # Control Lower Bounds
-        
-        # Default State and inputs        
-        self.xbar = np.zeros(self.n)
-        self.ubar = np.zeros(self.m)
-        
-    
-    #############################
-    def f(self, x = np.zeros(2) , u = np.zeros(1) , t = 0 ):
-        """ 
-        Continuous time foward dynamics evaluation
-        
-        INPUTS
-        x  : state vector             n x 1
-        u  : control inputs vector    m x 1
-        t  : time                     1 x 1
-        
-        OUPUTS
-        dx : state derivative vectror n x 1
-        
-        """
-        
-        dx = np.zeros(self.n) # State derivative vector
-        
-        # Example simpleintergrator
-        # x[0]: position u[0]: speed
-        
-        dx[0] = u[0]
-        
-        return dx
     
     
 '''

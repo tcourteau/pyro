@@ -27,44 +27,53 @@ class ContinuousDynamicSystem:
     y  = h( x , u , t )
     
     """
-    ###########################################################################################
+    ###########################################################################
     # The two following functions needs to be implemented by child classes
-    ###########################################################################################
-    
+    ###########################################################################
     
     ############################
-    def __init__(self):
-        """ """
-        
-        # System parameters to be implemented
-        
+    def __init__(self, n = 1, m = 1, p = 1):
+        """ 
+        The __init__ method of the Mother class can be used to fill-in default
+        labels, units, bounds, and base values.
+        """
+
         # Dimensions
-        self.n = 1   
-        self.m = 1   
-        self.p = 1
+        self.n = n   
+        self.m = m   
+        self.p = p
         
         # Labels
         self.name = 'ContinuousDynamicSystem'
-        self.state_label = []
-        self.input_label = []
+        self.state_label  = []
+        self.input_label  = []
         self.output_label = []
         
         # Units
-        self.state_units = []
-        self.input_units = []
+        self.state_units  = []
+        self.input_units  = []
         self.output_units = []
         
-        # Define the domain
+        # Default Label and units
+        for i in range(n):
+            self.state_label.append('State '+str(i))
+            self.state_units.append('')
+        for i in range(m):
+            self.input_label.append('Input '+str(i))
+            self.state_units.append('')
+        for i in range(p):
+            self.output_label.append('Output '+str(i))
+            self.output_units.append('')
+        
+        # Default state and input domain
         self.x_ub = np.zeros(self.n) +10 # States Upper Bounds
         self.x_lb = np.zeros(self.n) -10 # States Lower Bounds
         self.u_ub = np.zeros(self.m) +1  # Control Upper Bounds
         self.u_lb = np.zeros(self.m) -1  # Control Lower Bounds
         
-        # Default State and inputs        
+        # Default state and inputs values    
         self.xbar = np.zeros(self.n)
         self.ubar = np.zeros(self.m)
-        
-        raise NotImplementedError
         
     
     #############################
@@ -84,16 +93,18 @@ class ContinuousDynamicSystem:
         
         dx = np.zeros(self.n) # State derivative vector
         
+        ################################################
+        # Place holder: put the equations of motion here
+        ################################################
+        
         raise NotImplementedError
         
         return dx
     
     
-    """
     ###########################################################################################
     # The following functions can be overloaded when necessary by child classes
     ###########################################################################################
-    """
     
     #############################
     def h( self , x , u , t ):
@@ -142,11 +153,10 @@ class ContinuousDynamicSystem:
         return not(ans)
         
     
-    """
+    
     #########################################################################
     # No need to overwrite the following functions for custom dynamic systems
     #########################################################################
-    """
     
     #############################
     def fbar( self , x , t ):
@@ -189,7 +199,6 @@ class ContinuousDynamicSystem:
         """ 
         Plot Phase Plane vector field of the system
         ------------------------------------------------
-        
         x_axis : index of state on x axis
         y_axis : index of state on y axis
         
@@ -205,7 +214,6 @@ class ContinuousDynamicSystem:
         """ 
         Simulation of time evolution of the system
         ------------------------------------------------
-        
         x0 : initial time
         tf : final time
         
@@ -223,7 +231,7 @@ class ContinuousDynamicSystem:
     def plot_phase_plane_trajectory(self , x0 , tf = 10 , x_axis = 0 , y_axis = 1):
         """ 
         Simulates the system and plot the trajectory in the Phase Plane 
-        ------------------------------------------------
+        ---------------------------------------------------------------
         x0 : initial time
         tf : final time
         x_axis : index of state on x axis

@@ -15,17 +15,15 @@ from AlexRobotics.core import control
         
 class ProportionnalSingleVariableController( control.StaticController ) :
     """ 
-    Mother class for memoryless controllers
+    Simple proportionnal compensator
     ---------------------------------------
     r  : reference signal vector  k x 1
-    y  : sensor signal vector     p x 1
-    u  : control inputs vector    m x 1
+    y  : sensor signal vector     k x 1
+    u  : control inputs vector    k x 1
     t  : time                     1 x 1
     ---------------------------------------
-    u = c( y , r , t )
-    
-    m = p
-    
+    u = c( y , r , t ) = (r - y) * gain
+
     """
     
     ###########################################################################################
@@ -34,28 +32,21 @@ class ProportionnalSingleVariableController( control.StaticController ) :
     
     
     ############################
-    def __init__(self):
+    def __init__(self, k = 1):
         """ """
         
         # Dimensions
-        self.k = 1   
-        self.m = 1   
-        self.p = 1
+        self.k = k   
+        self.m = k   
+        self.p = k
+        
+        control.StaticController.__init__(self, self.k, self.m, self.p)
         
         # Label
         self.name = 'Proportionnal Controller'
         
-        # Reference signal info
-        self.ref_label = ['Ref.']
-        self.ref_units = ['[]']
-        self.r_ub      = np.zeros(self.k) + 10 # upper bounds
-        self.r_lb      = np.zeros(self.k) - 10 # lower bounds
-        
-        # default constant reference
-        self.rbar = np.zeros(self.k)
-        
         # Gains
-        self.gain_p = 1
+        self.gain = 1
         
     
     #############################
@@ -76,7 +67,7 @@ class ProportionnalSingleVariableController( control.StaticController ) :
         u = np.zeros(self.m) # State derivative vector
         
         e = r - y
-        u = e * self.gain_p
+        u = e * self.gain
         
         return u
 
@@ -100,16 +91,16 @@ if __name__ == "__main__":
     
     # Double integrator
     di = integrator.DoubleIntegrator()
-    si = integrator.SimpleIntegrator()
+    #si = integrator.SimpleIntegrator()
     
     # Controller 
     psvc = ProportionnalSingleVariableController()
-    psvc.gain_p = 1
+    psvc.gain = 1
     
     # New cl-dynamic
-    clsi = control.ClosedLoopSystem( si ,  psvc )
-    clsi.plot_phase_plane_trajectory([10],10,0,0)
-    clsi.sim.plot('xu')
+    #clsi = control.ClosedLoopSystem( si ,  psvc )
+    #clsi.plot_phase_plane_trajectory([10],10,0,0)
+    #clsi.sim.plot('xu')
     
     cldi = control.ClosedLoopSystem( di ,  psvc )
     cldi.plot_phase_plane_trajectory_CL([10,0],20,0,1)
