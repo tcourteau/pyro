@@ -9,9 +9,9 @@ import numpy as np
 
 from AlexRobotics.core import control
 
-###########################################################################################
+###############################################################################
 # Simple proportionnal controller
-###########################################################################################
+###############################################################################
         
 class ProportionnalSingleVariableController( control.StaticController ) :
     """ 
@@ -26,9 +26,9 @@ class ProportionnalSingleVariableController( control.StaticController ) :
 
     """
     
-    ###########################################################################################
+    ###########################################################################
     # The two following functions needs to be implemented by child classes
-    ###########################################################################################
+    ###########################################################################
     
     
     ############################
@@ -108,5 +108,8 @@ if __name__ == "__main__":
     cldi.sim.plot('xu')
     
     clti = control.ClosedLoopSystem( ti ,  psvc )
-    clti.plot_phase_plane_trajectory_CL([10,0,0],10,1,2)
+    clti.plot_trajectory_CL([10,0,0],10)
     clti.sim.plot('xu')
+    
+    pp = analysis.PhasePlot3( clti )
+    pp.plot()
