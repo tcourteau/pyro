@@ -215,9 +215,7 @@ class PhasePlot3( PhasePlot ):
         self.ax.quiver( self.X, self.Y, self.Z, self.v, self.w, self.u, 
                        color=self.color,  linewidth = self.linewidth,
                        length = self.length, normalize = True)
-                       #, headlength = self.headlength )streamplot
-                       
-        self.ax.streamplot( self.X, self.Y, self.Z, self.v, self.w, self.u)
+                       #, headlength = self.headlength )
         
     ##############################
     def plot_finish(self):
