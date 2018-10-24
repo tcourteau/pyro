@@ -173,7 +173,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         dx = np.zeros(self.n) # State derivative vector
         
         r = u # input is ref
-        u = self.sys.ubar  # only for h
+        u = self.sys.ubar  # only a place holder (h need to be independent of u)
         
         dx = self.sys.f(  x  ,  self.ctl.c( self.sys.h(x,u,t) ,  r  ,  t  ),  t )
         
