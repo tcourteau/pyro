@@ -112,7 +112,7 @@ class Manipulator( system.ContinuousDynamicSystem ):
         Gravitationnal forces vector : dof x 1
         """
         
-        g = np.zeros(3) # Default is zero vector
+        g = np.zeros( self.dof ) # Default is zero vector
         
         return g
     
