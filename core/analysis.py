@@ -168,7 +168,8 @@ class PhasePlot3( PhasePlot ):
         # Plotting params
         self.color      = 'r'
         self.dpi        = 200
-        self.linewidth  = 0.1
+        self.linewidth  = 0.5
+        self.length     = 2.0
         self.arrowstyle = '->'
         self.fontsize   = 6
         
@@ -212,8 +213,11 @@ class PhasePlot3( PhasePlot ):
         self.ax = self.phasefig.gca(projection='3d')
         
         self.ax.quiver( self.X, self.Y, self.Z, self.v, self.w, self.u, 
-                       color=self.color,  linewidth = self.linewidth )
-                       #, headlength = self.headlength )
+                       color=self.color,  linewidth = self.linewidth,
+                       length = self.length, normalize = True)
+                       #, headlength = self.headlength )streamplot
+                       
+        self.ax.streamplot( self.X, self.Y, self.Z, self.v, self.w, self.u)
         
     ##############################
     def plot_finish(self):
@@ -231,7 +235,7 @@ class PhasePlot3( PhasePlot ):
 
 
        
-##########################################################################
+##################################################################### #####
 # Simulation Objects
 ##########################################################################
     
