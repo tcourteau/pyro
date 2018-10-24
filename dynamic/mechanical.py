@@ -12,11 +12,20 @@ from AlexRobotics.core import system
 
 ##############################################################################
         
-class Manipulator( system.ContinuousDynamicSystem ):
+class MechanicalSystem( system.ContinuousDynamicSystem ):
     """ 
     Mechanical system with Equation of Motion in the form of
     -------------------------------------------------------
-    H(q) ddq + C(q,dq) dq + g(q) = B(q) tau
+    H(q) ddq + C(q,dq) dq + d(q,dq) + g(q) = B(q) tau
+    -------------------------------------------------------
+    q      :  dim = (dof, 1)   : position variables 
+    dq     :  dim = (dof, 1)   : velocity variables     
+    ddq    :  dim = (dof, 1)   : acceleration variables
+    H(q)   :  dim = (dof, dof) : inertia matrix
+    C(q)   :  dim = (dof, dof) : corriolis matrix
+    B(q)   :  dim = (dof, dof) : actuator matrix
+    d(q,dq):  dim = (dof, 1)   : state-dependent dissipative forces
+    g(q)   :  dim = (dof, 1)   : state-dependent conservatives forces
     
     """
     
@@ -112,9 +121,19 @@ class Manipulator( system.ContinuousDynamicSystem ):
         Gravitationnal forces vector : dof x 1
         """
         
-        g = np.zeros(3) # Default is zero vector
+        g = np.zeros( self.dof ) # Default is zero vector
         
         return g
+        
+    ###########################################################################
+    def d(self, q , dq ):
+        """ 
+        Gravitationnal forces vector : dof x 1
+        """
+        
+        d = np.zeros(self.dof ) # Default is zero vector
+        
+        return d
     
     ###########################################################################
     # No need to overwrite the following functions for custom manipulators
@@ -148,9 +167,10 @@ class Manipulator( system.ContinuousDynamicSystem ):
         H = self.H( q )
         C = self.C( q , dq )
         g = self.g( q )
+        d = self.g( q , dq )
                 
         # Generalized forces
-        forces = np.dot( H , ddq ) + np.dot( C , dq ) + g
+        forces = np.dot( H , ddq ) + np.dot( C , dq ) + g + d
         
         return forces
     
@@ -176,9 +196,10 @@ class Manipulator( system.ContinuousDynamicSystem ):
         H = self.H( q )
         C = self.C( q , dq )
         g = self.g( q )
+        d = self.g( q , dq )
         B = self.B( q )
         
-        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , u )  - np.dot( C , dq ) - g ) )
+        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , u )  - np.dot( C , dq ) - g - d ) )
         
         return ddq
     
