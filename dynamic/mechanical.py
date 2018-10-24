@@ -6,6 +6,7 @@ Created on Tue Oct 23 20:45:37 2018
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from AlexRobotics.core import system
 
@@ -70,8 +71,12 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
             self.output_label[i+dof] = 'Velocity ' + str(i)
             self.output_units[i+dof] = '[rad/sec]'
             
+        # Graphic output parameters 
+        self.graphic_domain  = [ (-10,10) , (-10,10) , (-10,10) ]#
+            
     ###########################################################################
-    # The two following functions needs to be implemented by child classes
+    # The following functions needs to be overloaded by child classes
+    # to represent the dynamic of the system
     ###########################################################################
     
     ###########################################################################
@@ -128,12 +133,45 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     ###########################################################################
     def d(self, q , dq ):
         """ 
-        Gravitationnal forces vector : dof x 1
+        State-dependent dissipative forces : dof x 1
         """
         
         d = np.zeros(self.dof ) # Default is zero vector
         
         return d
+        
+    ###########################################################################
+    # The following functions needs to be overloaded by child classes
+    # to enable graphical outputs functionnalities
+    ###########################################################################
+    
+    ###########################################################################
+    def graphic_forward_kinematic(self, q ):
+        """ 
+        Compute points p = [x;y;z] positions given config q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        - last point should be the end-effector
+        
+        Outpus:
+        lines_pts = [] : a list of array (n_pts x 3) for each lines
+        
+        """
+        
+        lines_pts = [] # list of array (n_pts x 3) for each lines
+        
+        ###########################
+        # Your graphical code here
+        ###########################
+            
+        # simple place holder
+        for i in range(self.dof):
+            pts      = np.zeros(( 1 , 3 )) # array of 1 pts for the line
+            pts[0,0] = q[i]                    # x cord of point 0 = q
+            lines_pts.append( pts )            # list of all arrays of pts
+                
+        return lines_pts
+    
     
     ###########################################################################
     # No need to overwrite the following functions for custom manipulators
@@ -195,8 +233,8 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         
         H = self.H( q )
         C = self.C( q , dq )
-        g = self.g( q )
-        d = self.g( q , dq )
+        g = self.g( q  )
+        d = self.d( q , dq)
         B = self.B( q )
         
         ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , u )  - np.dot( C , dq ) - g - d ) )
@@ -237,3 +275,83 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         e_k = 0.5 * np.dot( dq , np.dot( self.H( q ) , dq ) )
         
         return e_k
+        
+    
+    ###########################################################################
+    # Graphical output utilities
+    ###########################################################################
+    
+    #############################################
+    def show(self, q , x_axis = 0 , y_axis = 1 ):
+        """ Plot figure of configuration q """
+        
+        self.showfig = plt.figure()
+        self.showfig.canvas.set_window_title('2D Configuration of ' + 
+                                            self.name )
+                                            
+        self.showax = self.showfig.add_subplot(111,
+                                            autoscale_on=False, 
+                                            xlim=self.graphic_domain[x_axis],
+                                            ylim=self.graphic_domain[y_axis] )
+        self.showax.grid()
+        
+        lines_pts      = self.graphic_forward_kinematic( q )
+        self.showlines = []
+        
+        for pts in lines_pts:
+            x_pts = pts[:, x_axis ]
+            y_pts = pts[:, y_axis ]
+            line  = self.showax.plot( x_pts, y_pts, 'o-')
+            self.showlines.append( line )
+        
+        plt.show()
+        
+    
+    #############################################
+    def show3(self, q ):
+        """ Plot figure of configuration q """
+        
+        self.show3fig = plt.figure()
+        self.showfig.canvas.set_window_title('3D Configuration of ' + 
+                                            self.name )
+        self.show3ax = self.show3fig.gca(projection='3d')
+        
+        lines_pts      = self.graphic_forward_kinematic( q )
+        self.show3lines = []
+        
+        for pts in lines_pts:
+            x_pts = pts[:, 0 ]
+            y_pts = pts[:, 1 ]
+            z_pts = pts[:, 2 ]
+            line  = self.show3ax.plot( x_pts, y_pts, z_pts, 'o-')
+            self.show3lines.append( line )
+            
+        self.show3ax.set_xlim3d( self.graphic_domain[0] )
+        self.show3ax.set_xlabel('X')
+        self.show3ax.set_ylim3d( self.graphic_domain[1] )
+        self.show3ax.set_ylabel('Y')
+        self.show3ax.set_zlim3d( self.graphic_domain[2] )
+        self.show3ax.set_zlabel('Z')
+        
+        plt.show()
+        
+    
+'''
+#################################################################
+##################          Main                         ########
+#################################################################
+'''
+
+
+if __name__ == "__main__":     
+    """ MAIN TEST """
+    
+    m = MechanicalSystem( 2 )
+    m.ubar = np.array([1,2])
+    x0     = np.array([0,0,0,0])
+    
+    m.plot_trajectory( x0 )
+    
+    m.show( np.array([1,2]))
+    m.show3( np.array([-0.5,1.5]))
+        
