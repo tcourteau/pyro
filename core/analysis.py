@@ -8,6 +8,9 @@ Created on Fri Aug 07 11:51:55 2015
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+
+from mpl_toolkits.mplot3d import axes3d
+
 from scipy.integrate import odeint
 
 # Embed font type in PDF
@@ -16,7 +19,7 @@ matplotlib.rcParams['ps.fonttype']  = 42
         
 
 ##########################################################################
-# Phase Plot Object
+# Phase Plot Object for phase plane analysis
 ##########################################################################
         
 class PhasePlot:
@@ -28,7 +31,7 @@ class PhasePlot:
     
     """
     ############################
-    def __init__(self, ContinuousDynamicSystem , x_axis = 0 ,  y_axis = 1 ):
+    def __init__(self, ContinuousDynamicSystem , x_axis = 0 ,  y_axis = 1):
         
         # System
         self.cds  = ContinuousDynamicSystem
@@ -66,6 +69,7 @@ class PhasePlot:
         y = np.linspace( self.y_axis_min , self.y_axis_max , self.y_axis_n )
         
         self.X, self.Y = np.meshgrid( x, y)
+            
         
     ##############################
     def compute_vector_field(self):
@@ -94,22 +98,33 @@ class PhasePlot:
         matplotlib.rc('xtick', labelsize = self.fontsize )
         matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
-        self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi, frameon=True)
-        self.phasefig.canvas.set_window_title('Phase plane of ' + self.cds.name )
+        self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi,
+                                   frameon=True)
+        self.phasefig.canvas.set_window_title('Phase plane of ' + 
+                                                self.cds.name )
         
     ##############################
     def plot_vector_field(self):
                        
         if self.streamplot:
-            self.Q = plt.streamplot( self.X, self.Y, self.v, self.w, color=self.color,  linewidth = self.linewidth , arrowstyle = self.arrowstyle , arrowsize = self.headlength )
+            self.Q = plt.streamplot( self.X, self.Y, self.v, self.w, 
+                                    color      =self.color,  
+                                    linewidth  = self.linewidth, 
+                                    arrowstyle = self.arrowstyle, 
+                                    arrowsize  = self.headlength )
         else:
-            self.Q = plt.quiver( self.X, self.Y, self.v, self.w, color=self.color,  linewidth = self.linewidth )#, headlength = self.headlength )
+            self.Q = plt.quiver( self.X, self.Y, self.v, self.w, 
+                                color     = self.color,  
+                                linewidth = self.linewidth)
+                                #, headlength = self.headlength )
         
     ##############################
     def plot_finish(self):
         
-        plt.xlabel(self.cds.state_label[ self.x_axis ] + ' ' + self.cds.state_units[ self.x_axis ] , fontsize = self.fontsize)
-        plt.ylabel(self.cds.state_label[ self.y_axis ] + ' ' + self.cds.state_units[ self.y_axis ] , fontsize = self.fontsize)
+        plt.xlabel(self.cds.state_label[ self.x_axis ] + ' ' + 
+        self.cds.state_units[ self.x_axis ] , fontsize = self.fontsize)
+        plt.ylabel(self.cds.state_label[ self.y_axis ] + ' ' + 
+        self.cds.state_units[ self.y_axis ] , fontsize = self.fontsize)
         plt.xlim([ self.x_axis_min , self.x_axis_max ])
         plt.ylim([ self.y_axis_min , self.y_axis_max ])
         plt.grid(True)
@@ -124,9 +139,101 @@ class PhasePlot:
         self.compute_vector_field()
         self.plot_vector_field()
         self.plot_finish()
+        
+        
+class PhasePlot3( PhasePlot ):
+    """ 
+    Continous dynamic system phase plot 3D
+    ---------------------------------------------------
+    x_axis : index of state to display as x axis
+    y_axis : index of state to display as y axis
+    z_axis : index of state to display as z axis
+    
+    """
+    ############################
+    def __init__(self, ContinuousDynamicSystem, x_axis=0,  y_axis=1, z_axis=2):
+        
+        PhasePlot.__init__(self, ContinuousDynamicSystem, x_axis, y_axis)
+        
+        # Smaller resolution
+        self.x_axis_n   = 5
+        self.y_axis_n   = 5
+        self.z_axis_n   = 5
+        
+        # Z axis
+        self.z_axis     = z_axis  
+        self.z_axis_min = self.cds.x_lb[ self.z_axis ]
+        self.z_axis_max = self.cds.x_ub[ self.z_axis ]
+        
+        # Plotting params
+        self.color      = 'r'
+        self.dpi        = 200
+        self.linewidth  = 0.5
+        self.length     = 2.0
+        self.arrowstyle = '->'
+        self.fontsize   = 6
+        
+    ##############################
+    def compute_grid(self):
+        
+        x = np.linspace( self.x_axis_min , self.x_axis_max , self.x_axis_n )
+        y = np.linspace( self.y_axis_min , self.y_axis_max , self.y_axis_n )
+        z = np.linspace( self.z_axis_min , self.z_axis_max , self.z_axis_n )
+        
+        self.X, self.Y, self.Z = np.meshgrid( x, y, z)
+            
+    ##############################
+    def compute_vector_field(self):
+        
+        self.v = np.zeros(self.X.shape)
+        self.w = np.zeros(self.Y.shape)
+        self.u = np.zeros(self.Z.shape)
+        
+        for i in range(self.x_axis_n):
+            for j in range(self.y_axis_n):
+                for k in range(self.z_axis_n):
+                
+                    # Actual states
+                    x  = self.xbar    # default value for all states
+                    x[ self.x_axis ] = self.X[i, j, k]
+                    x[ self.y_axis ] = self.Y[i, j, k]
+                    x[ self.z_axis ] = self.Z[i, j, k]
+                    
+                    # States derivative open loop
+                    dx = self.f( x , self.ubar , self.t ) 
+                    
+                    # Assign vector components
+                    self.v[i,j,k] = dx[ self.x_axis ]
+                    self.w[i,j,k] = dx[ self.y_axis ]
+                    self.u[i,j,k] = dx[ self.z_axis ]
+                       
+    ##############################
+    def plot_vector_field(self):
+        
+        self.ax = self.phasefig.gca(projection='3d')
+        
+        self.ax.quiver( self.X, self.Y, self.Z, self.v, self.w, self.u, 
+                       color=self.color,  linewidth = self.linewidth,
+                       length = self.length, normalize = True)
+                       #, headlength = self.headlength )
+        
+    ##############################
+    def plot_finish(self):
+        
+        self.ax.set_xlabel(self.cds.state_label[ self.x_axis ] + ' ' +
+        self.cds.state_units[ self.x_axis ] , fontsize = self.fontsize)
+        self.ax.set_ylabel(self.cds.state_label[ self.y_axis ] + ' ' +
+        self.cds.state_units[ self.y_axis ] , fontsize = self.fontsize)
+        self.ax.set_zlabel(self.cds.state_label[ self.z_axis ] + ' ' +
+        self.cds.state_units[ self.z_axis ] , fontsize = self.fontsize)
+        
+        plt.grid(True)
+        plt.tight_layout()
+        
+
 
        
-##########################################################################
+##################################################################### #####
 # Simulation Objects
 ##########################################################################
     
@@ -140,7 +247,7 @@ class Simulation:
     solver : 'ode' or 'euler'
     """
     ############################
-    def __init__(self, ContinuousDynamicSystem , tf = 10 , n = 10001 , solver = 'ode' ):
+    def __init__(self, ContinuousDynamicSystem, tf=10, n=10001, solver='ode'):
         
         self.cds = ContinuousDynamicSystem
         self.t0 = 0
@@ -276,21 +383,23 @@ class Simulation:
         else:
             raise ValueError('not a valid ploting argument')
             
-        simfig , plots = plt.subplots(l, sharex=True,figsize=(4, 3),dpi=300, frameon=True)
+        simfig , plots = plt.subplots(l, sharex=True, figsize=(4, 3), dpi=300, 
+                                      frameon=True)
         
         #Fix bug for single variable plotting
         if l == 1:
             plots = [plots]
         
-        simfig.canvas.set_window_title('Trajectory for ' + sys.name)
+        simfig.canvas.set_window_title('Trajectory for ' + self.cds.name)
         
         j = 0 # plot index
         
-        if plot == 'All' or plot == 'x' or plot == 'xu' or plot == 'xy' or plot == 'xuj':
+        if plot=='All' or plot=='x' or plot=='xu' or plot=='xy' or plot=='xuj':
             # For all states
             for i in range( sys.n ):
                 plots[j].plot( self.t , self.x_sol[:,i] , 'b')
-                plots[j].set_ylabel(sys.state_label[i] +'\n'+ sys.state_units[i] , fontsize=self.fontsize )
+                plots[j].set_ylabel(sys.state_label[i] +'\n'+ 
+                sys.state_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
                 
@@ -298,7 +407,8 @@ class Simulation:
             # For all inputs
             for i in range( sys.m ):
                 plots[j].plot( self.t , self.u_sol[:,i] , 'r')
-                plots[j].set_ylabel(sys.input_label[i] + '\n' + sys.input_units[i] , fontsize=self.fontsize )
+                plots[j].set_ylabel(sys.input_label[i] + '\n' +
+                sys.input_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
             
@@ -306,7 +416,8 @@ class Simulation:
             # For all outputs
             for i in range( sys.p ):
                 plots[j].plot( self.t , self.y_sol[:,i] , 'k')
-                plots[j].set_ylabel(sys.output_label[i] + '\n' + sys.output_units[i] , fontsize=self.fontsize )
+                plots[j].set_ylabel(sys.output_label[i] + '\n' + 
+                sys.output_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
                 j = j + 1
                 
@@ -365,7 +476,7 @@ class CLosedLoopSimulation( Simulation ):
     #######################################################################
     def __init__(self, CLSystem , tf = 10 , n = 10001 , solver = 'ode' ):
         
-        super().__init__(CLSystem , tf, n, solver) 
+        Simulation.__init__(self, CLSystem , tf, n, solver) 
         
         self.sys = CLSystem.sys
         self.ctl = CLSystem.ctl
@@ -377,7 +488,7 @@ class CLosedLoopSimulation( Simulation ):
     ##############################
     def compute(self):
         
-        super().compute()
+        Simulation.compute(self)
         
         self.compute_inputs()
         
@@ -447,9 +558,9 @@ class CostFunction:
     J = int( g(x,u,y,t) * dt ) + h( x(T) , y(T) , T )
     
     """
-    ###########################################################################################
+    ###########################################################################
     # The two following functions needs to be implemented by child classes
-    ###########################################################################################
+    ###########################################################################
     
     ############################
     def __init__(self, ContinuousDynamicSystem ):
@@ -516,7 +627,9 @@ class QuadraticCostFunction:
     def g(self, x , u , y , t = 0 ):
         """ Quadratic additive cost """
         
-        dJ = np.dot( x.T , np.dot(  self.Q , x ) ) + np.dot( u.T , np.dot(  self.R , u ) ) + np.dot( y.T , np.dot(  self.V , y ) )
+        dJ = ( np.dot( x.T , np.dot(  self.Q , x ) ) +
+               np.dot( u.T , np.dot(  self.R , u ) ) +
+               np.dot( y.T , np.dot(  self.V , y ) ) )
         
         return dJ
     

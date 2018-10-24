@@ -10,9 +10,9 @@ import numpy as np
 from AlexRobotics.core import system
 from AlexRobotics.core import analysis
 
-###########################################################################################
+###############################################################################
 # Mother Controller class
-###########################################################################################
+###############################################################################
 
 class StaticController:
     """ 
@@ -27,34 +27,37 @@ class StaticController:
     
     """
     
-    ###########################################################################################
+    ###########################################################################
     # The two following functions needs to be implemented by child classes
-    ###########################################################################################
+    ###########################################################################
     
     
     ############################
-    def __init__(self):
+    def __init__(self, k=1, m=1, p=1):
         """ """
         # System parameters to be implemented
         
         # Dimensions
-        self.k = 1   
-        self.m = 1   
-        self.p = 1
+        self.k = k   
+        self.m = m   
+        self.p = p
         
         # Label
-        self.name = 'Controller'
+        self.name = 'StaticController'
         
         # Reference signal info
         self.ref_label = []
         self.ref_units = []
-        self.r_ub      = np.zeros(self.k) + 10 # upper bounds
-        self.r_lb      = np.zeros(self.k) - 10 # lower bounds
+        
+        for i in range(k):
+            self.ref_label.append('Ref. '+str(i))
+            self.ref_units.append('')
+        
+        self.r_ub = np.zeros(self.k) + 10 # upper bounds
+        self.r_lb = np.zeros(self.k) - 10 # lower bounds
         
         # default constant reference
         self.rbar = np.zeros(self.k)
-        
-        raise NotImplementedError
         
     
     #############################
@@ -103,10 +106,9 @@ class StaticController:
         return u
     
     
-
-###########################################################################################
+###############################################################################
 # Mother "Static controller + dynamic system" class
-###########################################################################################
+###############################################################################
 
 class ClosedLoopSystem( system.ContinuousDynamicSystem ):
     """ 
@@ -125,10 +127,17 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         self.sys = ContinuousDynamicSystem
         self.ctl = StaticController
         
-        # Check dimentions match
-        # TODO
+        ######################################################################
+        # Check dimensions match
+        if not (self.sys.m == self.ctl.m ):
+            raise NameError('Dimension mismatch between controller and' + 
+            ' dynamic system for the input signal u')
+        elif not (self.sys.p == self.ctl.p ):
+            raise NameError('Dimension mismatch between controller and' + 
+            ' dynamic system for the output signal y')
+        ######################################################################
         
-        # Dimensions
+        # Dimensions of global closed-loop dynamic system
         self.n = self.sys.n
         self.m = self.ctl.k 
         self.p = self.sys.p
@@ -172,10 +181,11 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         dx = np.zeros(self.n) # State derivative vector
         
-        r = u # input is ref
-        u = self.sys.ubar  # only a place holder (h need to be independent of u)
+        r = u # input of closed-loop global sys is ref of the controller
+        y = self.sys.h( x, self.sys.ubar, t)
+        u = self.ctl.c( y, r, t)
         
-        dx = self.sys.f(  x  ,  self.ctl.c( self.sys.h(x,u,t) ,  r  ,  t  ),  t )
+        dx = self.sys.f( x, u, t)
         
         return dx
     
@@ -252,7 +262,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         
     #############################
-    def plot_phase_plane_trajectory_CL(self , x0 , tf = 10 , x_axis = 0 , y_axis = 1):
+    def plot_phase_plane_trajectory_CL(self, x0, tf=10, x_axis=0, y_axis=1):
         """ 
         Simulates the system and plot the trajectory in the Phase Plane 
         ------------------------------------------------
