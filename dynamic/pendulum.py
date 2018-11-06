@@ -137,7 +137,6 @@ class SinglePendulum( mechanical.MechanicalSystem ):
         Compute points p = [x;y;z] positions given config q 
         ----------------------------------------------------
         - points of interest for ploting
-        - last point should be the end-effector
         
         Outpus:
         lines_pts = [] : a list of array (n_pts x 3) for each lines
@@ -185,4 +184,4 @@ if __name__ == "__main__":
     #sys.show( np.array([0]))
     #sys.show3( np.array([0]))
     
-    sys.animate_sim(0.5)
+    sys.animate_sim(1)

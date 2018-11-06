@@ -152,7 +152,6 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         Compute points p = [x;y;z] positions given config q 
         ----------------------------------------------------
         - points of interest for ploting
-        - last point should be the end-effector
         
         Outpus:
         lines_pts = [] : a list of array (n_pts x 3) for each lines
@@ -357,28 +356,36 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         """  
         
         # Compute pts localization
-        self.PTS = np.zeros(( 2 , 3 , self.sim.n ))
+        self.ani_data = []
         
         for i in range( self.sim.n ):
-            
             [ q , dq ]      = self.x2q(  self.sim.x_sol[i,:]  )
             lines_pts       = self.graphic_forward_kinematic( q )
-            self.PTS[:,:,i] = lines_pts[1]
+            self.ani_data.append(lines_pts)
             
-        # Figure
-        self.anifig = plt.figure()
-        self.anifig.canvas.set_window_title('2D Animation of ' + 
+        # Init figure
+        self.ani_fig = plt.figure()
+        self.ani_fig.canvas.set_window_title('2D Animation of ' + 
                                             self.name )
                                             
-        self.aniax = self.anifig.add_subplot(111,
+        self.ani_ax = self.ani_fig.add_subplot(111,
                                             autoscale_on=False, 
                                             xlim=self.graphic_domain[0],
                                             ylim=self.graphic_domain[1] )
-        self.aniax.grid()
+        self.ani_ax.grid()
         
-        self.line, = self.aniax.plot([], [], 'o-', lw=10 )
+        # init lines
+        self.lines = []
+        # for each lines of the first data point
+        for j, line_pts in enumerate(self.ani_data[0]):
+            thisx = line_pts[:,0]
+            thisy = line_pts[:,1]
+            line = self.ani_ax.plot(thisx, thisy, 'o-')
+            self.lines.append( line )
+        
+        #self.line, = self.aniax.plot([], [], 'o-', lw=10 )
         self.time_template = 'time = %.1fs'
-        self.time_text = self.aniax.text(0.05, 0.9, '', transform=self.aniax.transAxes)
+        self.time_text = self.ani_ax.text(0.05, 0.9, '', transform=self.ani_ax.transAxes)
             
         inter      =  40.             # ms --> 25 frame per second
         frame_dt   =  inter / 1000. 
@@ -397,25 +404,27 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         # ANIMATION
         # blit=True option crash on mac
         #self.ani = animation.FuncAnimation( self.anifig, self.__animate__, n_frame , interval = inter, blit=True, init_func=self.__ani_init__)
-        self.ani = animation.FuncAnimation( self.anifig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ )
+        self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ )
         
         if save:
             self.ani.save( file_name + '.mp4' ) # , writer = 'mencoder' )
         
     #####################################    
     def __ani_init__(self):
-        self.line.set_data([], [])
+        for line in self.lines:
+            line[0].set_data([], [])
         self.time_text.set_text('')
-        return self.line, self.time_text
+        return self.lines, self.time_text
     
     ######################################
     def __animate__(self,i):
-        thisx = self.PTS[:, 0 , i * self.skip_steps ]
-        thisy = self.PTS[:, 1 , i * self.skip_steps ]
-    
-        self.line.set_data(thisx, thisy)
+
+        for j, line in enumerate(self.lines):
+            thisx = self.ani_data[i* self.skip_steps][j][:,0]
+            thisy = self.ani_data[i* self.skip_steps][j][:,1]
+            line[0].set_data(thisx, thisy)
         self.time_text.set_text(self.time_template % ( i * self.skip_steps * self.sim.dt ))
-        return self.line, self.time_text
+        return self.lines, self.time_text
         
     
 '''
@@ -434,7 +443,7 @@ if __name__ == "__main__":
     
     m.plot_trajectory( x0 )
     
-    #m.show( np.array([1,2]))
+    m.show( np.array([1,2]))
     #m.show3( np.array([-0.5,1.5]))
     
     m.animate_sim()
