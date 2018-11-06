@@ -186,25 +186,27 @@ class DoublePendulum( mechanical.MechanicalSystem ):
         # params
         self.setparams()
         
+        self.graphic_domain  = [ (-3,3) , (-3,3) , (-3,3) ]#
+        
             
     #############################
     def setparams(self):
         """ Set model parameters here """
         
-        self.l1  = 5 
-        self.l2  = 5
-        self.lc1 = 5
-        self.lc2 = 5
+        self.l1  = 1 
+        self.l2  = 1
+        self.lc1 = 1
+        self.lc2 = 1
         
         self.m1 = 1
-        self.I1 = 1
+        self.I1 = 0
         self.m2 = 1
-        self.I2 = 1
+        self.I2 = 0
         
         self.gravity = 9.81
         
-        self.d1 = 1
-        self.d2 = 1
+        self.d1 = 0
+        self.d2 = 0
         
         
     ##############################
