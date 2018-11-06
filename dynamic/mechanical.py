@@ -376,7 +376,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         
         # init lines
         self.lines = []
-        # for each lines of the first data point
+        # for each lines of the t=0 data point
         for j, line_pts in enumerate(self.ani_data[0]):
             thisx = line_pts[:,0]
             thisy = line_pts[:,1]
@@ -420,8 +420,8 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     def __animate__(self,i):
 
         for j, line in enumerate(self.lines):
-            thisx = self.ani_data[i* self.skip_steps][j][:,0]
-            thisy = self.ani_data[i* self.skip_steps][j][:,1]
+            thisx = self.ani_data[i * self.skip_steps][j][:,0]
+            thisy = self.ani_data[i * self.skip_steps][j][:,1]
             line[0].set_data(thisx, thisy)
         self.time_text.set_text(self.time_template % ( i * self.skip_steps * self.sim.dt ))
         return self.lines, self.time_text
