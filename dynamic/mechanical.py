@@ -174,7 +174,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     
     
     ###########################################################################
-    # No need to overwrite the following functions for custom manipulators
+    # No need to overwrite the following functions for custom system
     ###########################################################################
     
     #############################

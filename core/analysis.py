@@ -141,6 +141,12 @@ class PhasePlot:
         self.plot_finish()
         
         
+        
+##########################################################################
+# 3D Phase Plot Object for phase plane analysis
+##########################################################################
+        
+        
 class PhasePlot3( PhasePlot ):
     """ 
     Continous dynamic system phase plot 3D
@@ -214,8 +220,8 @@ class PhasePlot3( PhasePlot ):
         
         self.ax.quiver( self.X, self.Y, self.Z, self.v, self.w, self.u, 
                        color=self.color,  linewidth = self.linewidth,
-                       length = self.length, normalize = True)
-                       #, headlength = self.headlength )
+                       length = self.length)
+                       #, headlength = self.headlength, normalize = True )
         
     ##############################
     def plot_finish(self):
@@ -386,9 +392,11 @@ class Simulation:
         simfig , plots = plt.subplots(l, sharex=True, figsize=(4, 3), dpi=300, 
                                       frameon=True)
         
+        ###############################################
         #Fix bug for single variable plotting
         if l == 1:
             plots = [plots]
+        ###############################################
         
         simfig.canvas.set_window_title('Trajectory for ' + self.cds.name)
         
