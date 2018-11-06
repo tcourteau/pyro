@@ -7,6 +7,7 @@ Created on Tue Oct 23 20:45:37 2018
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 from AlexRobotics.core import system
 
@@ -46,7 +47,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         system.ContinuousDynamicSystem.__init__(self, n, m, p)
         
         # Name
-        self.name = str(dof) + 'DoF Manipulator'
+        self.name = str(dof) + 'DoF Mechanical System'
         
         # Labels, bounds and units
         for i in range(dof):
@@ -82,7 +83,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     ###########################################################################
     def H(self, q ):
         """ 
-        Inertia matrix of the manipulator
+        Inertia matrix 
         ----------------------------------
         dim( H ) = ( dof , dof )
         
@@ -336,6 +337,87 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         plt.show()
         
     
+    #############################
+    def plotAnimation(self, x0 , tf = 10 , n = 10001 , solver = 'ode',  save = False , file_name = 'RobotSim'  ):
+        """ Simulate and animate system """
+        
+        self.compute_trajectory( x0 , tf , n , solver )
+        
+        self.animate_sim( 1.0 , save , file_name )
+        
+        
+                
+    ##############################
+    def animate_sim(self, time_factor_video =  1.0 , save = False , file_name = 'RobotSim' ):
+        """ 
+        Show Animation of the simulation 
+        ----------------------------------
+        time_factor_video < 1 --> Slow motion video        
+        
+        """  
+        
+        # Compute pts localization
+        self.PTS = np.zeros(( 2 , 3 , self.sim.n ))
+        
+        for i in range( self.sim.n ):
+            
+            [ q , dq ]      = self.x2q(  self.sim.x_sol[i,:]  )
+            lines_pts       = self.graphic_forward_kinematic( q )
+            self.PTS[:,:,i] = lines_pts[1]
+            
+        # Figure
+        self.anifig = plt.figure()
+        self.anifig.canvas.set_window_title('2D Animation of ' + 
+                                            self.name )
+                                            
+        self.aniax = self.anifig.add_subplot(111,
+                                            autoscale_on=False, 
+                                            xlim=self.graphic_domain[0],
+                                            ylim=self.graphic_domain[1] )
+        self.aniax.grid()
+        
+        self.line, = self.aniax.plot([], [], 'o-', lw=10 )
+        self.time_template = 'time = %.1fs'
+        self.time_text = self.aniax.text(0.05, 0.9, '', transform=self.aniax.transAxes)
+            
+        inter      =  40.             # ms --> 25 frame per second
+        frame_dt   =  inter / 1000. 
+        
+        if ( frame_dt * time_factor_video )  < self.sim.dt :
+            # Simulation is slower than video
+            self.skip_steps = 1                                         # don't skip steps
+            inter           = self.sim.dt * 1000. / time_factor_video   # adjust frame speed to simulation
+            n_frame         = self.sim.n
+            
+        else:
+            # Simulation is faster than video
+            self.skip_steps =  int( frame_dt / self.sim.dt * time_factor_video ) # --> number of simulation frame to skip between video frames
+            n_frame         =  int( self.sim.n / self.skip_steps )               # --> number of video frames
+        
+        # ANIMATION
+        # blit=True option crash on mac
+        #self.ani = animation.FuncAnimation( self.anifig, self.__animate__, n_frame , interval = inter, blit=True, init_func=self.__ani_init__)
+        self.ani = animation.FuncAnimation( self.anifig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ )
+        
+        if save:
+            self.ani.save( file_name + '.mp4' ) # , writer = 'mencoder' )
+        
+    #####################################    
+    def __ani_init__(self):
+        self.line.set_data([], [])
+        self.time_text.set_text('')
+        return self.line, self.time_text
+    
+    ######################################
+    def __animate__(self,i):
+        thisx = self.PTS[:, 0 , i * self.skip_steps ]
+        thisy = self.PTS[:, 1 , i * self.skip_steps ]
+    
+        self.line.set_data(thisx, thisy)
+        self.time_text.set_text(self.time_template % ( i * self.skip_steps * self.sim.dt ))
+        return self.line, self.time_text
+        
+    
 '''
 #################################################################
 ##################          Main                         ########
@@ -352,6 +434,8 @@ if __name__ == "__main__":
     
     m.plot_trajectory( x0 )
     
-    m.show( np.array([1,2]))
-    m.show3( np.array([-0.5,1.5]))
+    #m.show( np.array([1,2]))
+    #m.show3( np.array([-0.5,1.5]))
+    
+    m.animate_sim()
         
