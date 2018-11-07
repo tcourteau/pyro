@@ -210,6 +210,20 @@ class ContinuousDynamicSystem:
         
         
     #############################
+    def compute_trajectory(self , x0 , tf = 10 , n = 10001 , solver = 'ode'):
+        """ 
+        Simulation of time evolution of the system
+        ------------------------------------------------
+        x0 : initial time
+        tf : final time
+        
+        """
+        
+        self.sim = analysis.Simulation( self , tf , n , solver )
+        self.sim.x0 = x0
+        self.sim.compute()
+        
+    #############################
     def plot_trajectory(self , x0 , tf = 10 ):
         """ 
         Simulation of time evolution of the system
@@ -219,10 +233,7 @@ class ContinuousDynamicSystem:
         
         """
 
-        self.sim = analysis.Simulation( self , tf )
-        
-        self.sim.x0 = x0
-        self.sim.compute()
+        self.compute_trajectory( x0 , tf )
         
         self.sim.plot()
         
