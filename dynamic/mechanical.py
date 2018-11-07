@@ -6,6 +6,7 @@ Created on Tue Oct 23 20:45:37 2018
 """
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -285,7 +286,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     def show(self, q , x_axis = 0 , y_axis = 1 ):
         """ Plot figure of configuration q """
         
-        self.showfig = plt.figure()
+        self.showfig = plt.figure(figsize=(4, 3), dpi=300)
         self.showfig.canvas.set_window_title('2D Configuration of ' + 
                                             self.name )
                                             
@@ -311,7 +312,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     def show3(self, q ):
         """ Plot figure of configuration q """
         
-        self.show3fig = plt.figure()
+        self.show3fig = plt.figure(figsize=(4, 3), dpi=300)
         self.showfig.canvas.set_window_title('3D Configuration of ' + 
                                             self.name )
         self.show3ax = self.show3fig.gca(projection='3d')
@@ -337,7 +338,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         
     
     #############################
-    def plotAnimation(self, x0 , tf = 10 , n = 10001 , solver = 'ode',  save = False , file_name = 'RobotSim'  ):
+    def plot_animation(self, x0 , tf = 10 , n = 10001 , solver = 'ode',  save = False , file_name = 'RobotSim'  ):
         """ Simulate and animate system """
         
         self.compute_trajectory( x0 , tf , n , solver )
@@ -364,16 +365,19 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
             self.ani_data.append(lines_pts)
             
         # Init figure
-        self.ani_fig = plt.figure()
+        self.ani_fig = plt.figure(figsize=(4, 3), dpi=300 )
         self.ani_fig.canvas.set_window_title('2D Animation of ' + 
                                             self.name )
-                                            
+        
         self.ani_ax = self.ani_fig.add_subplot(111,
-                                            autoscale_on=False, 
+                                            autoscale_on=True, 
                                             xlim=self.graphic_domain[0],
                                             ylim=self.graphic_domain[1] )
+        self.ani_ax.tick_params(axis='both', which='both', labelsize=
+                                self.sim.fontsize)
+
         self.ani_ax.grid()
-        
+                
         # init lines
         self.lines = []
         # for each lines of the t=0 data point
@@ -383,10 +387,13 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
             line = self.ani_ax.plot(thisx, thisy, 'o-')
             self.lines.append( line )
         
-        #self.line, = self.aniax.plot([], [], 'o-', lw=10 )
         self.time_template = 'time = %.1fs'
         self.time_text = self.ani_ax.text(0.05, 0.9, '', transform=self.ani_ax.transAxes)
             
+        self.ani_fig.tight_layout()
+        
+        
+        # Animation
         inter      =  40.             # ms --> 25 frame per second
         frame_dt   =  inter / 1000. 
         
@@ -403,7 +410,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         
         # ANIMATION
         # blit=True option crash on mac
-        #self.ani = animation.FuncAnimation( self.anifig, self.__animate__, n_frame , interval = inter, blit=True, init_func=self.__ani_init__)
+        #self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ , blit=True )
         self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ )
         
         if save:

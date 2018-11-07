@@ -366,8 +366,8 @@ class Simulation:
         else:
             pass
         
-        matplotlib.rc('xtick', labelsize=self.fontsize )
-        matplotlib.rc('ytick', labelsize=self.fontsize )
+        #matplotlib.rc('xtick', labelsize=self.fontsize )
+        #matplotlib.rc('ytick', labelsize=self.fontsize )
         
         # Number of subplots
         if plot == 'All':
@@ -409,6 +409,7 @@ class Simulation:
                 plots[j].set_ylabel(sys.state_label[i] +'\n'+ 
                 sys.state_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
+                plots[j].tick_params( labelsize = self.fontsize )
                 j = j + 1
                 
         if plot == 'All' or plot == 'u' or plot == 'xu' or plot == 'xuj':
@@ -418,6 +419,7 @@ class Simulation:
                 plots[j].set_ylabel(sys.input_label[i] + '\n' +
                 sys.input_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
+                plots[j].tick_params( labelsize = self.fontsize )
                 j = j + 1
             
         if plot == 'All' or plot == 'y' or plot == 'xy':
@@ -427,6 +429,7 @@ class Simulation:
                 plots[j].set_ylabel(sys.output_label[i] + '\n' + 
                 sys.output_units[i] , fontsize=self.fontsize )
                 plots[j].grid(True)
+                plots[j].tick_params( labelsize = self.fontsize )
                 j = j + 1
                 
         if plot == 'All' or plot == 'j' or plot == 'xuj':
@@ -434,10 +437,12 @@ class Simulation:
             plots[j].plot( self.t , self.dJ_sol[:] , 'b')
             plots[j].set_ylabel('dJ', fontsize=self.fontsize )
             plots[j].grid(True)
+            plots[j].tick_params( labelsize = self.fontsize )
             j = j + 1
             plots[j].plot( self.t , self.J_sol[:] , 'r')
             plots[j].set_ylabel('J', fontsize=self.fontsize )
             plots[j].grid(True)
+            plots[j].tick_params( labelsize = self.fontsize )
             j = j + 1
                
         plots[l-1].set_xlabel('Time [sec]', fontsize=self.fontsize )
