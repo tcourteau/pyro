@@ -7,8 +7,8 @@ Created on Mon Oct 22 08:40:31 2018
 
 import numpy as np
 
-from AlexRobotics.core import system
-from AlexRobotics.core import analysis
+from AlexRobotics.dynamic import system
+from AlexRobotics.analysis import simulation
 
 ###############################################################################
 # Mother Controller class
@@ -253,7 +253,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         """
 
-        self.sim = analysis.CLosedLoopSimulation( self , tf )
+        self.sim = simulation.CLosedLoopSimulation( self , tf )
         
         self.sim.x0 = x0
         self.sim.compute()
@@ -273,7 +273,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         """
         
-        self.sim = analysis.CLosedLoopSimulation( self , tf )
+        self.sim = simulation.CLosedLoopSimulation( self , tf )
         
         self.sim.x0 = x0
         self.sim.compute()

@@ -7,8 +7,8 @@ Created on Fri Aug 07 11:51:55 2015
 
 import numpy as np
 
-from AlexRobotics.core import analysis
-
+from AlexRobotics.analysis import simulation
+from AlexRobotics.analysis import phaseanalysis
        
 '''
 ###############################################################################
@@ -204,7 +204,7 @@ class ContinuousDynamicSystem:
         
         """
 
-        self.pp = analysis.PhasePlot( self , x_axis , y_axis )
+        self.pp = phaseanalysis.PhasePlot( self , x_axis , y_axis )
         
         self.pp.plot()
         
@@ -219,7 +219,7 @@ class ContinuousDynamicSystem:
         
         """
         
-        self.sim = analysis.Simulation( self , tf , n , solver )
+        self.sim = simulation.Simulation( self , tf , n , solver )
         self.sim.x0 = x0
         self.sim.compute()
         
@@ -250,7 +250,7 @@ class ContinuousDynamicSystem:
         
         """
         
-        self.sim = analysis.Simulation( self , tf )
+        self.sim = simulation.Simulation( self , tf )
         
         self.sim.x0 = x0
         self.sim.compute()

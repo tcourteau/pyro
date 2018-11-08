@@ -396,5 +396,5 @@ if __name__ == "__main__":
     #sys.show(np.array([0.1,0.1]))
     #sys.show3(np.array([0.1,0.1]))
     
-    sys.plot_trajectory( x0 )
+    sys.plot_trajectory( x0 , 20)
     sys.animate_sim()

@@ -7,13 +7,13 @@ Created on Mon Oct 22 11:37:48 2018
 
 import numpy as np
 
-from AlexRobotics.core import control
+from AlexRobotics.control import controller
 
 ###############################################################################
 # Simple proportionnal controller
 ###############################################################################
         
-class ProportionnalSingleVariableController( control.StaticController ) :
+class ProportionnalSingleVariableController( controller.StaticController ) :
     """ 
     Simple proportionnal compensator
     ---------------------------------------
@@ -40,7 +40,7 @@ class ProportionnalSingleVariableController( control.StaticController ) :
         self.m = k   
         self.p = k
         
-        control.StaticController.__init__(self, self.k, self.m, self.p)
+        controller.StaticController.__init__(self, self.k, self.m, self.p)
         
         # Label
         self.name = 'Proportionnal Controller'
@@ -85,9 +85,9 @@ class ProportionnalSingleVariableController( control.StaticController ) :
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.core import analysis
+    from AlexRobotics.analysis import phaseanalysis
     from AlexRobotics.dynamic import integrator
-    from AlexRobotics.core import control
+    from AlexRobotics.control import controller
     
     # Double integrator
     si = integrator.SimpleIntegrator()
@@ -99,17 +99,17 @@ if __name__ == "__main__":
     psvc.gain = 1
     
     # New cl-dynamic
-    clsi = control.ClosedLoopSystem( si ,  psvc )
+    clsi = controller.ClosedLoopSystem( si ,  psvc )
     clsi.plot_phase_plane_trajectory_CL([10],10,0,0)
     clsi.sim.plot('xu')
     
-    cldi = control.ClosedLoopSystem( di ,  psvc )
+    cldi = controller.ClosedLoopSystem( di ,  psvc )
     cldi.plot_phase_plane_trajectory_CL([10,0],10,0,1)
     cldi.sim.plot('xu')
     
-    clti = control.ClosedLoopSystem( ti ,  psvc )
+    clti = controller.ClosedLoopSystem( ti ,  psvc )
     clti.plot_trajectory_CL([10,0,0],10)
     clti.sim.plot('xu')
     
-    pp = analysis.PhasePlot3( clti )
+    pp = phaseanalysis.PhasePlot3( clti )
     pp.plot()

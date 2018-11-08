@@ -7,7 +7,7 @@ Created on Thu Oct 18 20:54:31 2018
 
 import numpy as np
 
-from AlexRobotics.core import system
+from AlexRobotics.dynamic import system
 
 
 ##############################################################################
@@ -249,7 +249,7 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.core import analysis
+    from AlexRobotics.analysis import costfunction
     
     ###################################
     # Double integrator
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     di.sim.plot('xuj')
     
     # Time cost
-    di.sim.cf = analysis.TimeCostFunction( di )
+    di.sim.cf = costfunction.TimeCostFunction( di )
     di.sim.compute_cost()
     di.sim.plot('j')
     
