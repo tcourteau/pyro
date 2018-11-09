@@ -9,6 +9,7 @@ import numpy as np
 
 from AlexRobotics.analysis import simulation
 from AlexRobotics.analysis import phaseanalysis
+from AlexRobotics.analysis import graphical
        
 '''
 ###############################################################################
@@ -129,7 +130,7 @@ class ContinuousDynamicSystem:
     
         
     ###########################################################################
-    # Basic domain checks, ovewrite if something more complex is needed
+    # Basic domain checks, ovewload if something more complex is needed
     ###########################################################################
         
     #############################
@@ -151,8 +152,55 @@ class ContinuousDynamicSystem:
             ans = ans or ( u[i] > self.u_ub[i] )
             
         return not(ans)
-        
     
+    
+    ###########################################################################
+    # Empty graphical output, , ovewload with graphical specific graph output
+    ###########################################################################
+        
+    #############################
+    def xut2q( self, x , u , t ):
+        """ Compute configuration variables """
+        
+        # default is q = x
+        
+        return x
+    
+    ###########################################################################
+    def forward_kinematic_domain(self, q ):
+        """ 
+        """
+        l = 10
+        
+        domain  = [ (-l,l) , (-l,l) , (-l,l) ]#  
+                
+        return domain
+    
+    ###########################################################################
+    def forward_kinematic_lines(self, q ):
+        """ 
+        Compute points p = [x;y;z] positions given config q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        
+        Outpus:
+        lines_pts = [] : a list of array (n_pts x 3) for each lines
+        
+        """
+        
+        lines_pts = [] # list of array (n_pts x 3) for each lines
+        
+        ###########################
+        # Your graphical code here
+        ###########################
+            
+        # simple place holder
+        for i in range(self.n):
+            pts      = np.zeros(( 1 , 3 ))     # array of 1 pts for the line
+            pts[0,0] = q[i]                    # x cord of point 0 = q
+            lines_pts.append( pts )            # list of all arrays of pts
+                
+        return lines_pts
     
     ###########################################################################
     # No need to overwrite the following functions for custom dynamic systems
@@ -192,7 +240,11 @@ class ContinuousDynamicSystem:
         x_next = self.f(x,u) * dt + x
         
         return x_next
-        
+    
+    
+    ###########################################################################
+    # Quick Analysis Shorcuts
+    ###########################################################################
         
     #############################
     def plot_phase_plane(self , x_axis = 0 , y_axis = 1 ):
@@ -255,6 +307,46 @@ class ContinuousDynamicSystem:
         self.sim.x0 = x0
         self.sim.compute()
         self.sim.phase_plane_trajectory( x_axis , y_axis )
+        
+    
+    #############################################
+    def show(self, q , x_axis = 0 , y_axis = 1 ):
+        """ Plot figure of configuration q """
+        
+        self.ani = graphical.Animator( self )
+        self.ani.x_axis  = x_axis
+        self.ani.y_axis  = y_axis
+        
+        self.ani.show( q )
+        
+    
+    #############################################
+    def show3(self, q ):
+        """ Plot figure of configuration q """
+        
+        self.ani = graphical.Animator( self )
+        
+        self.ani.show3( q )
+    
+    #############################
+    def animate(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
+        """ Simulate and animate system """
+        
+        self.compute_trajectory( x0 , tf , n , solver )
+        
+        self.ani = graphical.Animator( self )
+        self.ani.animate_sim( 1.0 )
+        
+    ##############################
+    def animate_simulation(self, time_factor_video =  1.0 , save = False , file_name = 'RobotSim' ):
+        """ 
+        Show Animation of the simulation 
+        ----------------------------------
+        time_factor_video < 1 --> Slow motion video        
+        
+        """  
+        self.ani = graphical.Animator( self )
+        self.ani.animate_sim( time_factor_video , save , file_name )
 
 
 '''

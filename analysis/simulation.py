@@ -240,7 +240,7 @@ class Simulation:
     #############################
     def phase_plane_trajectory(self , x_axis , y_axis ):
         """ """
-        self.pp = PhasePlot( self.cds , x_axis , y_axis )
+        self.pp = phaseanalysis.PhasePlot( self.cds , x_axis , y_axis )
         self.pp.plot()
                
         plt.plot(self.x_sol[:,x_axis], self.x_sol[:,y_axis], 'b-') # path

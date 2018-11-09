@@ -127,12 +127,21 @@ class SinglePendulum( mechanical.MechanicalSystem ):
         return d
         
     ###########################################################################
-    # The following functions needs to be overloaded by child classes
-    # to enable graphical outputs functionnalities
+    # Graphical output
     ###########################################################################
     
     ###########################################################################
-    def graphic_forward_kinematic(self, q ):
+    def forward_kinematic_domain(self, q ):
+        """ 
+        """
+        l = 2
+        
+        domain  = [ (-l,l) , (-l,l) , (-l,l) ]#  
+                
+        return domain
+    
+    ###########################################################################
+    def forward_kinematic_lines(self, q ):
         """ 
         Compute points p = [x;y;z] positions given config q 
         ----------------------------------------------------
@@ -185,9 +194,7 @@ class DoublePendulum( mechanical.MechanicalSystem ):
         
         # params
         self.setparams()
-        
-        self.graphic_domain  = [ (-3,3) , (-3,3) , (-3,3) ]#
-        
+                
             
     #############################
     def setparams(self):
@@ -321,12 +328,21 @@ class DoublePendulum( mechanical.MechanicalSystem ):
         return d
         
     ###########################################################################
-    # The following functions needs to be overloaded by child classes
-    # to enable graphical outputs functionnalities
+    # Graphical output
     ###########################################################################
     
     ###########################################################################
-    def graphic_forward_kinematic(self, q ):
+    def forward_kinematic_domain(self, q ):
+        """ 
+        """
+        l = 3
+        
+        domain  = [ (-l,l) , (-l,l) , (-l,l) ]#  
+                
+        return domain
+    
+    ###########################################################################
+    def forward_kinematic_lines(self, q ):
         """ 
         Compute points p = [x;y;z] positions given config q 
         ----------------------------------------------------
@@ -394,7 +410,7 @@ if __name__ == "__main__":
     x0 = np.array([0.1,0.1,0,0])
     
     #sys.show(np.array([0.1,0.1]))
-    #sys.show3(np.array([0.1,0.1]))
+    sys.show3(np.array([0.1,0.1]))
     
     sys.plot_trajectory( x0 , 20)
-    sys.animate_sim()
+    sys.animate_simulation()
