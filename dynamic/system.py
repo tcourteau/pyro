@@ -335,10 +335,10 @@ class ContinuousDynamicSystem:
         self.compute_trajectory( x0 , tf , n , solver )
         
         self.ani = graphical.Animator( self )
-        self.ani.animate_sim( 1.0 )
+        self.ani.animate_simulation( 1.0 )
         
     ##############################
-    def animate_simulation(self, time_factor_video =  1.0 , save = False , file_name = 'RobotSim' ):
+    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'RobotSim' ):
         """ 
         Show Animation of the simulation 
         ----------------------------------
@@ -346,7 +346,7 @@ class ContinuousDynamicSystem:
         
         """  
         self.ani = graphical.Animator( self )
-        self.ani.animate_sim( time_factor_video , save , file_name )
+        self.ani.animate_simulation( time_factor_video , is_3d, save , file_name )
 
 
 '''

@@ -183,7 +183,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         H = self.H( q )
         C = self.C( q , dq )
         g = self.g( q )
-        d = self.g( q , dq )
+        d = self.d( q , dq )
                 
         # Generalized forces
         forces = np.dot( H , ddq ) + np.dot( C , dq ) + g + d

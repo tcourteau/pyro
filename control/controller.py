@@ -8,7 +8,9 @@ Created on Mon Oct 22 08:40:31 2018
 import numpy as np
 
 from AlexRobotics.dynamic import system
+from AlexRobotics.analysis import phaseanalysis
 from AlexRobotics.analysis import simulation
+from AlexRobotics.analysis import graphical
 
 ###############################################################################
 # Mother Controller class
@@ -222,7 +224,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         """
 
-        self.pp = analysis.PhasePlot( self , x_axis , y_axis )
+        self.pp = phaseanalysis.PhasePlot( self , x_axis , y_axis )
         
         self.pp.compute_grid()
         self.pp.plot_init()
@@ -237,9 +239,9 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         self.pp.ubar  = self.sys.ubar
         self.pp.color = 'b'
         self.pp.compute_vector_field()
-        self.plot_vector_field()
+        self.pp.plot_vector_field()
         
-        self.plot_finish()
+        self.pp.plot_finish()
         
         
     
@@ -278,6 +280,49 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         self.sim.x0 = x0
         self.sim.compute()
         self.sim.phase_plane_trajectory_CL( x_axis , y_axis )
+        
+    #############################################
+    # Make graph function use the internal sys
+    #############################################
+        
+    #############################################
+    def show(self, q , x_axis = 0 , y_axis = 1 ):
+        """ Plot figure of configuration q """
+        
+        system.ContinuousDynamicSystem.show( self.sys , q , x_axis = 0 , y_axis = 1  )
+        
+    
+    #############################################
+    def show3(self, q ):
+        """ Plot figure of configuration q """
+        
+        system.ContinuousDynamicSystem.show3(self.sys, q)
+    
+    #############################
+    def animate(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
+        """ Simulate and animate system """
+        
+        system.ContinuousDynamicSystem.animate(self.sys, x0 , tf , n , solver)
+        
+        self.compute_trajectory( x0 , tf , n , solver )
+        
+        self.ani = graphical.Animator( self.sys )
+        self.ani.sys.sim = self.sim
+        self.ani.animate_simulation( 1.0 )
+        
+    ##############################
+    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'RobotSim' ):
+        """ 
+        Show Animation of the simulation 
+        ----------------------------------
+        time_factor_video < 1 --> Slow motion video        
+        
+        """  
+        
+        self.ani = graphical.Animator( self.sys )
+        self.ani.sys.sim = self.sim
+        self.ani.animate_simulation( time_factor_video , is_3d, save , file_name )
+
         
         
     

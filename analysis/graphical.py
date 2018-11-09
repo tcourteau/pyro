@@ -114,12 +114,12 @@ class Animator:
         
         self.sys.compute_trajectory( x0 , tf , n , solver )
         
-        self.animate_sim( 1.0 , save , file_name )
+        self.animate_simulation( 1.0 , save , file_name )
         
         
                 
     ##############################
-    def animate_sim(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'Animation' ):
+    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'Animation' ):
         """ 
         Show Animation of the simulation 
         ----------------------------------
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     #sys.show( np.array([0]))
     #sys.show3( np.array([0]))
     
-    #sys.animate_sim()
+    #sys.animate_simulation()
     
     sys = pendulum.DoublePendulum()
     x0 = np.array([0.1,0.1,0,0])
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     sys.plot_trajectory( x0 , 20)
     
     a = Animator(sys)
-    a.animate_sim(1,is_3d)
+    a.animate_simulation(1,is_3d)
     
     sys = vehicle.KinematicBicyleModel()
     sys.ubar = np.array([1,0.01])
@@ -301,4 +301,4 @@ if __name__ == "__main__":
     
     b = Animator(sys)
     sys.plot_trajectory( x0 , 100 )
-    b.animate_sim(10,is_3d)
+    b.animate_simulation(10,is_3d)
