@@ -19,21 +19,23 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     """ 
     Mechanical system with Equation of Motion in the form of
     -------------------------------------------------------
-    H(q) ddq + C(q,dq) dq + d(q,dq) + g(q) = B(q) tau
+    H(q) ddq + C(q,dq) dq + d(q,dq) + g(q) = B(q) u
     -------------------------------------------------------
     q      :  dim = (dof, 1)   : position variables 
     dq     :  dim = (dof, 1)   : velocity variables     
     ddq    :  dim = (dof, 1)   : acceleration variables
+    u      :  dim = (m, 1)     : force input variables
     H(q)   :  dim = (dof, dof) : inertia matrix
     C(q)   :  dim = (dof, dof) : corriolis matrix
-    B(q)   :  dim = (dof, dof) : actuator matrix
+    B(q)   :  dim = (dof, m)   : actuator matrix
+    ddq    :  dim = (dof, 1)   : acceleration variables
     d(q,dq):  dim = (dof, 1)   : state-dependent dissipative forces
     g(q)   :  dim = (dof, 1)   : state-dependent conservatives forces
     
     """
     
     ############################
-    def __init__(self, dof = 1 ):
+    def __init__(self, dof = 1 , m = 1):
         """ """
         
         # Degree of Freedom

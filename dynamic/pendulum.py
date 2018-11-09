@@ -22,7 +22,7 @@ class SinglePendulum( mechanical.MechanicalSystem ):
         """ """
                
         # initialize standard params
-        mechanical.MechanicalSystem.__init__(self, 1)
+        mechanical.MechanicalSystem.__init__(self, 1 , 1)
         
         # Name
         self.name = 'Single Pendulum'

@@ -48,7 +48,7 @@ class Simulation:
         self.fontsize = 5
         
         # Cost computing
-        self.cf = QuadraticCostFunction( ContinuousDynamicSystem )
+        self.cf = costfunction.QuadraticCostFunction( ContinuousDynamicSystem )
 
         
     ##############################
