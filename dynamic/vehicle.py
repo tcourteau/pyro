@@ -6,7 +6,6 @@ Created on Tue Oct 23 20:45:37 2018
 """
 
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 

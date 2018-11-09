@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import mpl_toolkits.mplot3d.axes3d as p3
 
+from AlexRobotics.dynamic import system
+
 ##############################################################################
         
 class Animator:
@@ -18,19 +20,25 @@ class Animator:
     """
     
     ############################
-    def __init__(self, system ):
-        """ """
-        
-        self.sys = system
-        
+    def __init__(self, sys = system.ContinuousDynamicSystem() ):
         """
         sys needs to implement:
         
+        get configuration from states, inputs and time
+        ----------------------------------------------
         q             = sys.xut2q( x , u , t )
+        
+        get graphic output list of lines from configuration
+        ----------------------------------------------
         lines_pts     = sys.forward_kinematic_lines( q )
+        
+        get graphic domain from configuration
+        ----------------------------------------------
         ((,),(,),(,)) = sys.forward_kinematic_domain( q )
         
         """
+        
+        self.sys = sys
         
         self.x_axis = 0
         self.y_axis = 1

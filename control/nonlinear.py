@@ -50,8 +50,6 @@ class ComputedTorqueController( controller.StaticController ) :
         self.w0   = 1
         self.zeta = 0.7 
         
-           
-        
     
     #############################
     def c( self , y , r , t = 0 ):
