@@ -119,14 +119,13 @@ class Animator:
         
                 
     ##############################
-    def animate_sim(self, time_factor_video =  1.0 , save = False , file_name = 'Animation' ):
+    def animate_sim(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'Animation' ):
         """ 
         Show Animation of the simulation 
         ----------------------------------
         time_factor_video < 1 --> Slow motion video        
         
         """  
-        is_3d = False
         self.is_3d = is_3d
         
         # Init list
@@ -180,7 +179,7 @@ class Animator:
                 thisy = line_pts[:,1]
                 thisz = line_pts[:,2]
                 line, = self.ani_ax.plot(thisx, thisy, thisz, self.linestyle)
-                self.time_text = self.ani_ax.text(0.05, 0.9, 0, 'time =', 
+                self.time_text = self.ani_ax.text(0, 0, 0, 'time =', 
                                                   transform=self.ani_ax.transAxes)
             else:
                 thisx = line_pts[:,self.x_axis]
@@ -211,7 +210,10 @@ class Animator:
         # ANIMATION
         # blit=True option crash on mac
         #self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ , blit=True )
-        self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ )
+        if self.is_3d:
+            self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter )
+        else:
+            self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ )
         
         if save:
             self.ani.save( file_name + '.mp4' ) # , writer = 'mencoder' )
@@ -244,9 +246,9 @@ class Animator:
         
         # Update domain
         if self.is_3d:
-            self.ax.set_xlim3d(self.ani_domains[i * self.skip_steps][0])
-            self.ax.set_ylim3d(self.ani_domains[i * self.skip_steps][1])
-            self.ax.set_zlim3d(self.ani_domains[i * self.skip_steps][2])
+            self.ani_ax.set_xlim3d(self.ani_domains[i * self.skip_steps][0])
+            self.ani_ax.set_ylim3d(self.ani_domains[i * self.skip_steps][1])
+            self.ani_ax.set_zlim3d(self.ani_domains[i * self.skip_steps][2])
         else:
             self.ani_ax.set_xlim(  self.ani_domains[i * self.skip_steps][self.x_axis] )
             self.ani_ax.set_ylim(  self.ani_domains[i * self.skip_steps][self.y_axis] )
@@ -286,14 +288,17 @@ if __name__ == "__main__":
     #sys.show(np.array([0.1,0.1]))
     #sys.show3(np.array([0.1,0.1]))
     
+    is_3d = False
+    
     sys.plot_trajectory( x0 , 20)
     
     a = Animator(sys)
-    a.animate_sim()
+    a.animate_sim(1,is_3d)
     
     sys = vehicle.KinematicBicyleModel()
     sys.ubar = np.array([1,0.01])
     x0 = np.array([0,0,0])
     
-    #b = Animator(sys)
-    #b.plot_animation( x0 , 100 )
+    b = Animator(sys)
+    sys.plot_trajectory( x0 , 100 )
+    b.animate_sim(10,is_3d)
