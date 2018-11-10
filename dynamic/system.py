@@ -155,7 +155,7 @@ class ContinuousDynamicSystem:
     
     
     ###########################################################################
-    # Empty graphical output, , ovewload with graphical specific graph output
+    # Place holder graphical output, ovewload with specific graph output
     ###########################################################################
         
     #############################
@@ -227,7 +227,7 @@ class ContinuousDynamicSystem:
     
         
     #############################
-    def x_next( self , x , u , dt = 0.1 ):
+    def x_next( self , x , u , t , dt = 0.1 ):
         """ 
         Discrete time foward dynamics evaluation 
         -------------------------------------
@@ -237,7 +237,7 @@ class ContinuousDynamicSystem:
         
         x_next = np.zeros(self.n) # k+1 State vector
         
-        x_next = self.f(x,u) * dt + x
+        x_next = self.f(x,u,t) * dt + x
         
         return x_next
     

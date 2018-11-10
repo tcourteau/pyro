@@ -64,18 +64,10 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
             self.state_label[i+dof] = 'Velocity ' + str(i)
             self.state_units[i+dof] = '[rad/sec]'
         for i in range(dof):
+            self.u_ub[i] = + 5
+            self.u_lb[i] = - 5
             self.input_label[i] = 'Torque ' + str(i)
             self.input_units[i] ='[Nm]'
-        for i in range(dof):
-            # joint angle states
-            self.output_label[i] = 'Angle '+ str(i)
-            self.output_units[i] = '[rad]'
-            # joint velocity states
-            self.output_label[i+dof] = 'Velocity ' + str(i)
-            self.output_units[i+dof] = '[rad/sec]'
-            
-        # Graphic output parameters 
-        self.graphic_domain  = [ (-10,10) , (-10,10) , (-10,10) ]#
             
     ###########################################################################
     # The following functions needs to be overloaded by child classes

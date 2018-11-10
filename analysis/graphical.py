@@ -20,8 +20,11 @@ class Animator:
     """
     
     ############################
-    def __init__(self, sys = system.ContinuousDynamicSystem() ):
+    def __init__(self, sys ):
         """
+        
+        sys = system.ContinuousDynamicSystem()
+        
         sys needs to implement:
         
         get configuration from states, inputs and time
