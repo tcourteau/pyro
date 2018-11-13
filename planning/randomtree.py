@@ -70,9 +70,12 @@ class RRT:
         self.dyna_plot            = True
         self.dyna_node_no_update  = 100
         self.fontsize             = 5
+        self.figsize              = (3, 2)
+        self.dpi                  = 300
         self.x_axis               = 0  # State to plot on x axis
         self.y_axis               = 1  # State to plot on y axis
         self.z_axis               = 2  # State to plot on z axis
+        
         
         self.discretizeactions()
         
@@ -439,65 +442,116 @@ class RRT:
     def plot_tree(self):
         """ """
         
-        self.y1min = self.sys.x_lb[ self.x_axis ]
-        self.y1max = self.sys.x_ub[ self.x_axis ]
-        self.y2min = self.sys.x_lb[ self.y_axis ]
-        self.y2max = self.sys.x_ub[ self.y_axis ]
+        # Create figure
+        self.fig_tree = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
         
-        self.phasefig = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
-        self.ax       = self.phasefig.add_subplot(111)
+        # Set window title
+        self.fig_tree.canvas.set_window_title('RRT tree search for ' + 
+                                            self.sys.name )
         
+        # Create axe
+        ax       = self.fig_tree.add_subplot(111)
+        
+        # Plot Tree
         for node in self.nodes:
             if not(node.parent==None):
-                line = self.ax.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'o-')
-                
+                ax.plot( 
+                [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , 
+                [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'o-')
+        
+        # Plot Solution Path
         if not self.solution == None:
             for node in self.path_node_list:
-                if not(node.parent==None):
-                    line = self.ax.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'r')
+                if not( node.parent == None ):
+                    ax.plot( 
+                    [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , 
+                    [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'r')
         
+        # Set axis labels
+        ax.set_xlabel(
+                self.sys.state_label[ self.x_axis ] + ' ' +
+                self.sys.state_units[ self.x_axis ] , fontsize=self.fontsize)
+        ax.set_ylabel(
+                self.sys.state_label[ self.y_axis ] + ' ' + 
+                self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize)
         
-        plt.xlabel(self.sys.state_label[ self.x_axis ] + ' ' + self.sys.state_units[ self.x_axis ] , fontsize=self.fontsize)
-        plt.ylabel(self.sys.state_label[ self.y_axis ] + ' ' + self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize)
-        plt.xlim([ self.y1min , self.y1max ])
-        plt.ylim([ self.y2min , self.y2max ])
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
+        # Set domain
+        ax.set_xlim(
+                [ self.sys.x_lb[ self.x_axis ] , self.sys.x_ub[ self.x_axis ] ]
+                )
+        ax.set_ylim(
+                [ self.sys.x_lb[ self.y_axis ] , self.sys.x_ub[ self.y_axis ] ]
+                )
+        
+        #Set grid
+        ax.grid(True)
+        
+        self.fig_tree.tight_layout()
+        self.fig_tree.show()
+        
+        return ax
         
         
     ############################
     def plot_tree_3d(self):
         """ """
         
-        self.y1min = self.sys.x_lb[ self.x_axis ]
-        self.y1max = self.sys.x_ub[ self.x_axis ]
-        self.y2min = self.sys.x_lb[ self.y_axis ]
-        self.y2max = self.sys.x_ub[ self.y_axis ]
-        self.y3min = self.sys.x_lb[ self.z_axis ]
-        self.y3max = self.sys.x_ub[ self.z_axis ]
+        # Create figure
+        self.fig_tree_3d = plt.figure( figsize = self.figsize, dpi = self.dpi )
         
-        self.fig_3d   = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
-        self.ax3      = self.fig_3d.gca(projection='3d')
+        # Set window title
+        self.fig_tree_3d.canvas.set_window_title('RRT tree search for ' + 
+                                            self.sys.name )
         
+        # Create Axe
+        ax = self.fig_tree_3d.gca( projection='3d' )
+        
+        # Plot Tree
         for node in self.nodes:
             if not(node.parent==None):
-                line = self.ax3.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , [node.x[ self.z_axis ],node.parent.x[ self.z_axis ]] , 'o-')
-                
+                ax.plot( 
+                [ node.x[ self.x_axis ] , node.parent.x[ self.x_axis ]] ,
+                [ node.x[ self.y_axis ] , node.parent.x[ self.y_axis ]] ,
+                [ node.x[ self.z_axis ] , node.parent.x[ self.z_axis ]] , 'o-')
+        
+        # Plot Solution Path
         if not self.solution == None:
             for node in self.path_node_list:
-                if not(node.parent==None):
-                    line = self.ax3.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , [node.x[ self.z_axis ],node.parent.x[ self.z_axis ]], 'r')
-                    
-        self.ax3.set_xlim3d( [ self.y1min , self.y1max ] )
-        self.ax3.set_ylim3d( [ self.y2min , self.y2max ]  )
-        self.ax3.set_zlim3d( [ self.y3min , self.y3max ]  )
-        self.ax3.set_xlabel(self.sys.state_label[ self.x_axis ] + ' ' + self.sys.state_units[ self.x_axis ] , fontsize=self.fontsize)
-        self.ax3.set_ylabel(self.sys.state_label[ self.y_axis ] + ' ' + self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize)
-        self.ax3.set_zlabel(self.sys.state_label[ self.z_axis ] + ' ' + self.sys.state_units[ self.z_axis ] , fontsize=self.fontsize)
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
+                if not( node.parent == None ):
+                    ax.plot( 
+                    [ node.x[ self.x_axis ] , node.parent.x[ self.x_axis ]] ,
+                    [ node.x[ self.y_axis ] , node.parent.x[ self.y_axis ]] ,
+                    [ node.x[ self.z_axis ] , node.parent.x[ self.z_axis ]] , 
+                    'r')
+        
+        # Set domain
+        ax.set_xlim3d( [ self.sys.x_lb[ self.x_axis ] ,
+                         self.sys.x_ub[ self.x_axis ] ] )
+        ax.set_ylim3d( [ self.sys.x_lb[ self.y_axis ] , 
+                         self.sys.x_ub[ self.y_axis ] ]  )
+        ax.set_zlim3d( [ self.sys.x_lb[ self.z_axis ] , 
+                         self.sys.x_ub[ self.z_axis ] ]  )
+    
+        # Set labels
+        ax.set_xlabel(
+        self.sys.state_label[ self.x_axis ] + ' ' + 
+        self.sys.state_units[ self.x_axis ] ,  fontsize=self.fontsize )
+        
+        ax.set_ylabel(
+        self.sys.state_label[ self.y_axis ] + ' ' +
+        self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize)
+        
+        ax.set_zlabel(
+        self.sys.state_label[ self.z_axis ] + ' ' + 
+        self.sys.state_units[ self.z_axis ] , fontsize=self.fontsize)
+        
+        # Grid
+        ax.grid(True)
+        
+        self.fig_tree_3d.tight_layout()
+        self.fig_tree_3d.show()
+        
+        return ax
         
     
     ############################
@@ -511,7 +565,7 @@ class RRT:
         matplotlib.rc('xtick', labelsize=self.fontsize )
         matplotlib.rc('ytick', labelsize=self.fontsize )
         
-        self.phasefig  = plt.figure(figsize=(3, 2),dpi=600, frameon=True)
+        self.phasefig  = plt.figure(figsize=self.figsize,dpi=self.dpi)
         self.ax        = self.phasefig.add_subplot(111)
         
         self.time_template = 'Number of nodes = %i'
