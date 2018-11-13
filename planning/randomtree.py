@@ -54,15 +54,16 @@ class RRT:
         
         
         # Params
-        self.dt  = 0.1
-        self.INF = 10000
-        self.eps = 0.001
-        
+        self.dt                   = 0.1
+        self.INF                  = 10000
+        self.eps                  = 0.001
+        self.steps                = 1
         self.goal_radius          = 0.5        
         self.alpha                = 0.9    # prob of random exploration
-        self.max_nodes            = 10000  # maximum number of nodes
-        self.max_distance_compute = 1000   # max  nodes to check distance
-        self.max_solution_time    = 10     # won"t look for longuer solution 
+        self.beta                 = 0.0    # prob of random u
+        self.max_nodes            = 2000  # maximum number of nodes
+        self.max_distance_compute = 2000   # max  nodes to check distance
+        self.max_solution_time    = 100    # won"t look for longuer solution 
         
         self.test_u_domain        = False  # run a check on u input 
                 
@@ -83,6 +84,8 @@ class RRT:
         self.solution              = None
         self.randomized_input      = False
         
+        self.debug                 = False
+        
         
     #############################
     def discretizeactions(self, n = 3 ):
@@ -98,6 +101,10 @@ class RRT:
         ranges = self.sys.x_ub - self.sys.x_lb
         
         x_random = np.random.rand( self.sys.n ) * ranges + self.sys.x_lb
+        
+        #if not( self.sys.isavalidstate( x_random ) ):
+                # Sample again (recursivity)
+                #x_random = self.rand_state()
         
         return x_random
         
@@ -164,10 +171,15 @@ class RRT:
             x_next     = self.sys.x_next( closest_node.x , 
                                           u , 
                                           closest_node.t , 
-                                          self.dt )
+                                          self.dt ,
+                                          self.steps 
+                                          )
             
-            t_next     = closest_node.t + self.dt
+            t_next     = closest_node.t + self.dt * self.steps
             new_node   = Node( x_next , u , t_next  , closest_node )
+            
+            if not( self.sys.isavalidstate( x_next ) ):
+                new_node = None
         
         # Pick control input that bring the sys close to random point
         else:
@@ -187,14 +199,16 @@ class RRT:
                 x_next     = self.sys.x_next( closest_node.x , 
                                               u , 
                                               closest_node.t , 
-                                              self.dt )
+                                              self.dt ,
+                                              self.steps 
+                                              )
                 
-                t_next     = closest_node.t + self.dt
+                t_next     = closest_node.t + self.dt * self.steps
                 node       = Node( x_next , u , t_next  , closest_node )
                 
                 d = node.distanceTo( x_target )
                 
-                if d < min_distance:
+                if ( d < min_distance ) and self.sys.isavalidstate( x_next ) :
                     min_distance = d
                     new_node     = node
                     
@@ -207,17 +221,15 @@ class RRT:
         """ """
         x_random  = self.rand_state()
         
-        # If random point is a valid state
-        if True: #TODO
-            node_near = self.nearest_neighbor( x_random )
+        node_near = self.nearest_neighbor( x_random )
+        
+        # if a valid neighbor was found
+        if not node_near == None:
+            new_node  = self.select_control_input( x_random , node_near )
             
-            # if a valid neighbor was found
-            if not node_near == None:
-                new_node  = self.select_control_input( x_random , node_near )
-                
-                # if there is a valid control input
-                if not new_node == None:
-                    self.nodes.append( new_node )
+            # if there is a valid control input
+            if not new_node == None:
+                self.nodes.append( new_node )
         
         
     ############################
@@ -255,35 +267,45 @@ class RRT:
             else:
                 # Random exploration
                 x_random  = self.rand_state()
-                self.randomized_input = True
+                
+                # self.beta = probability of random exploration
+                self.randomized_input = ( np.random.rand() < self.beta )
 
-            # If random point is a valid state
-            if True: #TODO
+            node_near = self.nearest_neighbor( x_random )
+            
+            # if a valid neighbor was found
+            if not node_near == None:
+                new_node  = self.select_control_input( x_random , 
+                                                       node_near )
                 
-                node_near = self.nearest_neighbor( x_random )
-                
-                # if a valid neighbor was found
-                if not node_near == None:
-                    new_node  = self.select_control_input( x_random , 
-                                                           node_near )
+                # if there is a valid control input
+                if not new_node == None:
+                    self.nodes.append( new_node )
+            
+                    # Distance to goal
+                    d = new_node.distanceTo( x_goal )
                     
-                    # if there is a valid control input
-                    if not new_node == None:
-                        self.nodes.append( new_node )
-            
-            # Distance to goal
-            d = new_node.distanceTo( x_goal )
-            
-            no_nodes = no_nodes + 1
-            
-            # Plot
-            if self.dyna_plot:
-                self.dyna_plot_add_node( new_node , no_nodes )
-            
-            # Succes?
-            if d < self.goal_radius:
-                succes = True
-                self.goal_node = new_node
+                    no_nodes = no_nodes + 1
+                    
+                    ##################################################
+                    # Debug
+                    if self.debug:
+                        print(x_random, node_near.x , new_node.x )
+                        wait = input("PRESS ENTER TO CONTINUE.")
+                    ###################################################
+                    
+                    # Plot
+                    if self.dyna_plot:
+                        self.dyna_plot_add_node( new_node , no_nodes )
+                    
+                    # Succes?
+                    if d < self.goal_radius:
+                        succes = True
+                        self.goal_node = new_node
+                else:
+                    pass
+                    #print('on obstacle')
+                    
                 
             # Tree reset
             if no_nodes == self.max_nodes:

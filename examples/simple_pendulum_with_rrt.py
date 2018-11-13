@@ -29,6 +29,8 @@ planner.u_options = [
 
 planner.find_path_to_goal( x_goal )
 
+planner.goal_radius = 0.001
+
 planner.plot_tree()
 planner.plot_open_loop_solution()
 sys.animate_simulation()

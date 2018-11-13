@@ -227,7 +227,7 @@ class ContinuousDynamicSystem:
     
         
     #############################
-    def x_next( self , x , u , t , dt = 0.1 ):
+    def x_next( self , x , u , t , dt = 0.1 , steps = 1 ):
         """ 
         Discrete time foward dynamics evaluation 
         -------------------------------------
@@ -237,7 +237,13 @@ class ContinuousDynamicSystem:
         
         x_next = np.zeros(self.n) # k+1 State vector
         
-        x_next = self.f(x,u,t) * dt + x
+        # Multiple integration steps
+        for i in range(steps):
+        
+            x_next = self.f(x,u,t) * dt + x
+            
+            # Multiple steps
+            x =  x_next
         
         return x_next
     
