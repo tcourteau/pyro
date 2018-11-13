@@ -17,8 +17,8 @@ x_goal  = np.array([0,1,0])
 
 planner = randomtree.RRT( sys , x_start )
 
-speed    = 1
-steering = 0.3
+speed    = 2
+steering = 0.2
 
 planner.u_options = [
         np.array([ speed,-steering]),
@@ -29,9 +29,9 @@ planner.u_options = [
         np.array([-speed,-steering])
         ]
 
-planner.goal_radius       = 0.5
+planner.goal_radius       = 0.3
 planner.dt                = 0.1
-planner.steps             = 1
+planner.steps             = 3
 planner.max_solution_time = 8.0
 
 planner.find_path_to_goal( x_goal )
