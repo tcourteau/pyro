@@ -227,7 +227,7 @@ class RRT:
             self.one_step()
             
         if plot:
-            self.plot_2D_Tree()
+            self.plot_tree()
     
            
         
@@ -287,20 +287,20 @@ class RRT:
                 
             # Tree reset
             if no_nodes == self.max_nodes:
-                print('\nSearch Fail: Reseting Tree')
-                #self.plot_2D_Tree()
+                
+                print('\n-----------------------------------------------',
+                      '\nRRT reseting tree',
+                      '\n-----------------------------------------------')
                 no_nodes = 0
                 self.nodes = []
                 self.nodes.append( self.start_node )
                 
                 if self.dyna_plot :
-                    
                     self.dyna_plot_clear()
-                    
-                
         
-        print('\nSucces!!!!: Path to goal found')
-        
+        print('\n-----------------------------------------------',
+              '\nRRT found a path to the goal',
+              '\n-----------------------------------------------')
         
         # Compute Path
         self.compute_path_to_goal()
@@ -340,8 +340,7 @@ class RRT:
             
             # Previous Node
             node  = node.parent 
-            
-        
+
         # Arrange Time array
         t = np.array( t_list )
         t = np.flipud( t )
@@ -498,6 +497,7 @@ class RRT:
         
         #Set grid
         ax.grid(True)
+        ax.tick_params( labelsize = self.fontsize )
         
         self.fig_tree.tight_layout()
         self.fig_tree.show()
@@ -521,7 +521,7 @@ class RRT:
         
         # Plot Tree
         for node in self.nodes:
-            if not(node.parent==None):
+            if not( node.parent == None ):
                 ax.plot( 
                 [ node.x[ self.x_axis ] , node.parent.x[ self.x_axis ]] ,
                 [ node.x[ self.y_axis ] , node.parent.x[ self.y_axis ]] ,
@@ -560,6 +560,7 @@ class RRT:
         
         # Grid
         ax.grid(True)
+        ax.tick_params( labelsize = self.fontsize )
         
         self.fig_tree_3d.tight_layout()
         self.fig_tree_3d.show()
@@ -602,6 +603,7 @@ class RRT:
         
         # Grid
         ax.grid(True)
+        ax.tick_params( labelsize = self.fontsize )
         
         # Compact
         self.fig_tree_dyna.tight_layout()
@@ -689,6 +691,7 @@ if __name__ == "__main__":
             np.array([ 5])
             ]
     
+    planner.alpha = 0.99
     planner.find_path_to_goal( x_goal )
     
     planner.plot_tree()
