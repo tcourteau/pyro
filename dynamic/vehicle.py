@@ -47,12 +47,15 @@ class KinematicBicyleModel( system.ContinuousDynamicSystem ):
         self.input_units = ['[m/sec]', '[rad]']
         self.output_units = ['[m]','[m]','[rad]']
         
-        # param
+        # State working range
+        self.x_ub = np.array([+5,+2,+3.14])
+        self.x_lb = np.array([-5,-2,-3.14])
         
+        # Model param
         self.lenght = 1
         
         # Graphic output parameters 
-        self.graphic_domain  = [ (0,10) , (-5,5) , (-10,10) ]#
+        self.dynamic_domain  = True
         
     #############################
     def f(self, x = np.zeros(3) , u = np.zeros(2) , t = 0 ):
@@ -103,9 +106,17 @@ class KinematicBicyleModel( system.ContinuousDynamicSystem ):
         y = q[1]
         z = 0
         
-        domain  = [ ( -l + x , l + x ) ,
-                    ( -l + y , l + y ) ,
-                    ( -l + z , l + z ) ]#  
+        if self.dynamic_domain:
+        
+            domain  = [ ( -l + x , l + x ) ,
+                        ( -l + y , l + y ) ,
+                        ( -l + z , l + z ) ]#  
+        else:
+            
+            domain  = [ ( -l , l ) ,
+                        ( -l , l ) ,
+                        ( -l , l ) ]#
+            
                 
         return domain
     

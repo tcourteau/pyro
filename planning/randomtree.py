@@ -9,6 +9,7 @@ Created on Sun Mar  6 15:09:12 2016
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d.axes3d as p3
 
 from AlexRobotics.dynamic import system
 from AlexRobotics.analysis import simulation
@@ -71,6 +72,7 @@ class RRT:
         self.fontsize             = 5
         self.x_axis               = 0  # State to plot on x axis
         self.y_axis               = 1  # State to plot on y axis
+        self.z_axis               = 2  # State to plot on z axis
         
         self.discretizeactions()
         
@@ -434,7 +436,7 @@ class RRT:
     ##################################################################            
                 
     ############################
-    def plot_2D_Tree(self):
+    def plot_tree(self):
         """ """
         
         self.y1min = self.sys.x_lb[ self.x_axis ]
@@ -455,10 +457,44 @@ class RRT:
                     line = self.ax.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'r')
         
         
-        plt.xlabel(self.sys.state_label[ self.x_axis ] + ' ' + self.sys.state_units[ self.x_axis ] , fontsize=6)
-        plt.ylabel(self.sys.state_label[ self.y_axis ] + ' ' + self.sys.state_units[ self.y_axis ] , fontsize=6)
+        plt.xlabel(self.sys.state_label[ self.x_axis ] + ' ' + self.sys.state_units[ self.x_axis ] , fontsize=self.fontsize)
+        plt.ylabel(self.sys.state_label[ self.y_axis ] + ' ' + self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize)
         plt.xlim([ self.y1min , self.y1max ])
         plt.ylim([ self.y2min , self.y2max ])
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+        
+        
+    ############################
+    def plot_tree_3d(self):
+        """ """
+        
+        self.y1min = self.sys.x_lb[ self.x_axis ]
+        self.y1max = self.sys.x_ub[ self.x_axis ]
+        self.y2min = self.sys.x_lb[ self.y_axis ]
+        self.y2max = self.sys.x_ub[ self.y_axis ]
+        self.y3min = self.sys.x_lb[ self.z_axis ]
+        self.y3max = self.sys.x_ub[ self.z_axis ]
+        
+        self.fig_3d   = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
+        self.ax3      = self.fig_3d.gca(projection='3d')
+        
+        for node in self.nodes:
+            if not(node.parent==None):
+                line = self.ax3.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , [node.x[ self.z_axis ],node.parent.x[ self.z_axis ]] , 'o-')
+                
+        if not self.solution == None:
+            for node in self.path_node_list:
+                if not(node.parent==None):
+                    line = self.ax3.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , [node.x[ self.z_axis ],node.parent.x[ self.z_axis ]], 'r')
+                    
+        self.ax3.set_xlim3d( [ self.y1min , self.y1max ] )
+        self.ax3.set_ylim3d( [ self.y2min , self.y2max ]  )
+        self.ax3.set_zlim3d( [ self.y3min , self.y3max ]  )
+        self.ax3.set_xlabel(self.sys.state_label[ self.x_axis ] + ' ' + self.sys.state_units[ self.x_axis ] , fontsize=self.fontsize)
+        self.ax3.set_ylabel(self.sys.state_label[ self.y_axis ] + ' ' + self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize)
+        self.ax3.set_zlabel(self.sys.state_label[ self.z_axis ] + ' ' + self.sys.state_units[ self.z_axis ] , fontsize=self.fontsize)
         plt.grid(True)
         plt.tight_layout()
         plt.show()
@@ -543,79 +579,29 @@ if __name__ == "__main__":
     from AlexRobotics.dynamic import pendulum
     from AlexRobotics.dynamic import vehicle
     
-# =============================================================================
-#     sys  = pendulum.SinglePendulum()
-#     
-#     x_start = np.array([0.1,0])
-#     x_goal  = np.array([-3.14,0])
-#     
-#     planner = RRT( sys , x_start )
-#     
-#     planner.u_options = [
-#             np.array([-5]),
-#             np.array([-3]),
-#             np.array([-1]),
-#             np.array([ 0]),
-#             np.array([ 1]),
-#             np.array([ 3]),
-#             np.array([ 5])
-#             ]
-#     
-#     planner.find_path_to_goal( x_goal )
-#     
-#     planner.plot_2D_Tree()
-#     planner.plot_open_loop_solution()
-#     sys.animate_simulation()
-# =============================================================================
+
+    sys  = pendulum.SinglePendulum()
     
-#    sys  = pendulum.DoublePendulum()
-#    
-#    x_start = np.array([-3.14,0,0,0])
-#    x_goal  = np.array([0,0,0,0])
-#    
-#    planner = RRT( sys , x_start )
-#    
-#    t = 10
-#    
-#    planner.u_options = [
-#            np.array([-t,-t]),
-#            np.array([-t,+t]),
-#            np.array([+t,-t]),
-#            np.array([+t,+t]),
-#            np.array([ 0,+t]),
-#            np.array([ 0,-t]),
-#            np.array([ 0, 0]),
-#            np.array([+t, 0]),
-#            np.array([-t, 0])
-#            ]
-#    
-#    planner.find_path_to_goal( x_goal )
-#    
-#    planner.plot_2D_Tree()
-#    planner.plot_open_loop_solution()
-#    sys.animate_simulation()
-    
-    
-    sys  = vehicle.KinematicBicyleModel()
-    
-    x_start = np.array([0,0,0])
-    x_goal  = np.array([0,1,0])
+    x_start = np.array([0.1,0])
+    x_goal  = np.array([-3.14,0])
     
     planner = RRT( sys , x_start )
     
-    t = 0.3
-    
     planner.u_options = [
-            np.array([1,-t]),
-            np.array([1,+t]),
-            np.array([1,0]),
-            np.array([-1,+t]),
-            np.array([-1,0]),
-            np.array([-1,-t])
+            np.array([-5]),
+            np.array([-3]),
+            np.array([-1]),
+            np.array([ 0]),
+            np.array([ 1]),
+            np.array([ 3]),
+            np.array([ 5])
             ]
     
     planner.find_path_to_goal( x_goal )
     
-    planner.plot_2D_Tree()
+    planner.plot_tree()
     planner.plot_open_loop_solution()
     sys.animate_simulation()
+    
+    planner.z_axis = 0
+    planner.plot_tree_3d()

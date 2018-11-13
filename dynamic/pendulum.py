@@ -134,7 +134,7 @@ class SinglePendulum( mechanical.MechanicalSystem ):
     def forward_kinematic_domain(self, q ):
         """ 
         """
-        l = 2
+        l = 5
         
         domain  = [ (-l,l) , (-l,l) , (-l,l) ]#  
                 

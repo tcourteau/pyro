@@ -72,6 +72,7 @@ class Animator:
                                             self.sys.name )
         self.showax = self.showfig.add_subplot(111, autoscale_on=False )
         self.showax.grid()
+        self.showax.axis('equal')
         self.showax.set_xlim(  domain[x_axis] )
         self.showax.set_ylim(  domain[y_axis] )
         
@@ -172,6 +173,7 @@ class Animator:
                                             self.sys.name )
         else:
             self.ani_ax = self.ani_fig.add_subplot(111, autoscale_on=True)
+            self.ani_ax.axis('equal')
             self.ani_ax.set_xlim(  self.ani_domains[0][self.x_axis] )
             self.ani_ax.set_ylim(  self.ani_domains[0][self.y_axis] )
             self.ani_fig.canvas.set_window_title('2D Animation of ' + 
