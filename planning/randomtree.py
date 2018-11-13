@@ -15,7 +15,7 @@ from AlexRobotics.dynamic import system
 from AlexRobotics.analysis import simulation
 
 '''
-################################################################################
+###############################################################################
 '''
 class Node:
     """ node of the random tree """
@@ -60,11 +60,11 @@ class RRT:
         
         self.goal_radius          = 0.5        
         self.alpha                = 0.9    # prob of random exploration
-        self.max_nodes            = 10000   # maximum number of nodes
-        self.max_distance_compute = 1000   # maximum number of nodes to check distance
-        self.max_solution_time    = 10     # won"t look for solution taking longuer than that
+        self.max_nodes            = 10000  # maximum number of nodes
+        self.max_distance_compute = 1000   # max  nodes to check distance
+        self.max_solution_time    = 10     # won"t look for longuer solution 
         
-        self.test_u_domain        = False  # run a check on validity of u input at each state
+        self.test_u_domain        = False  # run a check on u input 
                 
         # Ploting
         self.dyna_plot            = True
@@ -161,7 +161,11 @@ class RRT:
         if self.randomized_input :
             
             u          = self.rand_input( closest_node.x )
-            x_next     = self.sys.x_next( closest_node.x , u , closest_node.t , self.dt )
+            x_next     = self.sys.x_next( closest_node.x , 
+                                          u , 
+                                          closest_node.t , 
+                                          self.dt )
+            
             t_next     = closest_node.t + self.dt
             new_node   = Node( x_next , u , t_next  , closest_node )
         
@@ -180,7 +184,11 @@ class RRT:
                         # Skip this u
                         continue
                 
-                x_next     = self.sys.x_next( closest_node.x , u , closest_node.t , self.dt )
+                x_next     = self.sys.x_next( closest_node.x , 
+                                              u , 
+                                              closest_node.t , 
+                                              self.dt )
+                
                 t_next     = closest_node.t + self.dt
                 node       = Node( x_next , u , t_next  , closest_node )
                 
@@ -256,7 +264,8 @@ class RRT:
                 
                 # if a valid neighbor was found
                 if not node_near == None:
-                    new_node  = self.select_control_input( x_random , node_near )
+                    new_node  = self.select_control_input( x_random , 
+                                                           node_near )
                     
                     # if there is a valid control input
                     if not new_node == None:
@@ -325,7 +334,9 @@ class RRT:
             u_list.append( node.u     )
             t_list.append( node.parent.t   )
             
-            dx_list.append( self.sys.f( node.parent.x , node.u , node.parent.t )  ) # state derivative
+            dx_list.append( self.sys.f( node.parent.x , 
+                                        node.u , 
+                                        node.parent.t )  ) # state derivative
             
             # Previous Node
             node  = node.parent 
@@ -397,7 +408,9 @@ class RRT:
     def plot_open_loop_solution(self):
         """ """
         
-        self.sim = simulation.Simulation( self.sys , self.time_to_goal , self.solution_length )
+        self.sim = simulation.Simulation( self.sys , 
+                                          self.time_to_goal , 
+                                          self.solution_length )
         
         self.sim.t     = self.solution[2].T
         self.sim.x_sol = self.solution[0].T
@@ -557,52 +570,74 @@ class RRT:
     ############################
     def dyna_plot_init(self):
         
-        self.y1min = self.sys.x_lb[ self.x_axis ]
-        self.y1max = self.sys.x_ub[ self.x_axis ]
-        self.y2min = self.sys.x_lb[ self.y_axis ]
-        self.y2max = self.sys.x_ub[ self.y_axis ]
+        # Create figure
+        self.fig_tree_dyna = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
         
-        matplotlib.rc('xtick', labelsize=self.fontsize )
-        matplotlib.rc('ytick', labelsize=self.fontsize )
+        # Set window title
+        self.fig_tree_dyna.canvas.set_window_title('RRT tree search for ' + 
+                                            self.sys.name )
         
-        self.phasefig  = plt.figure(figsize=self.figsize,dpi=self.dpi)
-        self.ax        = self.phasefig.add_subplot(111)
+        # Create axe
+        ax  = self.fig_tree_dyna.add_subplot(111)
         
         self.time_template = 'Number of nodes = %i'
-        self.time_text     = self.ax.text(0.05, 0.05, '', transform=self.ax.transAxes, fontsize=self.fontsize )
+        self.time_text = ax.text(
+                0.05, 0.05, '', transform=ax.transAxes, 
+                fontsize=self.fontsize )
         
-        plt.xlabel(self.sys.state_label[ self.x_axis ] + ' ' + self.sys.state_units[ self.x_axis ] , fontsize=self.fontsize )
-        plt.ylabel(self.sys.state_label[ self.y_axis ] + ' ' + self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize )
-        plt.xlim([ self.y1min , self.y1max ])
-        plt.ylim([ self.y2min , self.y2max ])
-        plt.grid(True)
-        plt.tight_layout()
+        # Set domain
+        ax.set_xlim( [ self.sys.x_lb[ self.x_axis ] ,
+                       self.sys.x_ub[ self.x_axis ] ] )
+        ax.set_ylim( [ self.sys.x_lb[ self.y_axis ] , 
+                       self.sys.x_ub[ self.y_axis ] ]  )
+    
+        # Set labels
+        ax.set_xlabel(
+        self.sys.state_label[ self.x_axis ] + ' ' + 
+        self.sys.state_units[ self.x_axis ] ,  fontsize=self.fontsize )
+        
+        ax.set_ylabel(
+        self.sys.state_label[ self.y_axis ] + ' ' +
+        self.sys.state_units[ self.y_axis ] , fontsize=self.fontsize)
+        
+        # Grid
+        ax.grid(True)
+        
+        # Compact
+        self.fig_tree_dyna.tight_layout()
+        
+        # Save ax
+        self.ax_tree_dyna   = ax
+        self.node_wait_list = 0
         
         plt.ion()
-        
-        self.node_wait_list = 0
         
         
      ############################
     def dyna_plot_add_node(self, node , no_nodes ):
         
         if not(node.parent==None):
-                line = self.ax.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'o-')
+                self.ax_tree_dyna.plot( 
+                        [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] ,
+                        [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] ,
+                        'o-')
                 self.time_text.set_text(self.time_template % ( no_nodes ))
                 self.node_wait_list = self.node_wait_list + 1
                 
-                
+                # Update graph
                 if self.node_wait_list == self.dyna_node_no_update:
-                    plt.pause( 0.01 )
+                    plt.pause( 0.001 )
                     self.node_wait_list = 0
-                    print('\nRRT searching - Node no = ', no_nodes)
+                    print(
+                    '\nRRT searching ( total node number = ', no_nodes, ' )'
+                    )
                     
                     
     ############################
     def dyna_plot_clear(self ):
         
-        self.ax.clear()
-        plt.close( self.phasefig )
+        self.ax_tree_dyna.clear()
+        plt.close( self.fig_tree_dyna )
         self.dyna_plot_init()
                     
                     
@@ -612,10 +647,13 @@ class RRT:
         if not self.solution == None:
             for node in self.path_node_list:
                 if not(node.parent==None):
-                    line = self.ax.plot( [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] , [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'r')
+                    self.ax_tree_dyna.plot( 
+                        [node.x[ self.x_axis ],node.parent.x[ self.x_axis ]] ,
+                        [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] ,
+                        'r')
                     
             #plt.ioff()
-            plt.show()
+            self.fig_tree_dyna.show()
     
         
 
