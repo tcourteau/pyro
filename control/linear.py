@@ -1,119 +1,115 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Mar  5 14:59:30 2016
+Created on Mon Oct 22 11:37:48 2018
 
-@author: alex
+@author: alxgr
 """
 
 import numpy as np
 
+from AlexRobotics.control import controller
+
+###############################################################################
+# Simple proportionnal controller
+###############################################################################
+        
+class ProportionnalSingleVariableController( controller.StaticController ) :
+    """ 
+    Simple proportionnal compensator
+    ---------------------------------------
+    r  : reference signal vector  k x 1
+    y  : sensor signal vector     k x 1
+    u  : control inputs vector    k x 1
+    t  : time                     1 x 1
+    ---------------------------------------
+    u = c( y , r , t ) = (r - y) * gain
+
+    """
+    
+    ###########################################################################
+    # The two following functions needs to be implemented by child classes
+    ###########################################################################
+    
+    
+    ############################
+    def __init__(self, k = 1):
+        """ """
+        
+        # Dimensions
+        self.k = k   
+        self.m = k   
+        self.p = k
+        
+        controller.StaticController.__init__(self, self.k, self.m, self.p)
+        
+        # Label
+        self.name = 'Proportionnal Controller'
+        
+        # Gains
+        self.gain = 1
+        
+    
+    #############################
+    def c( self , y , r , t = 0 ):
+        """ 
+        Feedback static computation u = c(y,r,t)
+        
+        INPUTS
+        y  : sensor signal vector     p x 1
+        r  : reference signal vector  k x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        u  : control inputs vector    m x 1
+        
+        """
+        
+        u = np.zeros(self.m) # State derivative vector
+        
+        e = r - y
+        u = e * self.gain
+        
+        return u
+
+
+
+
+
 '''
-################################################################################
+#################################################################
+##################          Main                         ########
+#################################################################
 '''
 
+
+if __name__ == "__main__":     
+    """ MAIN TEST """
     
-class PD:
-    """ Feedback law  """
-    ############################
-    def __init__( self , kp , kd ):
-        """ """
-        self.kp = kp
-        self.kd = kd
-        
-    ############################
-    def ctl( self , x , t = 0 ):
-        """ 
-        u = f( x , t ) 
-        x = [ position ; speed ]
-        
-        """
-        u = np.zeros(1)
-        
-        u[0] =  -1 * ( self.kp * x[0] + self.kd * x[1] )
-        
-        return u
-        
-        
-        
-class PID:
-    """ Feedback law  """
-    ############################
-    def __init__( self , kp = 1 , kd = 0 , ki = 0 , dt = 0.001 , setpoint = 0 ):
-        """ """
-        self.kp       = kp
-        self.kd       = kd
-        self.ki       = ki
-        self.dt       = dt
-        self.setpoint = setpoint
-        
-        # Init
-        self.e_integral = 0
-        
-    ############################
-    def reset( self ):
-        """ Reinitialize integral action """
-        
-        self.e_integral = 0
-        
-        
-    ############################
-    def ctl( self , x , t = 0 ):
-        """ 
-        u = f( x , t ) 
-        x = [ position ; speed ] --> state must be defined this way
-        
-        """
-        u = np.zeros(1)
-        
-        e  = x[0] - self.setpoint
-        de = x[1]                  # assuming stationnary setpoint
-        ei = self.e_integral
-        
-        u[0] =  -1 * ( self.kp * e + self.kd * de + self.ki * ei )
-        
-        # Internal controller state dynamic
-        self.e_integral = self.e_integral + e * self.dt
-        
-        return u
-        
-        
-        
-class PD_nDOF:
-    """ Feedback law  """
-    ############################
-    def __init__( self , kp , kd , q_d = np.array([None]) , dq_d = np.array([None]) ):
-        """ 
-        Independant joint PD controller for a manipulator
-        """
-        
-        self.dof = kp.size          # NUMBER OF dof
-        self.n   = self.dof * 2     # number of states
-        self.kp  = kp
-        self.kd  = kd
-        
-        # Set to zero vector of good length if setpoint is undefined
-        if q_d[0] == None:
-            self.q_d = np.zeros( self.dof )
-        else:
-            self.q_d = q_d
-            
-        if dq_d[0] == None:
-            self.dq_d = np.zeros( self.dof )
-        else:
-            self.dq_d = dq_d
+    from AlexRobotics.analysis import phaseanalysis
+    from AlexRobotics.dynamic import integrator
+    from AlexRobotics.control import controller
     
-        
-    ############################
-    def ctl( self , x , t = 0 ):
-        """ 
-        u = f( x , t ) 
-        x = [ position ; speed ]  state must be defined this way
-        
-        """
-        
-        q  = x[  0        : self.dof ]
-        dq = x[  self.dof : self.n   ]
-        
-        u  =   self.kp * ( self.q_d - q ) + self.kd *  ( self.dq_d - dq ) 
-        
-        return u
+    # Double integrator
+    si = integrator.SimpleIntegrator()
+    di = integrator.DoubleIntegrator()
+    ti = integrator.TripleIntegrator()
+    
+    # Controller 
+    psvc      = ProportionnalSingleVariableController()
+    psvc.gain = 1
+    
+    # New cl-dynamic
+    clsi = controller.ClosedLoopSystem( si ,  psvc )
+    clsi.plot_phase_plane_trajectory_CL([10],10,0,0)
+    clsi.sim.plot('xu')
+    
+    cldi = controller.ClosedLoopSystem( di ,  psvc )
+    cldi.plot_phase_plane_trajectory_CL([10,0],10,0,1)
+    cldi.sim.plot('xu')
+    
+    clti = controller.ClosedLoopSystem( ti ,  psvc )
+    clti.plot_trajectory_CL([10,0,0],10)
+    clti.sim.plot('xu')
+    
+    pp = phaseanalysis.PhasePlot3( clti )
+    pp.plot()
