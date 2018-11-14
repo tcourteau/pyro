@@ -1,1 +1,1 @@
-print "Hello world, I'm AlexRobotics v0.0"
+print "Version v0.0"
