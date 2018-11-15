@@ -22,19 +22,13 @@ class ViController( controller.StaticController ) :
     Simple proportionnal compensator
     ---------------------------------------
     r  : reference signal vector  k x 1
-    y  : sensor signal vector     k x 1
-    u  : control inputs vector    k x 1
+    y  : sensor signal vector     m x 1
+    u  : control inputs vector    p x 1
     t  : time                     1 x 1
     ---------------------------------------
     u = c( y , r , t ) 
 
     """
-    
-    ###########################################################################
-    # The two following functions needs to be implemented by child classes
-    ###########################################################################
-    
-    
     ############################
     def __init__(self, k , m ,  p):
         """ """
@@ -52,30 +46,15 @@ class ViController( controller.StaticController ) :
     
     #############################
     def vi_law( self , x ):
-        """ 
-                
-        """
-        
+        """   """
+
         u = np.zeros(self.m) # State derivative vector
         
         return u
 
-        
-    
     #############################
     def c( self , y , r , t = 0 ):
-        """ 
-        Feedback static computation u = c(y,r,t)
-        
-        INPUTS
-        y  : sensor signal vector     p x 1
-        r  : reference signal vector  k x 1
-        t  : time                     1 x 1
-        
-        OUPUTS
-        u  : control inputs vector    m x 1
-        
-        """
+        """  State feedback (y=x) - no reference - time independent """
         x = y
         u = self.vi_law( x )
         
@@ -91,10 +70,10 @@ class ValueIteration_2D:
         
         # Dynamic system
         self.grid_sys  = grid_sys         # Discretized Dynamic system class
-        self.sys  = grid_sys.sys     # Base Dynamic system class
+        self.sys       = grid_sys.sys     # Base Dynamic system class
         
         # Controller
-        self.ctl = ViController( 2 , 1 , 2)
+        self.ctl = ViController( self.sys.n , self.sys.m , self.sys.n)
         
         # Cost function
         self.cf  = cost_function
@@ -264,8 +243,11 @@ class ValueIteration_2D:
         """ controller from optimal actions """
         
         # Compute grid of u
-        self.u_policy_grid    = [ None ]
-        self.u_policy_grid[0] = np.zeros( self.grid_sys.xgriddim , dtype = float )
+        self.u_policy_grid    = []
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            self.u_policy_grid.append( np.zeros( self.grid_sys.xgriddim , dtype = float ) )
         
         # For all state nodes        
         for node in range( self.grid_sys.nodes_n ):  
@@ -273,15 +255,30 @@ class ValueIteration_2D:
                 i = self.grid_sys.nodes_index[ node , 0 ]
                 j = self.grid_sys.nodes_index[ node , 1 ]
                 
+                # If no action is good
                 if ( self.action_policy[i,j] == -1 ):
-                    self.u_policy_grid[0][i,j] = 0 
+                    
+                    # for all inputs
+                    for k in range(self.sys.m):
+                        self.u_policy_grid[k][i,j] = 0 
                     
                 else:
-                    self.u_policy_grid[0][i,j] = self.grid_sys.actions_input[ self.action_policy[i,j] , 0 ]
+                    # for all inputs
+                    for k in range(self.sys.m):
+                        self.u_policy_grid[k][i,j] = self.grid_sys.actions_input[ self.action_policy[i,j] , k ]
         
 
         # Compute Interpol function
-        self.x2u0 = interpol2D( self.grid_sys.xd[0] , self.grid_sys.xd[1] , self.u_policy_grid[0] , bbox=[None, None, None, None], kx=1, ky=1,)
+        self.x2u_interpol_functions = []
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            self.x2u_interpol_functions.append(
+                    interpol2D( self.grid_sys.xd[0] , 
+                                self.grid_sys.xd[1] , 
+                                self.u_policy_grid[k] , 
+                                bbox=[None, None, None, None], 
+                                kx=1, ky=1,) )
         
         # Asign Controller
         self.ctl.vi_law = self.vi_law
@@ -294,7 +291,9 @@ class ValueIteration_2D:
         
         u = np.zeros( self.sys.m )
         
-        u[0] = self.x2u0( x[0] , x[1] )
+        # for all inputs
+        for k in range(self.sys.m):
+            u[k] = self.x2u_interpol_functions[k]( x[0] , x[1] )
         
         return u
         
@@ -340,7 +339,7 @@ class ValueIteration_3D:
         
         # Dynamic system
         self.grid_sys = grid_sys        # Discretized Dynamic system class
-        self.sys  = grid_sys.DS     # Base Dynamic system class
+        self.sys      = grid_sys.sys     # Base Dynamic system class
         
         # Cost function
         self.cf  = cost_function
@@ -458,13 +457,13 @@ class ValueIteration_3D:
             
                 
     ################################
-    def plot_J_ij(self, k ):
+    def plot_J_ij(self, k = 0 ):
         """ print graphic """
         
         xname = self.sys.state_label[0] + ' ' + self.sys.state_units[0]
         yname = self.sys.state_label[1] + ' ' + self.sys.state_units[1]
         
-        self.Jplot = self.J[:,:,i].copy()
+        self.Jplot = self.J[:,:,k].copy()
         
         ###################    
         

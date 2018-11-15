@@ -114,14 +114,14 @@ class Simulation:
             y = self.y_sol[i,:] 
             t = self.t[i]
             
-            dJ = self.cf.g(x, u, y, t)
+            dJ = self.cf.g(x, u, t)
             self.J  = dJ * self.dt + self.J
             
             self.dJ_sol[i] = dJ
             self.J_sol[i]  = self.J
         
         # Final cost
-        self.J = self.cf.h(x, y, t) + self.J
+        self.J = self.cf.h(x, t) + self.J
         self.J_sol[-1] = self.J
        
         
