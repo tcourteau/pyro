@@ -22,7 +22,7 @@ grid_sys = discretizer.GridDynamicSystem2D( sys )
 cf = costfunction.QuadraticCostFunction( sys )
 
 cf.xbar = np.array([ -3.14 , 0 ])
-cf.INF  = 100
+cf.INF  = 10000
 
 vi = valueiteration.ValueIteration_2D( grid_sys , cf )
 
@@ -30,8 +30,8 @@ vi.initialize()
 
 vi.plot_J()
 
-#vi.load_data()
-vi.compute_steps(50)
+vi.load_data()
+vi.compute_steps(500)
 #vi.load_data()
 
 vi.plot_J()
