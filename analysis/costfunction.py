@@ -30,22 +30,20 @@ class CostFunction:
     ############################
     def __init__(self, ContinuousDynamicSystem ):
         
-        # Parameters
-        n    = ContinuousDynamicSystem.n
-        m    = ContinuousDynamicSystem.m
-        p    = ContinuousDynamicSystem.p
+        self.sys = ContinuousDynamicSystem
         
-        raise NotImplementedError
+        self.INF = 1E3
+        
         
     #############################
-    def h(self, x , y = 0 , t = 0):
+    def h(self, x , t = 0):
         """ Final cost function """
         
         raise NotImplementedError
     
     
     #############################
-    def g(self, x , u , y = 0 , t = 0 ):
+    def g(self, x , u , t = 0 ):
         """ step cost function """
         
         raise NotImplementedError
@@ -71,30 +69,37 @@ class QuadraticCostFunction:
     ############################
     def __init__(self, ContinuousDynamicSystem ):
         
-        # Parameters
-        n = ContinuousDynamicSystem.n
-        m = ContinuousDynamicSystem.m
-        p = ContinuousDynamicSystem.p
+        CostFunction.__init__( self , ContinuousDynamicSystem )
+        
+        self.xbar = np.zeros( self.sys.n )
+        self.ubar = np.zeros( self.sys.m )
+        self.ybar = np.zeros( self.sys.p )
         
         # Quadratic cost weights
-        self.Q = np.diag( np.ones( n ) )
-        self.R = np.diag( np.ones( m ) )
-        self.V = np.diag( np.zeros( p ) )
+        self.Q = np.diag( np.ones( self.sys.n ) )
+        self.R = np.diag( np.ones( self.sys.m ) )
+        self.V = np.diag( np.zeros( self.sys.p ) )
         
     #############################
-    def h(self, x , y , t = 0):
+    def h(self, x , t = 0):
         """ Final cost function with zero value """
         
         return 0
     
     
     #############################
-    def g(self, x , u , y , t = 0 ):
+    def g(self, x , u , t = 0 ):
         """ Quadratic additive cost """
         
-        dJ = ( np.dot( x.T , np.dot(  self.Q , x ) ) +
-               np.dot( u.T , np.dot(  self.R , u ) ) +
-               np.dot( y.T , np.dot(  self.V , y ) ) )
+        y = self.sys.h( x , u , t )
+        
+        dx = x - self.xbar
+        du = u - self.ubar
+        dy = y - self.ybar
+        
+        dJ = ( np.dot( dx.T , np.dot(  self.Q , dx ) ) +
+               np.dot( du.T , np.dot(  self.R , du ) ) +
+               np.dot( dy.T , np.dot(  self.V , dy ) ) )
         
         return dJ
     
@@ -119,17 +124,17 @@ class TimeCostFunction:
     ############################
     def __init__(self, ContinuousDynamicSystem ):
         
-        pass
+        CostFunction.__init__( self , ContinuousDynamicSystem )
         
     #############################
-    def h(self, x , y , t = 0):
+    def h(self, x , t = 0):
         """ Final cost function with zero value """
         
         return 0
     
     
     #############################
-    def g(self, x , u , y , t = 0 ):
+    def g(self, x , u , t = 0 ):
         """ Unity """
         
         return 1
