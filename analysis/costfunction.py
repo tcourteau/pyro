@@ -33,6 +33,7 @@ class CostFunction:
         self.sys = ContinuousDynamicSystem
         
         self.INF = 1E3
+        self.EPS = 1E-3
         
         
     #############################
@@ -80,6 +81,8 @@ class QuadraticCostFunction:
         self.R = np.diag( np.ones( self.sys.m ) )
         self.V = np.diag( np.zeros( self.sys.p ) )
         
+        self.ontarget_check = True
+        
     #############################
     def h(self, x , t = 0):
         """ Final cost function with zero value """
@@ -100,6 +103,11 @@ class QuadraticCostFunction:
         dJ = ( np.dot( dx.T , np.dot(  self.Q , dx ) ) +
                np.dot( du.T , np.dot(  self.R , du ) ) +
                np.dot( dy.T , np.dot(  self.V , dy ) ) )
+        
+        # set cost to zero if on target
+        if self.ontarget_check:
+            if ( np.linalg.norm( dx ) < self.EPS ):
+                dJ = 0
         
         return dJ
     
@@ -126,6 +134,10 @@ class TimeCostFunction:
         
         CostFunction.__init__( self , ContinuousDynamicSystem )
         
+        self.xbar = np.zeros( self.sys.n )
+        
+        self.ontarget_check = True
+        
     #############################
     def h(self, x , t = 0):
         """ Final cost function with zero value """
@@ -137,7 +149,14 @@ class TimeCostFunction:
     def g(self, x , u , t = 0 ):
         """ Unity """
         
-        return 1
+        dJ = 1
+        
+        if self.ontarget_check:
+            dx = x - self.xbar
+            if ( np.linalg.norm( dx ) < self.EPS ):
+                dJ = 0
+                
+        return dJ
 
 '''
 #################################################################

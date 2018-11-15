@@ -12,7 +12,7 @@ import numpy as np
 '''
 
 
-class GridDynamicSystem2D:
+class GridDynamicSystem:
     """ Create a discrete gird state-action space for a 2D continous dynamic system, one continuous input u """
     
     ############################
@@ -217,7 +217,7 @@ class GridDynamicSystem2D:
 '''
 
 
-class GridDynamicSystem3D(GridDynamicSystem2D):
+class GridDynamicSystem3D(GridDynamicSystem):
     """ Create a discrete gird state-action space for 3D continous dynamic system, two continuous input u """
     
     ############################

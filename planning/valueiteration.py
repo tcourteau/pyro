@@ -174,8 +174,68 @@ class ValueIteration_2D:
         
         self.J = self.Jnew.copy()
         
+
+    ################################
+    def assign_interpol_controller(self):
+        """ controller from optimal actions """
+        
+        # Compute grid of u
+        self.u_policy_grid    = []
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            self.u_policy_grid.append( np.zeros( self.grid_sys.xgriddim , dtype = float ) )
+        
+        # For all state nodes        
+        for node in range( self.grid_sys.nodes_n ):  
+            
+                i = self.grid_sys.nodes_index[ node , 0 ]
+                j = self.grid_sys.nodes_index[ node , 1 ]
+                
+                # If no action is good
+                if ( self.action_policy[i,j] == -1 ):
+                    
+                    # for all inputs
+                    for k in range(self.sys.m):
+                        self.u_policy_grid[k][i,j] = 0 
+                    
+                else:
+                    # for all inputs
+                    for k in range(self.sys.m):
+                        self.u_policy_grid[k][i,j] = self.grid_sys.actions_input[ self.action_policy[i,j] , k ]
+        
+
+        # Compute Interpol function
+        self.x2u_interpol_functions = []
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            self.x2u_interpol_functions.append(
+                    interpol2D( self.grid_sys.xd[0] , 
+                                self.grid_sys.xd[1] , 
+                                self.u_policy_grid[k] , 
+                                bbox=[None, None, None, None], 
+                                kx=1, ky=1,) )
+        
+        # Asign Controller
+        self.ctl.vi_law = self.vi_law
         
         
+        
+    ################################
+    def vi_law(self, x , t = 0 ):
+        """ controller from optimal actions """
+        
+        u = np.zeros( self.sys.m )
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            u[k] = self.x2u_interpol_functions[k]( x[0] , x[1] )
+        
+        return u
+    
+    
+    
     ################################
     def compute_steps(self, l = 50, plot = False):
         """ compute number of step """
@@ -236,66 +296,7 @@ class ValueIteration_2D:
         plt.colorbar()
         plt.grid(True)
         plt.tight_layout() 
-
         
-    ################################
-    def assign_interpol_controller(self):
-        """ controller from optimal actions """
-        
-        # Compute grid of u
-        self.u_policy_grid    = []
-        
-        # for all inputs
-        for k in range(self.sys.m):
-            self.u_policy_grid.append( np.zeros( self.grid_sys.xgriddim , dtype = float ) )
-        
-        # For all state nodes        
-        for node in range( self.grid_sys.nodes_n ):  
-            
-                i = self.grid_sys.nodes_index[ node , 0 ]
-                j = self.grid_sys.nodes_index[ node , 1 ]
-                
-                # If no action is good
-                if ( self.action_policy[i,j] == -1 ):
-                    
-                    # for all inputs
-                    for k in range(self.sys.m):
-                        self.u_policy_grid[k][i,j] = 0 
-                    
-                else:
-                    # for all inputs
-                    for k in range(self.sys.m):
-                        self.u_policy_grid[k][i,j] = self.grid_sys.actions_input[ self.action_policy[i,j] , k ]
-        
-
-        # Compute Interpol function
-        self.x2u_interpol_functions = []
-        
-        # for all inputs
-        for k in range(self.sys.m):
-            self.x2u_interpol_functions.append(
-                    interpol2D( self.grid_sys.xd[0] , 
-                                self.grid_sys.xd[1] , 
-                                self.u_policy_grid[k] , 
-                                bbox=[None, None, None, None], 
-                                kx=1, ky=1,) )
-        
-        # Asign Controller
-        self.ctl.vi_law = self.vi_law
-        
-        
-        
-    ################################
-    def vi_law(self, x , t = 0 ):
-        """ controller from optimal actions """
-        
-        u = np.zeros( self.sys.m )
-        
-        # for all inputs
-        for k in range(self.sys.m):
-            u[k] = self.x2u_interpol_functions[k]( x[0] , x[1] )
-        
-        return u
         
     ################################
     def load_data(self, name = 'DP_data'):
@@ -321,17 +322,12 @@ class ValueIteration_2D:
         
         
         
-        
-        
-        
-        
-        
 '''
 ################################################################################
 '''
 
 
-class ValueIteration_3D:
+class ValueIteration_3D( ValueIteration_2D ):
     """ Dynamic programming for 3D continous dynamic system, 2 continuous input u """
     
     ############################
@@ -340,6 +336,9 @@ class ValueIteration_3D:
         # Dynamic system
         self.grid_sys = grid_sys        # Discretized Dynamic system class
         self.sys      = grid_sys.sys     # Base Dynamic system class
+        
+        # Controller
+        self.ctl = ViController( self.sys.n , self.sys.m , self.sys.n)
         
         # Cost function
         self.cf  = cost_function
@@ -396,7 +395,7 @@ class ValueIteration_3D:
                 
                 i = self.grid_sys.nodes_index[ node , 0 ]
                 j = self.grid_sys.nodes_index[ node , 1 ]
-                k = self.grid_sys.nodes_index[ node , 3 ]
+                k = self.grid_sys.nodes_index[ node , 2 ]
 
                 # One steps costs - Q values
                 Q = np.zeros( self.grid_sys.actions_n  ) 
@@ -407,7 +406,7 @@ class ValueIteration_3D:
                     u = self.grid_sys.actions_input[ action , : ]
                     
                     # Compute next state and validity of the action                    
-                    x_next        = self.sys.f( x , u ) * self.dt + x
+                    x_next        = self.sys.f( x , u ) * self.grid_sys.dt + x
                     x_ok          = self.sys.isavalidstate(x_next)
                     u_ok          = self.sys.isavalidinput(x,u)
                     action_isok   = ( u_ok & x_ok )
@@ -418,7 +417,7 @@ class ValueIteration_3D:
                         J_next = J_interpol( x_next )
                         
                         # Cost-to-go of a given action
-                        Q[action] = self.cf.g( x , u ) + J_next[0,0]
+                        Q[action] = self.cf.g( x , u ) + J_next
                         
                     else:
                         # Not allowable states or inputs/states combinations
@@ -443,19 +442,73 @@ class ValueIteration_3D:
         
         self.J    = self.Jnew.copy()
         self.J_1D = self.J_1D_new.copy()
-        
-        
+
         
     ################################
-    def compute_steps(self, l = 50, plot = False):
-        """ compute number of step """
-               
-        for i in range(l):
-            print('Step:',i)
-            self.compute_step()
+    def assign_interpol_controller(self):
+        """ controller from optimal actions """
+        
+        # Compute grid of u
+        self.u_policy_grid    = []
+        self.u_policy_1D      = []
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            self.u_policy_grid.append( np.zeros( self.grid_sys.xgriddim , dtype = float ) )
+            self.u_policy_1D.append( np.zeros( self.grid_sys.nodes_n , dtype = float ) )
+        
+        # For all state nodes        
+        for node in range( self.grid_sys.nodes_n ):
             
+            i = self.grid_sys.nodes_index[ node , 0 ]
+            j = self.grid_sys.nodes_index[ node , 1 ]
+            k = self.grid_sys.nodes_index[ node , 2 ]
             
+            # If no action is good
+            if ( self.action_policy[i,j,k] == -1 ):
                 
+                # for all inputs
+                for k in range(self.sys.m):
+                    self.u_policy_grid[k][i,j,k] = 0 
+                    self.u_policy_1D[k][node]    = 0
+                
+            else:
+                # for all inputs
+                for k in range(self.sys.m):
+                    self.u_policy_grid[k][i,j,k] = self.grid_sys.actions_input[ self.action_policy[i,j,k] , k ]
+                    self.u_policy_1D[k][node]    = self.grid_sys.actions_input[ self.action_policy[i,j,k] , k ]
+        
+        
+        # Compute Interpol function
+        self.x2u_interpol_functions = []
+        
+        cartcoord = self.grid_sys.nodes_state
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            values  = self.u_policy_1D[k]
+            self.x2u_interpol_functions.append(
+                    LinearNDInterpolator(cartcoord, values, fill_value=0)
+                    )
+        
+        # Asign Controller
+        self.ctl.vi_law = self.vi_law
+        
+    
+    ################################
+    def vi_law(self, x , t = 0 ):
+        """ controller from optimal actions """
+        
+        u = np.zeros( self.sys.m )
+        
+        # for all inputs
+        for k in range(self.sys.m):
+            u[k] = self.x2u_interpol_functions[k]( x )
+        
+        return u
+        
+        
+    
     ################################
     def plot_J_ij(self, k = 0 ):
         """ print graphic """
@@ -483,20 +536,20 @@ class ValueIteration_3D:
         
     
     ################################
-    def plot_policy_ij(self, k , i = 0 ):
+    def plot_policy_ij(self, k = 0  , ui = 0 ):
         """ print graphic """
         
         xname = self.sys.state_label[0] + ' ' + self.sys.state_units[0]
         yname = self.sys.state_label[1] + ' ' + self.sys.state_units[1]
         
-        policy_plot = self.u_policy_grid[i][:,:,k].copy()
+        policy_plot = self.u_policy_grid[ui][:,:,k].copy()
         
         ###################    
         
         fs = 10
         
         self.fig1 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
-        self.fig1.canvas.set_window_title('Policy for u[%i]'%i)
+        self.fig1.canvas.set_window_title('Policy for u[%i]'%ui)
         self.ax1  = self.fig1.add_subplot(1,1,1)
         
         plt.ylabel(yname, fontsize = fs)
@@ -505,48 +558,9 @@ class ValueIteration_3D:
         plt.axis([self.sys.x_lb[0] , self.sys.x_ub[0], self.sys.x_lb[1] , self.sys.x_ub[1]])
         plt.colorbar()
         plt.grid(True)
-        plt.tight_layout() 
-
+        plt.tight_layout()
         
-    ################################
-    def assign_interpol_controller(self):
-        """ controller from optimal actions """
-        
-        # Compute grid of u
-        self.u_policy_grid    = [ None ]
-        self.u_policy_grid[0] = np.zeros( self.grid_sys.xgriddim , dtype = float )
-        
-        # For all state nodes        
-        for node in range( self.grid_sys.nodes_n ):  
-            
-                i = self.grid_sys.nodes_index[ node , 0 ]
-                j = self.grid_sys.nodes_index[ node , 1 ]
-                
-                if ( self.action_policy[i,j] == -1 ):
-                    self.u_policy_grid[0][i,j] = 0 
-                    
-                else:
-                    self.u_policy_grid[0][i,j] = self.grid_sys.actions_input[ self.action_policy[i,j] , 0 ]
-        
-
-        # Compute Interpol function
-        self.x2u0 = interpol2D( self.grid_sys.xd[0] , self.grid_sys.xd[1] , self.u_policy_grid[0] , bbox=[None, None, None, None], kx=1, ky=1,)
-        
-        # Asign Controller
-        self.controller.c = self.ctl_interpol
-        
-        
-        
-    ################################
-    def ctl_interpol(self, x , t = 0 ):
-        """ controller from optimal actions """
-        
-        u = np.zeros( self.sys.m )
-        
-        u[0] = self.x2u0( x[0] , x[1] )
-        
-        return u
-        
+    
     ################################
     def load_data(self, name = 'DP_data'):
         """ Save optimal controller policy and cost to go """
@@ -556,17 +570,27 @@ class ValueIteration_3D:
             self.J              = np.load( name + '_J'  + '.npy' )
             self.action_policy  = np.load( name + '_a'  + '.npy' ).astype(int)
             
+            self.J_1D          = np.zeros( self.grid_sys.nodes_n  , dtype = float )
+
+            self.Jnew          = self.J.copy()
+            self.J_1D_new      = self.J_1D.copy()
+            self.Jplot         = self.J.copy()
+            
+            # Create 1D J       
+            for node in range( self.grid_sys.nodes_n ):  
+                
+                    x = self.grid_sys.nodes_state[ node , : ]
+                    
+                    i = self.grid_sys.nodes_index[ node , 0 ]
+                    j = self.grid_sys.nodes_index[ node , 1 ]
+                    k = self.grid_sys.nodes_index[ node , 2 ]
+                    
+                    self.J_1D[node] = self.J[i,j,k]
+            
         except:
             
             print('Failed to load DP data ' )
         
-        
-    ################################
-    def save_data(self, name = 'DP_data'):
-        """ Save optimal controller policy and cost to go """
-        
-        np.save( name + '_J'  , self.J                        )
-        np.save( name + '_a'  , self.action_policy.astype(int))
 
         
         

@@ -16,7 +16,7 @@ from AlexRobotics.control  import controller
 sys  = pendulum.SinglePendulum()
 
 # Discrete world 
-grid_sys = discretizer.GridDynamicSystem2D( sys )
+grid_sys = discretizer.GridDynamicSystem( sys )
 
 # Cost Function
 cf = costfunction.QuadraticCostFunction( sys )

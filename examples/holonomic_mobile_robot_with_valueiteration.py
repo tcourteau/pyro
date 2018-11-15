@@ -16,7 +16,7 @@ from AlexRobotics.control import controller
 sys  = vehicle.HolonomicMobileRobotwithObstacles()
 
 # Discrete world 
-grid_sys = discretizer.GridDynamicSystem2D( sys , (51,51) , (3,3) ) # TODO
+grid_sys = discretizer.GridDynamicSystem( sys , (51,51) , (3,3) ) # TODO
 
 # Cost Function
 cf = costfunction.QuadraticCostFunction( sys )
