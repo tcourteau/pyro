@@ -282,7 +282,7 @@ class ContinuousDynamicSystem:
         self.sim.compute()
         
     #############################
-    def plot_trajectory(self , x0 , tf = 10 ):
+    def plot_trajectory(self , x0 , tf = 10 , n = 10001 , solver = 'ode'):
         """ 
         Simulation of time evolution of the system
         ------------------------------------------------
@@ -291,7 +291,7 @@ class ContinuousDynamicSystem:
         
         """
 
-        self.compute_trajectory( x0 , tf )
+        self.compute_trajectory( x0 , tf , n , solver )
         
         self.sim.plot()
         
@@ -315,6 +315,26 @@ class ContinuousDynamicSystem:
         self.sim.phase_plane_trajectory( x_axis , y_axis )
         
     
+    #############################
+    def plot_phase_plane_trajectory_3d(self , x0, tf=10,
+                                     x_axis=0, y_axis=1, z_axis=2):
+        """ 
+        Simulates the system and plot the trajectory in the Phase Plane 
+        ---------------------------------------------------------------
+        x0 : initial time
+        tf : final time
+        x_axis : index of state on x axis
+        y_axis : index of state on y axis
+        
+        """
+        
+        self.sim = simulation.Simulation( self , tf )
+        
+        self.sim.x0 = x0
+        self.sim.compute()
+        self.sim.phase_plane_trajectory_3d( x_axis , y_axis , z_axis )
+        
+    
     #############################################
     def show(self, q , x_axis = 0 , y_axis = 1 ):
         """ Plot figure of configuration q """
@@ -335,7 +355,7 @@ class ContinuousDynamicSystem:
         self.ani.show3( q )
     
     #############################
-    def animate(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
+    def plot_animation(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
         """ Simulate and animate system """
         
         self.compute_trajectory( x0 , tf , n , solver )

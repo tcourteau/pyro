@@ -95,8 +95,6 @@ class PhasePlot:
     ##############################
     def plot_init(self):
         
-        matplotlib.rc('xtick', labelsize = self.fontsize )
-        matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
         self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi,
                                    frameon=True)
@@ -105,15 +103,17 @@ class PhasePlot:
         
     ##############################
     def plot_vector_field(self):
+        
+        self.ax = self.phasefig.add_subplot(111, autoscale_on=False )
                        
         if self.streamplot:
-            self.Q = plt.streamplot( self.X, self.Y, self.v, self.w, 
+            self.ax.streamplot( self.X, self.Y, self.v, self.w, 
                                     color      =self.color,  
                                     linewidth  = self.linewidth, 
                                     arrowstyle = self.arrowstyle, 
                                     arrowsize  = self.headlength )
         else:
-            self.Q = plt.quiver( self.X, self.Y, self.v, self.w, 
+            self.ax.quiver( self.X, self.Y, self.v, self.w, 
                                 color     = self.color,  
                                 linewidth = self.linewidth)
                                 #, headlength = self.headlength )
@@ -121,14 +121,17 @@ class PhasePlot:
     ##############################
     def plot_finish(self):
         
-        plt.xlabel(self.cds.state_label[ self.x_axis ] + ' ' + 
-        self.cds.state_units[ self.x_axis ] , fontsize = self.fontsize)
-        plt.ylabel(self.cds.state_label[ self.y_axis ] + ' ' + 
-        self.cds.state_units[ self.y_axis ] , fontsize = self.fontsize)
-        plt.xlim([ self.x_axis_min , self.x_axis_max ])
-        plt.ylim([ self.y_axis_min , self.y_axis_max ])
-        plt.grid(True)
-        plt.tight_layout()
+        self.ax.set_xlabel(self.cds.state_label[ self.x_axis ] + ' ' + 
+                           self.cds.state_units[ self.x_axis ] , 
+                           fontsize = self.fontsize)
+        self.ax.set_ylabel(self.cds.state_label[ self.y_axis ] + ' ' + 
+                           self.cds.state_units[ self.y_axis ] , 
+                           fontsize = self.fontsize)
+        
+        self.ax.set_xlim([ self.x_axis_min , self.x_axis_max ])
+        self.ax.set_ylim([ self.y_axis_min , self.y_axis_max ])
+        self.ax.grid(True)
+        self.phasefig.tight_layout()
         
     ##############################
     def plot(self):
@@ -175,7 +178,7 @@ class PhasePlot3( PhasePlot ):
         self.color      = 'r'
         self.dpi        = 200
         self.linewidth  = 0.5
-        self.length     = 2.0
+        self.length     = 0.2
         self.arrowstyle = '->'
         self.fontsize   = 6
         
@@ -216,7 +219,7 @@ class PhasePlot3( PhasePlot ):
     ##############################
     def plot_vector_field(self):
         
-        self.ax = self.phasefig.gca(projection='3d')
+        self.ax = self.phasefig.add_subplot(111,projection='3d')
         
         self.ax.quiver( self.X, self.Y, self.Z, self.v, self.w, self.u, 
                        color=self.color,  linewidth = self.linewidth,

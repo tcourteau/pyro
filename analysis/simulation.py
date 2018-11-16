@@ -46,6 +46,8 @@ class Simulation:
         
         # Ploting
         self.fontsize = 5
+        self.figsize  = (4,3)
+        self.dpi      = 300
         
         # Cost computing
         self.cf = costfunction.QuadraticCostFunction( ContinuousDynamicSystem )
@@ -146,10 +148,7 @@ class Simulation:
             sys = self.cds # sys is the global system
         else:
             pass
-        
-        #matplotlib.rc('xtick', labelsize=self.fontsize )
-        #matplotlib.rc('ytick', labelsize=self.fontsize )
-        
+                
         # Number of subplots
         if plot == 'All':
             l = sys.n + sys.m + sys.p + 2
@@ -170,8 +169,8 @@ class Simulation:
         else:
             raise ValueError('not a valid ploting argument')
             
-        simfig , plots = plt.subplots(l, sharex=True, figsize=(4, 3), dpi=300, 
-                                      frameon=True)
+        simfig , plots = plt.subplots(l, sharex=True, figsize=self.figsize, 
+                                      dpi=self.dpi, frameon=True)
         
         ###############################################
         #Fix bug for single variable plotting
@@ -247,9 +246,37 @@ class Simulation:
         plt.plot([self.x_sol[0,x_axis]], [self.x_sol[0,y_axis]], 'o') # start
         plt.plot([self.x_sol[-1,x_axis]], [self.x_sol[-1,y_axis]], 's') # end
         
-        plt.tight_layout()
+        self.pp.phasefig.tight_layout()
         
         
+    #############################
+    def phase_plane_trajectory_3d(self , x_axis , y_axis , z_axis):
+        """ """
+        self.pp = phaseanalysis.PhasePlot3( self.cds , x_axis, y_axis, z_axis)
+        
+        self.pp.plot()
+        
+        self.pp.ax.plot(self.x_sol[:,x_axis], 
+                        self.x_sol[:,y_axis], 
+                        self.x_sol[:,z_axis], 
+                        'b-') # path
+        self.pp.ax.plot([self.x_sol[0,x_axis]],
+                        [self.x_sol[0,y_axis]], 
+                        [self.x_sol[0,z_axis]], 
+                        'o') # start
+        self.pp.ax.plot([self.x_sol[-1,x_axis]],
+                        [self.x_sol[-1,y_axis]], 
+                        [self.x_sol[-1,z_axis]], 
+                        's') # start # end
+        
+        self.pp.ax.set_xlim( self.cds.x_lb[ x_axis ] , 
+                             self.cds.x_ub[ x_axis ])
+        self.pp.ax.set_ylim( self.cds.x_lb[ y_axis ] , 
+                             self.cds.x_ub[ y_axis ])
+        self.pp.ax.set_zlim( self.cds.x_lb[ z_axis ] , 
+                             self.cds.x_ub[ z_axis ])
+        
+        self.pp.phasefig.tight_layout()
 
 ##########################################################################
 # Closed Loop Simulation
@@ -293,6 +320,7 @@ class CLosedLoopSimulation( Simulation ):
         self.r_sol = self.u_sol.copy() # reference is input of combined sys
         self.u_sol = np.zeros((self.n,self.sys.m))
         
+        # Compute internal input signal
         for i in range(self.n):
             
             r = self.r_sol[i,:] 
@@ -303,7 +331,7 @@ class CLosedLoopSimulation( Simulation ):
             
             
     #############################
-    def phase_plane_trajectory_CL(self , x_axis , y_axis ):
+    def phase_plane_trajectory_closed_loop(self , x_axis , y_axis ):
         """ """
         self.pp = phaseanalysis.PhasePlot( self.cds , x_axis , y_axis )
         

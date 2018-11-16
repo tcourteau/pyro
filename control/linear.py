@@ -100,15 +100,15 @@ if __name__ == "__main__":
     
     # New cl-dynamic
     clsi = controller.ClosedLoopSystem( si ,  psvc )
-    clsi.plot_phase_plane_trajectory_CL([10],10,0,0)
+    clsi.plot_phase_plane_trajectory([10],10,0,0)
     clsi.sim.plot('xu')
     
     cldi = controller.ClosedLoopSystem( di ,  psvc )
-    cldi.plot_phase_plane_trajectory_CL([10,0],10,0,1)
+    cldi.plot_phase_plane_trajectory([10,0],10,0,1)
     cldi.sim.plot('xu')
     
     clti = controller.ClosedLoopSystem( ti ,  psvc )
-    clti.plot_trajectory_CL([10,0,0],10)
+    clti.plot_trajectory([10,0,0],10)
     clti.sim.plot('xu')
     
     pp = phaseanalysis.PhasePlot3( clti )
