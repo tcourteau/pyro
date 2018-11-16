@@ -151,7 +151,7 @@ if __name__ == "__main__":
     clsp = controller.ClosedLoopSystem( sp ,  c )
     
     x0 = np.array([2,0])
-    clsp.plot_phase_plane_trajectory_CL( x0 )
+    clsp.plot_phase_plane_trajectory( x0 )
     clsp.sim.plot('xu')
     clsp.animate_simulation()
     
@@ -163,8 +163,8 @@ if __name__ == "__main__":
     cldp = controller.ClosedLoopSystem( dp ,  c2 )
     
     x0 = np.array([2,1,0,0])
-    cldp.plot_phase_plane_trajectory_CL( x0 , 10 , 0 , 2)
-    cldp.plot_phase_plane_trajectory_CL( x0 , 10 , 1 , 3)
+    cldp.plot_phase_plane_trajectory( x0 , 10 , 0 , 2)
+    cldp.plot_phase_plane_trajectory( x0 , 10 , 1 , 3)
     cldp.sim.plot('xu')
     cldp.animate_simulation()
         

@@ -430,5 +430,5 @@ if __name__ == "__main__":
     sys.ubar = np.array([1,0.01])
     sys.plot_trajectory( np.array([0,0,0]) , 1000 )
     
-    sys.animate_simulation( 10 )
+    sys.animate_simulation( 100 )
         
