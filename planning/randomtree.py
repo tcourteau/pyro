@@ -14,6 +14,8 @@ import mpl_toolkits.mplot3d.axes3d as p3
 from AlexRobotics.dynamic  import system
 from AlexRobotics.analysis import simulation
 from AlexRobotics.control  import controller
+from AlexRobotics.signal   import timefiltering
+from AlexRobotics.planning import plan
 
 
 ###############################################################################
@@ -450,27 +452,28 @@ class RRT:
         self.solution        = [ x , u , t , dx ]
         self.solution_length = len( self.path_node_list )
         
+        self.trajectory = plan.Trajectory( x.T , u.T , t.T , dx.T)
+        
     
     ############################
-    def solution_smoothing( self ):
+    def filter_solution( self , fc = 3 ):
         
-        #[ x , u , t , dx ]  = self.solution
+        self.low_pass_filter = timefiltering.LowPassFilter( fc , self.dt )
         
-        #x_new  = x.copy
-        #dx_new = dx.copy()
+        [ x , u , t , dx ]  = self.solution
         
-        #dx_new[1] = self.low_pass_filter.filter_array( dx[1] )
+        x_new  = x.copy()
+        u_new  = u.copy()
+        dx_new = dx.copy()
         
-        #x_new  = self.low_pass_filter.filter_array( x  )
-        #dx_new = self.low_pass_filter.filter_array( dx )
+        u_new  = self.low_pass_filter.filter_array( u )
+        x_new  = self.low_pass_filter.filter_array( x  )
+        dx_new = self.low_pass_filter.filter_array( dx )
+
+        self.solution   = [ x_new , u_new , t , dx_new ]
         
-        # Filer acceleration only
-        #self.solution   = [ x , u , t , dx_new ]
-        
-        #self.solution   = [ x_new , u , t , dx_new ]
-        
-        pass
-        
+        self.plot_open_loop_solution()
+
     
     
     ############################
@@ -489,6 +492,10 @@ class RRT:
         self.solution        = arr.tolist()
         self.time_to_goal    = self.solution[2].max()
         self.solution_length = self.solution[2].size
+        
+        [ x , u , t , dx ]  = self.solution
+        
+        self.trajectory = plan.Trajectory( x.T , u.T , t.T , dx.T)
         
 
     ############################
