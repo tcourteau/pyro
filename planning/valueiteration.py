@@ -247,13 +247,21 @@ class ValueIteration_2D:
             
                 
     ################################
-    def plot_J(self):
+    def plot_J(self, maxJ = 1000 ):
         """ print graphic """
         
         xname = self.sys.state_label[0] + ' ' + self.sys.state_units[0]
         yname = self.sys.state_label[1] + ' ' + self.sys.state_units[1]
         
         self.Jplot = self.J.copy()
+        
+        ## Saturation function for cost
+        for i in range(self.grid_sys.xgriddim[0]):
+            for j in range(self.grid_sys.xgriddim[1]):
+                if self.J[i,j] >= maxJ :
+                    self.Jplot[i,j] = maxJ
+                else:
+                    self.Jplot[i,j] = self.J[i,j]
         
         ###################    
         

@@ -107,6 +107,13 @@ class StaticController:
         
         return u
     
+    #############################
+    def __add__(self, sys):
+        
+        cl_sys = ClosedLoopSystem( sys , self )
+        
+        return cl_sys
+    
     
 ###############################################################################
 # Mother "Static controller + dynamic system" class
@@ -260,7 +267,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         self.sim.x0 = x0
         self.sim.compute()
         
-        self.sim.plot()
+        self.sim.plot('xu')
         
         
     #############################

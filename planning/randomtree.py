@@ -4,19 +4,81 @@ Created on Sun Mar  6 15:09:12 2016
 
 @author: alex
 """
-
-
+###############################################################################
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 
-from AlexRobotics.dynamic import system
-from AlexRobotics.analysis import simulation
-
-'''
 ###############################################################################
-'''
+from AlexRobotics.dynamic  import system
+from AlexRobotics.analysis import simulation
+from AlexRobotics.control  import controller
+
+
+###############################################################################
+class OpenLoopController( controller.StaticController ) :
+    """    """
+    ############################
+    def __init__(self, sys):
+        """ """
+        
+        # Sys
+        self.sys = sys
+        
+        # Dimensions
+        self.k = 1   
+        self.m = sys.m
+        self.p = sys.p
+        
+        controller.StaticController.__init__(self, self.k, self.m, self.p)
+        
+        # Label
+        self.name = 'Value Iteration Controller'
+        
+        # Intit
+        self.solution = None
+        
+    
+    ############################
+    def t2u(self, t ):
+        """ get u from solution """
+        
+        if self.solution == None:
+            
+            u = self.sys.ubar
+        
+        else:
+            
+            # Find time index
+            times = self.solution[2]
+            i = (np.abs(times - t)).argmin()
+            
+            # Find associated control input
+            u = self.solution[1][:,i]
+            
+            # No action pass trajectory time
+            if t > self.time_to_goal:
+                u    = self.sys.ubar
+            
+        return u
+
+    #############################
+    def c( self , y , r , t  ):
+        """  U depends only on time """
+        
+        u = self.t2u( t )
+        
+        return u
+    
+    ############################
+    def load_solution(self, name = 'RRT_Solution.npy' ):
+        
+        RRT.load_solution( self , name )
+
+
+
+###############################################################################
 class Node:
     """ node of the random tree """
     
@@ -36,7 +98,7 @@ class Node:
         return np.linalg.norm( self.x - x_other )
         
         
-
+###############################################################################
 class RRT:
     """ Rapid Random Trees search algorithm """
     
@@ -45,13 +107,14 @@ class RRT:
         
         self.sys = sys          # Dynamic system class
         
+        # Init tree
         self.x_start = x_start  # origin of the graph
-        
         self.start_node = Node( self.x_start , None , 0  , None )
-        
         self.nodes = []
         self.nodes.append( self.start_node )
         
+        # Open Loop Controller
+        self.controller     = OpenLoopController( sys )
         
         # Params
         self.dt                   = 0.1
@@ -77,14 +140,14 @@ class RRT:
         self.y_axis               = 1  # State to plot on y axis
         self.z_axis               = 2  # State to plot on z axis
         
+        # Debuging mode
+        self.debug = False
         
         self.discretizeactions()
         
         # Init
         self.solution              = None
         self.randomized_input      = False
-        
-        self.debug                 = False
         
         
     #############################
@@ -247,7 +310,7 @@ class RRT:
     def find_path_to_goal(self, x_goal ):
         """ """
         
-        self.x_goal = x_goal
+        self.x_goal  = x_goal
         
         succes   = False
         
@@ -326,6 +389,9 @@ class RRT:
         
         # Compute Path
         self.compute_path_to_goal()
+        
+        # Give solution to controller
+        self.controller.solution = self.solution
         
         # Plot
         if self.dyna_plot:
@@ -442,31 +508,6 @@ class RRT:
         
         self.sys.sim = self.sim
         
-        
-    ############################
-    def open_loop_controller(self, x , t ):
-        """ feedback law """
-        
-        if self.solution == None:
-            
-            u = self.sys.ubar
-            
-            return u
-        
-        else:
-            
-            # Find time index
-            times = self.solution[2]
-            i = (np.abs(times - t)).argmin()
-            
-            # Find associated control input
-            u = self.solution[1][:,i]
-            
-            # No action pass trajectory time
-            if t > self.time_to_goal:
-                u    = self.sys.ubar
-    
-            return u
     
     ##################################################################
     ### Ploting functions
