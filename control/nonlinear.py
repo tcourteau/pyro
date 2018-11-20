@@ -6,12 +6,13 @@ Created on Fri Nov  9 10:46:14 2018
 """
 
 import numpy as np
+from scipy.interpolate import interp1d
 
 from AlexRobotics.control import controller
 from AlexRobotics.dynamic import mechanical
 
 ###############################################################################
-# Simple proportionnal controller
+# Simple Computed Torque
 ###############################################################################
         
 class ComputedTorqueController( controller.StaticController ) :
@@ -128,6 +129,120 @@ class ComputedTorqueController( controller.StaticController ) :
         ddq_r = ddq_d - 2 * self.zeta * self.w0 * dq_e - self.w0 ** 2 * q_e
         
         return ddq_r
+    
+
+
+###############################################################################
+# Simple Computed Torque
+###############################################################################
+        
+class TrajectoryFollowingComputedTorqueController( ComputedTorqueController ) :
+    """ 
+    """
+    
+    ############################
+    def __init__(self, model , traj ):
+        """
+        ---------------------------------------
+        r  : reference signal vector  k x 1
+        y  : sensor signal vector     p x 1
+        u  : control inputs vector    m x 1
+        t  : time                     1 x 1
+        ---------------------------------------
+        u = c( y , r , t )
+        """
+        
+        ComputedTorqueController.__init__( self , model )
+        
+        self.load_trajectory( traj )
+        
+        self.mode = 'interpol'
+        
+        
+    ############################
+    def load_trajectory( self , traj  ):
+        """ 
+        
+        Load Open-Loop trajectory solution to use as reference trajectory
+        
+        """
+        
+        self.trajectory = traj
+        
+        q   = traj.x_sol[ :,    0           :     self.model.dof ]
+        dq  = traj.x_sol[ :, self.model.dof : 2 * self.model.dof ]
+        ddq = traj.dx_sol[:, self.model.dof : 2 * self.model.dof ]
+        t   = traj.t_sol
+        
+        # Create interpol functions
+        self.q   = interp1d(t,q.T)
+        self.dq  = interp1d(t,dq.T)
+        self.ddq = interp1d(t,ddq.T)
+        
+    ############################
+    def get_traj( self , t  ):
+        """ 
+        
+        Find closest point on the trajectory
+        
+        """
+        
+        if t < self.trajectory.time_final :
+
+            # Load trajectory
+            q     = self.q(   t )
+            dq    = self.dq(  t )
+            ddq   = self.ddq( t )          
+
+        else:
+            
+            q     = self.rbar
+            dq    = np.zeros( self.model.dof )
+            ddq   = np.zeros( self.model.dof )
+            
+        
+        return ddq , dq , q
+    
+    ############################
+    def traj_following_ctl( self , x , t = 0 ):
+        """ 
+        
+        Given desired loaded trajectory and actual state, compute torques
+        
+        """
+        
+        ddq_d , dq_d , q_d = self.get_traj( t )
+
+        ddq_r              = self.compute_ddq_r( ddq_d , dq_d , q_d , x )
+        
+        u                  = self.computed_torque( ddq_r , x , t )
+        
+        return u
+        
+        
+    #############################
+    def c( self , y , r , t ):
+        """ 
+        Feedback static computation u = c(y,r,t)
+        
+        INPUTS
+        y  : sensor signal vector     p x 1
+        r  : reference signal vector  k x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        u  : control inputs vector    m x 1
+        
+        """
+        
+        u = np.zeros(self.m) 
+        
+        x = y 
+        
+        u = self.traj_following_ctl( x , t )
+        
+        
+        return u
     
     
 

@@ -29,13 +29,13 @@ planner.u_options = [
             np.array([ 5])
             ]
 
-planner.goal_radius = 0.1
+planner.goal_radius = 0.5
 
 # Solve Planning Problem
 planner.find_path_to_goal( x_goal )
 
 # Print solution
-planner.save_solution('rrt_solution_pendulum.npy')
+planner.save_solution('pendulum_rrt.npy')
 planner.plot_tree()
 planner.plot_open_loop_solution()
 sys.animate_simulation()

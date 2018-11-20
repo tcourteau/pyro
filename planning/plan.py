@@ -6,12 +6,8 @@ Created on Fri Nov 16 13:41:26 2018
 """
 ###############################################################################
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d.axes3d as p3
 
 ###############################################################################
-from AlexRobotics.dynamic  import system
 from AlexRobotics.analysis import simulation
 from AlexRobotics.control  import controller
 from AlexRobotics.signal   import timefiltering
@@ -19,64 +15,32 @@ from AlexRobotics.signal   import timefiltering
 
 ###############################################################################
 class OpenLoopController( controller.StaticController ) :
-    """    """
+    """  Open-loop controller based on trajectory solution  """
     ############################
-    def __init__(self, sys):
+    def __init__(self, trajectory   ):
         """ """
         
         # Sys
-        self.sys = sys
+        self.trajectory = trajectory
         
         # Dimensions
         self.k = 1   
-        self.m = sys.m
-        self.p = sys.p
+        self.m = trajectory.m
+        self.n = trajectory.n
+        self.p = trajectory.n
         
         controller.StaticController.__init__(self, self.k, self.m, self.p)
         
         # Label
-        self.name = 'Value Iteration Controller'
-        
-        # Intit
-        self.solution = None
-        
-    
-    ############################
-    def t2u(self, t ):
-        """ get u from solution """
-        
-        if self.solution == None:
-            
-            u = self.sys.ubar
-        
-        else:
-            
-            # Find time index
-            times = self.solution[2]
-            i = (np.abs(times - t)).argmin()
-            
-            # Find associated control input
-            u = self.solution[1][:,i]
-            
-            # No action pass trajectory time
-            if t > self.time_to_goal:
-                u    = self.sys.ubar
-            
-        return u
+        self.name = 'Open Loop Controller'
 
     #############################
     def c( self , y , r , t  ):
         """  U depends only on time """
         
-        u = self.t2u( t )
+        u = self.trajectory.t2u( t )
         
         return u
-    
-    ############################
-    def load_solution(self, name = 'RRT_Solution.npy' ):
-        
-        RRT.load_solution( self , name )
-        
         
 
 ###############################################################################
@@ -85,9 +49,11 @@ class Trajectory() :
     ############################
     def __init__(self, x , u , t , dx = None , y = None):
         """ 
-        x: array of dim = ( time-steps , sys.n )
-        u: array of dim = ( time-steps , sys.m )
-        t: array of dim = ( time-steps , 1 )
+        x:  array of dim = ( time-steps , sys.n )
+        u:  array of dim = ( time-steps , sys.m )
+        t:  array of dim = ( time-steps , 1 )
+        dx: array of dim = ( time-steps , sys.n )
+        y:  array of dim = ( time-steps , sys.p )
         """
                 
         self.x_sol  = x
@@ -96,19 +62,18 @@ class Trajectory() :
         self.dx_sol = dx
         self.y_sol  = y
         
-        self.time_to_goal    = t.max()
-        self.solution_length = t.size
+        self.compute_size()
         
     ############################
     def save(self, name = 'trajectory_solution.npy' ):
         
-        arr = np.array( [ self.x_sol , 
-                          self.u_sol , 
-                          self.t_sol ,
-                          self.dx_sol,
-                          self.y_sol ] )
+        data = np.array( [ self.x_sol , 
+                           self.u_sol , 
+                           self.t_sol ,
+                           self.dx_sol,
+                           self.y_sol ] )
         
-        np.save( name , arr )
+        np.save( name , data )
         
         
     ############################
@@ -122,8 +87,18 @@ class Trajectory() :
         self.dx_sol = data[3]
         self.y_sol  = data[4]
         
-        self.time_to_goal    = self.t_sol.max()
-        self.solution_length = self.t_sol.size
+        self.compute_size()
+        
+    ############################
+    def compute_size(self):
+        
+        self.time_final = self.t_sol.max()
+        self.time_steps = self.t_sol.size
+        
+        self.n = self.x_sol.shape[1]
+        self.m = self.u_sol.shape[1]
+        
+        self.ubar = np.zeros( self.m )
         
     
     ############################
@@ -148,11 +123,15 @@ class Trajectory() :
     def t2u(self, t ):
         """ get u from time """
         
-        # Find time index
-        i = (np.abs(self.t_sol - t)).argmin()
+        if t < self.time_final:
+            # Find time index
+            i = (np.abs(self.t_sol - t)).argmin()
+            
+            # Find associated control input
+            u = self.u_sol[i,:]
         
-        # Find associated control input
-        u = self.u_sol[i,:]
+        else:
+            u = self.ubar
             
         return u
     
@@ -173,8 +152,8 @@ class Trajectory() :
         """  """
         
         sim = simulation.Simulation( sys , 
-                                     self.time_to_goal , 
-                                     self.solution_length )
+                                     self.time_final , 
+                                     self.time_steps )
 
         sim.x_sol = self.x_sol
         sim.t     = self.t_sol
@@ -193,6 +172,14 @@ def load_trajectory( name = 'trajectory_solution.npy' ):
         data = np.load( name )
         
         return Trajectory( data[0] , data[1], data[2] , data[3] , data[4] )
+    
+
+###############################################################################
+def load_open_loop_controller( name = 'trajectory_solution.npy' ):
+    
+        traj = load_trajectory( name )
+        
+        return OpenLoopController( traj )
         
         
         

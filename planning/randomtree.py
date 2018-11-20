@@ -13,71 +13,8 @@ import mpl_toolkits.mplot3d.axes3d as p3
 ###############################################################################
 from AlexRobotics.dynamic  import system
 from AlexRobotics.analysis import simulation
-from AlexRobotics.control  import controller
 from AlexRobotics.signal   import timefiltering
 from AlexRobotics.planning import plan
-
-
-###############################################################################
-class OpenLoopController( controller.StaticController ) :
-    """    """
-    ############################
-    def __init__(self, sys):
-        """ """
-        
-        # Sys
-        self.sys = sys
-        
-        # Dimensions
-        self.k = 1   
-        self.m = sys.m
-        self.p = sys.p
-        
-        controller.StaticController.__init__(self, self.k, self.m, self.p)
-        
-        # Label
-        self.name = 'Value Iteration Controller'
-        
-        # Intit
-        self.solution = None
-        
-    
-    ############################
-    def t2u(self, t ):
-        """ get u from solution """
-        
-        if self.solution == None:
-            
-            u = self.sys.ubar
-        
-        else:
-            
-            # Find time index
-            times = self.solution[2]
-            i = (np.abs(times - t)).argmin()
-            
-            # Find associated control input
-            u = self.solution[1][:,i]
-            
-            # No action pass trajectory time
-            if t > self.time_to_goal:
-                u    = self.sys.ubar
-            
-        return u
-
-    #############################
-    def c( self , y , r , t  ):
-        """  U depends only on time """
-        
-        u = self.t2u( t )
-        
-        return u
-    
-    ############################
-    def load_solution(self, name = 'RRT_Solution.npy' ):
-        
-        RRT.load_solution( self , name )
-
 
 
 ###############################################################################
@@ -115,9 +52,6 @@ class RRT:
         self.nodes = []
         self.nodes.append( self.start_node )
         
-        # Open Loop Controller
-        self.controller     = OpenLoopController( sys )
-        
         # Params
         self.dt                   = 0.1
         self.INF                  = 10000
@@ -148,7 +82,7 @@ class RRT:
         self.discretizeactions()
         
         # Init
-        self.solution              = None
+        self.solution_is_found     = False
         self.randomized_input      = False
         
         
@@ -392,9 +326,6 @@ class RRT:
         # Compute Path
         self.compute_path_to_goal()
         
-        # Give solution to controller
-        self.controller.solution = self.solution
-        
         # Plot
         if self.dyna_plot:
             self.dyna_plot_solution()
@@ -447,75 +378,38 @@ class RRT:
         dx = np.array( dx_list ).T
         dx = np.fliplr( dx )
             
-        # Save solution
-        self.time_to_goal    = t.max()
-        self.solution        = [ x , u , t , dx ]
-        self.solution_length = len( self.path_node_list )
-        
+        # Save plan
         self.trajectory = plan.Trajectory( x.T , u.T , t.T , dx.T)
         
+        # Create open-loop controller
+        self.open_loop_controller = plan.OpenLoopController( self.trajectory )
+        
+        #
+        self.solution_is_found = True
+    
     
     ############################
     def filter_solution( self , fc = 3 ):
         
-        self.low_pass_filter = timefiltering.LowPassFilter( fc , self.dt )
-        
-        [ x , u , t , dx ]  = self.solution
-        
-        x_new  = x.copy()
-        u_new  = u.copy()
-        dx_new = dx.copy()
-        
-        u_new  = self.low_pass_filter.filter_array( u )
-        x_new  = self.low_pass_filter.filter_array( x  )
-        dx_new = self.low_pass_filter.filter_array( dx )
-
-        self.solution   = [ x_new , u_new , t , dx_new ]
-        
-        self.plot_open_loop_solution()
-
-    
+        self.trajectory.lowpassfilter( fc )
     
     ############################
     def save_solution(self, name = 'RRT_Solution.npy' ):
         
-        arr = np.array( self.solution )
-        
-        np.save( name , arr )
-        
+        self.trajectory.save( name )
         
     ############################
     def load_solution(self, name = 'RRT_Solution.npy' ):
         
-        arr = np.load( name )
-        
-        self.solution        = arr.tolist()
-        self.time_to_goal    = self.solution[2].max()
-        self.solution_length = self.solution[2].size
-        
-        [ x , u , t , dx ]  = self.solution
-        
-        self.trajectory = plan.Trajectory( x.T , u.T , t.T , dx.T)
-        
-
-    ############################
-    def plot_open_loop_solution(self):
-        """ """
-        
-        self.sim = simulation.Simulation( self.sys , 
-                                          self.time_to_goal , 
-                                          self.solution_length )
-        
-        self.sim.t     = self.solution[2].T
-        self.sim.x_sol = self.solution[0].T
-        self.sim.u_sol = self.solution[1].T
-        
-        self.sim.plot('x') 
-        self.sim.plot('u')
-        
-        self.sys.sim = self.sim
-        
+        self.trajectory = plan.load_trajectory( name )
     
+    ############################
+    def plot_open_loop_solution(self, params = 'xu' ):
+        
+        self.trajectory.plot_trajectory( self.sys , params )
+        
+        
+        
     ##################################################################
     ### Ploting functions
     ##################################################################            
@@ -525,7 +419,7 @@ class RRT:
         """ """
         
         # Create figure
-        self.fig_tree = plt.figure(figsize=(3, 2),dpi=300, frameon=True)
+        self.fig_tree = plt.figure(figsize=(3, 2), dpi=300, frameon=True)
         
         # Set window title
         self.fig_tree.canvas.set_window_title('RRT tree search for ' + 
@@ -542,7 +436,7 @@ class RRT:
                 [node.x[ self.y_axis ],node.parent.x[ self.y_axis ]] , 'o-')
         
         # Plot Solution Path
-        if not self.solution == None:
+        if self.solution_is_found:
             for node in self.path_node_list:
                 if not( node.parent == None ):
                     ax.plot( 
@@ -598,7 +492,7 @@ class RRT:
                 [ node.x[ self.z_axis ] , node.parent.x[ self.z_axis ]] , 'o-')
         
         # Plot Solution Path
-        if not self.solution == None:
+        if not self.solution_is_found == None:
             for node in self.path_node_list:
                 if not( node.parent == None ):
                     ax.plot( 
@@ -716,7 +610,7 @@ class RRT:
     ############################
     def dyna_plot_solution(self ):
         
-        if not self.solution == None:
+        if not self.solution_is_found == None:
             for node in self.path_node_list:
                 if not(node.parent==None):
                     self.ax_tree_dyna.plot( 
