@@ -38,13 +38,17 @@ planner.u_options = [
         np.array([-t, 0])
         ]
 
-planner.goal_radius          = 1.0
+planner.goal_radius          = 0.8
 planner.dt                   = 0.1
 planner.max_nodes            = 12000
 planner.max_solution_time    = 8
 planner.max_distance_compute = 500
 
+planner.dyna_plot            = False
+
 planner.find_path_to_goal( x_goal )
+
+planner.plot_tree()
 
 ###############################################################################
 
@@ -53,6 +57,9 @@ planner.find_path_to_goal( x_goal )
 traj = planner.trajectory
 
 ctl  = nonlinear.TrajectoryFollowingComputedTorqueController( sys , traj )
+
+ctl.w0   = 1.0
+ctl.zeta = 0.7
 
 # goal
 ctl.rbar = np.array([0,0])
