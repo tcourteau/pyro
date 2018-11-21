@@ -28,12 +28,12 @@ cf.INF  = 10000
 vi = valueiteration.ValueIteration_2D( grid_sys , cf )
 
 vi.initialize()
-vi.load_data('test_pendulum')
-vi.compute_steps(5)
+vi.load_data('simple_pendulum_vi')
+vi.compute_steps(500)
 #vi.load_data()
 vi.assign_interpol_controller()
 vi.plot_policy(0)
-#vi.save_data('test_pendulum')
+vi.save_data('simple_pendulum_vi')
 
 #asign controller
 cl_sys = controller.ClosedLoopSystem( sys , vi.ctl )

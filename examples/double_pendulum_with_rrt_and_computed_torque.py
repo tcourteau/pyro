@@ -32,7 +32,7 @@ planner.u_options = [
         np.array([+t,-t]),
         np.array([+t,+t]),
         np.array([ 0,+t]),
-        np.array([ 0,-t]),
+         np.array([ 0,-t]),
         np.array([ 0, 0]),
         np.array([+t, 0]),
         np.array([-t, 0])
