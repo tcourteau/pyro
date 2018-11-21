@@ -108,14 +108,17 @@ class Trajectory() :
         dt = self.t_sol[1] - self.t_sol[0]
         
         self.low_pass_filter = timefiltering.LowPassFilter( fc , dt )
-
-        self.x_sol  = self.low_pass_filter.filter_array( self.x_sol  )
-        self.u_sol  = self.low_pass_filter.filter_array( self.u_sol  )
         
-        if not(self.dx_sol == None):
+        for i in range(self.n):
+            self.x_sol[:,i]  = self.low_pass_filter.filter_array( self.x_sol[:,i]  )
+            
+        for j in range(self.m):
+            self.u_sol[:,j]  = self.low_pass_filter.filter_array( self.u_sol[:,j]  )
+        
+        if not(self.dx_sol.any() == None):
             self.dx_sol  = self.low_pass_filter.filter_array( self.dx_sol  )
             
-        if not(self.y_sol == None):
+        if not(self.y_sol.any()  == None):
             self.y_sol  = self.low_pass_filter.filter_array( self.y_sol  )
             
         
