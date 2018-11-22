@@ -12,12 +12,18 @@ from AlexRobotics.control import nonlinear
 ###############################################################################
 
 sys = pendulum.DoublePendulum()
-ctl = nonlinear.ComputedTorqueController( sys )
+ctl  = nonlinear.SlidingModeController( sys )
+
+ctl.lam = 2
+
+ctl.gain = 5
+
 
 # New cl-dynamic
 cl_sys = ctl + sys
 
 # Simultation
-x_start  = np.array([2,1,0,0])
-cl_sys.plot_trajectory( x_start  )
+x_start  = np.array([-3.14,1,0,0])
+cl_sys.plot_trajectory( x_start , 10 , 10001, 'euler')
+cl_sys.sim.phase_plane_trajectory(0,2)
 cl_sys.animate_simulation()

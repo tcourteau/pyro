@@ -7,29 +7,26 @@ Created on Fri Nov 16 12:05:08 2018
 ###############################################################################
 import numpy as np
 ###############################################################################
-from AlexRobotics.dynamic  import pendulum
-from AlexRobotics.control  import nonlinear
-from AlexRobotics.planning import plan
+from AlexRobotics.dynamic import pendulum
+from AlexRobotics.control import nonlinear
 ###############################################################################
 
 sys  = pendulum.SinglePendulum()
+#ctl  = nonlinear.ComputedTorqueController( sys )
+ctl  = nonlinear.SlidingModeController( sys )
 
+ctl.gain = 5
 
-
-# Controller
-
-traj = plan.load_trajectory('pendulum_rrt.npy')
-
-ctl  = nonlinear.ComputedTorqueController( sys , traj )
-
-# goal
-ctl.rbar = np.array([-3.14])
+# Set Point
+q_target = np.array([3.14])
+ctl.rbar = q_target
 
 # New cl-dynamic
 cl_sys = ctl + sys
 
 # Simultation
-x_start  = np.array([0.1,0])
-cl_sys.plot_phase_plane_trajectory( x_start  )
-cl_sys.sim.plot('xu')
+x_start  = np.array([-2,0])
+cl_sys.plot_trajectory(x_start, 10, 1001, 'euler')
+cl_sys.sim.phase_plane_trajectory_closed_loop(0,1)
+cl_sys.sim.phase_plane_trajectory(0,1)
 cl_sys.animate_simulation()

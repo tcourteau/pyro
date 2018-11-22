@@ -20,7 +20,8 @@ sys  = pendulum.DoublePendulum()
 
 traj = plan.load_trajectory('double_pendulum_rrt.npy')
 
-ctl  = nonlinear.TrajectoryFollowingComputedTorqueController( sys , traj )
+ctl  = nonlinear.ComputedTorqueController( sys , traj )
+
 
 # goal
 ctl.rbar = np.array([0,0])

@@ -78,6 +78,9 @@ class ValueIteration_2D:
         # Cost function
         self.cf  = cost_function
         
+        # Print params
+        self.fontsize = 10
+        
         
         # Options
         self.uselookuptable = True
@@ -247,7 +250,7 @@ class ValueIteration_2D:
             
                 
     ################################
-    def plot_J(self, maxJ = 1000 ):
+    def plot_cost2go(self, maxJ = 1000 ):
         """ print graphic """
         
         xname = self.sys.state_label[0] + ' ' + self.sys.state_units[0]
@@ -263,18 +266,22 @@ class ValueIteration_2D:
                 else:
                     self.Jplot[i,j] = self.J[i,j]
         
-        ###################    
-        
-        fs = 10
-        
         self.fig1 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
         self.fig1.canvas.set_window_title('Cost-to-go')
         self.ax1  = self.fig1.add_subplot(1,1,1)
         
-        plt.ylabel(yname, fontsize = fs)
-        plt.xlabel(xname, fontsize = fs)
-        self.im1 = plt.pcolormesh( self.grid_sys.xd[0] , self.grid_sys.xd[1] , self.Jplot.T )
-        plt.axis([self.sys.x_lb[0] , self.sys.x_ub[0], self.sys.x_lb[1] , self.sys.x_ub[1]])
+        plt.ylabel(yname, fontsize = self.fontsize)
+        plt.xlabel(xname, fontsize = self.fontsize)
+        self.im1 = plt.pcolormesh( self.grid_sys.xd[0] ,
+                                   self.grid_sys.xd[1] , 
+                                   self.Jplot.T,
+                                   shading='gouraud')
+        
+        plt.axis([self.sys.x_lb[0],
+                  self.sys.x_ub[0],
+                  self.sys.x_lb[1], 
+                  self.sys.x_ub[1]])
+    
         plt.colorbar()
         plt.grid(True)
         plt.tight_layout()
@@ -288,19 +295,23 @@ class ValueIteration_2D:
         yname = self.sys.state_label[1] + ' ' + self.sys.state_units[1]
         
         policy_plot = self.u_policy_grid[i].copy()
-        
-        ###################    
-        
-        fs = 10
-        
+                
         self.fig1 = plt.figure(figsize=(4, 4),dpi=300, frameon=True)
         self.fig1.canvas.set_window_title('Policy for u[%i]'%i)
         self.ax1  = self.fig1.add_subplot(1,1,1)
         
-        plt.ylabel(yname, fontsize = fs)
-        plt.xlabel(xname, fontsize = fs)
-        self.im1 = plt.pcolormesh( self.grid_sys.xd[0] , self.grid_sys.xd[1] , policy_plot.T )
-        plt.axis([self.sys.x_lb[0] , self.sys.x_ub[0], self.sys.x_lb[1] , self.sys.x_ub[1]])
+        plt.ylabel(yname, fontsize = self.fontsize )
+        plt.xlabel(xname, fontsize = self.fontsize )
+        self.im1 = plt.pcolormesh( self.grid_sys.xd[0] , 
+                                   self.grid_sys.xd[1] , 
+                                   policy_plot.T,
+                                   shading='gouraud')
+        
+        plt.axis([self.sys.x_lb[0], 
+                  self.sys.x_ub[0], 
+                  self.sys.x_lb[1], 
+                  self.sys.x_ub[1]])
+    
         plt.colorbar()
         plt.grid(True)
         plt.tight_layout() 
@@ -518,7 +529,7 @@ class ValueIteration_3D( ValueIteration_2D ):
         
     
     ################################
-    def plot_J_ij(self, k = 0 ):
+    def plot_cost2go(self, k = 0 ):
         """ print graphic """
         
         xname = self.sys.state_label[0] + ' ' + self.sys.state_units[0]
@@ -536,8 +547,14 @@ class ValueIteration_3D( ValueIteration_2D ):
         
         plt.ylabel(yname, fontsize = fs)
         plt.xlabel(xname, fontsize = fs)
-        self.im1 = plt.pcolormesh( self.grid_sys.xd[0] , self.grid_sys.xd[1] , self.Jplot.T )
-        plt.axis([self.sys.x_lb[0] , self.sys.x_ub[0], self.sys.x_lb[1] , self.sys.x_ub[1]])
+        self.im1 = plt.pcolormesh( self.grid_sys.xd[0] ,
+                                   self.grid_sys.xd[1] , 
+                                   self.Jplot.T,
+                                   shading='gouraud')
+        plt.axis([self.sys.x_lb[0] , 
+                  self.sys.x_ub[0], 
+                  self.sys.x_lb[1] , 
+                  self.sys.x_ub[1]])
         plt.colorbar()
         plt.grid(True)
         plt.tight_layout()
