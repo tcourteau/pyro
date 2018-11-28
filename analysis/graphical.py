@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import mpl_toolkits.mplot3d.axes3d as p3
 
-from AlexRobotics.dynamic import system
 
 ##############################################################################
         
@@ -20,7 +19,7 @@ class Animator:
     """
     
     ############################
-    def __init__(self, sys ):
+    def __init__(self, sys, linestyle):
         """
         
         sys = system.ContinuousDynamicSystem()
@@ -49,7 +48,7 @@ class Animator:
         # Params
         self.figsize   = (4, 3)
         self.dpi       = 300
-        self.linestyle = 'o-'
+        self.linestyle = linestyle
         self.fontsize  = 5
         
     

@@ -344,14 +344,15 @@ class ContinuousDynamicSystem:
         self.ani.animate_simulation( 1.0 )
         
     ##############################
-    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'RobotSim' ):
+    def animate_simulation(self,linestyle = 'o-', time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'RobotSim' ):
         """ 
         Show Animation of the simulation 
         ----------------------------------
         time_factor_video < 1 --> Slow motion video        
         
         """  
-        self.ani = graphical.Animator( self )
+        self.linestyle = linestyle
+        self.ani = graphical.Animator( self ,self.linestyle)
         self.ani.animate_simulation( time_factor_video , is_3d, save , file_name )
 
 
