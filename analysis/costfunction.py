@@ -52,7 +52,7 @@ class CostFunction:
 
 #############################################################################
      
-class QuadraticCostFunction:
+class QuadraticCostFunction( CostFunction ):
     """ 
     Quadratic cost functions of continuous dynamical systems
     ----------------------------------------------
@@ -114,7 +114,7 @@ class QuadraticCostFunction:
 
 ##############################################################################
 
-class TimeCostFunction:
+class TimeCostFunction( CostFunction ):
     """ 
     Mother class for cost functions of continuous dynamical systems
     ----------------------------------------------
