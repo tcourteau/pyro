@@ -7,9 +7,9 @@ Created on Fri Aug 07 11:51:55 2015
 
 import numpy as np
 
-from AlexRobotics.analysis import simulation
-from AlexRobotics.analysis import phaseanalysis
-from AlexRobotics.analysis import graphical
+from PyRobotics.analysis import simulation
+from PyRobotics.analysis import phaseanalysis
+from PyRobotics.analysis import graphical
        
 '''
 ###############################################################################
@@ -317,7 +317,7 @@ class ContinuousDynamicSystem:
     
     #############################
     def plot_phase_plane_trajectory_3d(self , x0, tf=10,
-                                     x_axis=0, y_axis=1, z_axis=2):
+                                       x_axis=0, y_axis=1, z_axis=2):
         """ 
         Simulates the system and plot the trajectory in the Phase Plane 
         ---------------------------------------------------------------

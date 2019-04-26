@@ -7,7 +7,7 @@ Created on Thu Oct 18 20:54:31 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic import system
+from PyRobotics.dynamic import system
 
 
 ##############################################################################
@@ -249,7 +249,7 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.analysis import costfunction
+    from PyRobotics.analysis import costfunction
     
     ###################################
     # Simple integrator

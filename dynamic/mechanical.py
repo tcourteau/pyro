@@ -8,8 +8,8 @@ Created on Tue Oct 23 20:45:37 2018
 import numpy as np
 import matplotlib.pyplot as plt
 
-from AlexRobotics.dynamic import system
-from AlexRobotics.analysis import graphical
+from PyRobotics.dynamic import system
+from PyRobotics.analysis import graphical
 
 
 ##############################################################################

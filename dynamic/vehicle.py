@@ -9,8 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from AlexRobotics.dynamic import system
-from AlexRobotics.analysis import graphical
+from PyRobotics.dynamic import system
+from PyRobotics.analysis import graphical
 
 
 ##############################################################################

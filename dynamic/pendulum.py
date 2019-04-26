@@ -8,7 +8,7 @@ Created on Wed Oct 24 13:07:39 2018
 import numpy as np
 
 
-from AlexRobotics.dynamic import mechanical
+from PyRobotics.dynamic import mechanical
 
 ##############################################################################
         
