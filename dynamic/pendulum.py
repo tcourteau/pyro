@@ -8,7 +8,7 @@ Created on Wed Oct 24 13:07:39 2018
 import numpy as np
 
 
-from PyRobotics.dynamic import mechanical
+from pyro.dynamic import mechanical
 
 ##############################################################################
         

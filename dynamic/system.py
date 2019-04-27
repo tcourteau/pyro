@@ -7,9 +7,9 @@ Created on Fri Aug 07 11:51:55 2015
 
 import numpy as np
 
-from PyRobotics.analysis import simulation
-from PyRobotics.analysis import phaseanalysis
-from PyRobotics.analysis import graphical
+from pyro.analysis import simulation
+from pyro.analysis import phaseanalysis
+from pyro.analysis import graphical
        
 '''
 ###############################################################################
