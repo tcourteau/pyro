@@ -8,9 +8,9 @@ Created on Fri Nov 16 13:41:26 2018
 import numpy as np
 
 ###############################################################################
-from AlexRobotics.analysis import simulation
-from AlexRobotics.control  import controller
-from AlexRobotics.signal   import timefiltering
+from pyro.analysis import simulation
+from pyro.control  import controller
+from pyro.signal   import timefiltering
 
 
 ###############################################################################

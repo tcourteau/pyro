@@ -7,11 +7,11 @@ Created on Mon Nov 12 20:28:17 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic  import pendulum
-from AlexRobotics.planning import discretizer
-from AlexRobotics.analysis import costfunction
-from AlexRobotics.planning import valueiteration
-from AlexRobotics.control  import controller
+from pyro.dynamic  import pendulum
+from pyro.planning import discretizer
+from pyro.analysis import costfunction
+from pyro.planning import valueiteration
+from pyro.control  import controller
 
 sys  = pendulum.SinglePendulum()
 

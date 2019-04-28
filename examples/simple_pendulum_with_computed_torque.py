@@ -7,8 +7,8 @@ Created on Fri Nov 16 12:05:08 2018
 ###############################################################################
 import numpy as np
 ###############################################################################
-from AlexRobotics.dynamic import pendulum
-from AlexRobotics.control import nonlinear
+from pyro.dynamic import pendulum
+from pyro.control import nonlinear
 ###############################################################################
 
 sys  = pendulum.SinglePendulum()

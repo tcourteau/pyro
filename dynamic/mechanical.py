@@ -12,7 +12,7 @@ from pyro.dynamic import system
 from pyro.analysis import graphical
 
 
-##############################################################################
+###############################################################################
         
 class MechanicalSystem( system.ContinuousDynamicSystem ):
     """ 
@@ -170,7 +170,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     
     ##############################
     def generalized_forces(self, q  , dq  , ddq , t = 0 ):
-        """ Computed generalized forces given a trajectory (inverse dynamic) """  
+        """ Computed generalized forces given a trajectory """  
         
         H = self.H( q )
         C = self.C( q , dq )
@@ -199,7 +199,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     
     ##############################
     def ddq(self, q , dq , u , t = 0 ):
-        """ Computed accelerations given actuator forces u """  
+        """ Computed accelerations given actuator forces (foward dynamic) """  
         
         H = self.H( q )
         C = self.C( q , dq )
@@ -207,7 +207,8 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         d = self.d( q , dq)
         B = self.B( q )
         
-        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , u )  - np.dot( C , dq ) - g - d ) )
+        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , u )  
+                                            - np.dot( C , dq ) - g - d ) )
         
         return ddq
     
@@ -229,11 +230,14 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
         
         """
         
-        [ q , dq ] = self.x2q( x )       # from state vector (x) to angle and speeds (q,dq)
+        # from state vector (x) to angle and speeds (q,dq)
+        [ q , dq ] = self.x2q( x )       
         
-        ddq = self.ddq( q , dq , u , t ) # compute joint acceleration 
+        # compute joint acceleration 
+        ddq = self.ddq( q , dq , u , t ) 
         
-        dx = self.q2x( dq , ddq )        # from angle and speeds diff (dq,ddq) to state vector diff (dx)
+        # from angle and speeds diff (dq,ddq) to state vector diff (dx)
+        dx = self.q2x( dq , ddq )        
         
         return dx
     

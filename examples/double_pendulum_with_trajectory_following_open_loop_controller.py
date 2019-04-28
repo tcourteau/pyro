@@ -12,27 +12,14 @@ from pyro.control  import nonlinear
 from pyro.planning import plan
 ###############################################################################
 
-sys  = pendulum.SinglePendulum()
-
-
-
-# Controller
-
-traj = plan.load_trajectory('pendulum_rrt.npy')
-
-#ctl  = nonlinear.ComputedTorqueController( sys , traj )
-ctl  = nonlinear.SlidingModeController( sys , traj )
-
-ctl.lam  = 5
-ctl.gain = 2
-
-# goal
-ctl.rbar = np.array([-3.14])
+sys  = pendulum.DoublePendulum()
+ctl  = plan.load_open_loop_controller('double_pendulum_rrt.npy')
 
 # New cl-dynamic
 cl_sys = ctl + sys
 
 # Simultation
-x_start  = np.array([0.1,0])
-cl_sys.plot_trajectory(x_start, 5, 10001, 'euler')
+x_start  = np.array([-3.14,0,0,0])
+cl_sys.plot_phase_plane_trajectory( x_start  )
+cl_sys.sim.plot('xu')
 cl_sys.animate_simulation()

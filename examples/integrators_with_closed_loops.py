@@ -6,8 +6,8 @@ Created on Fri Nov 16 10:24:51 2018
 """
 
 ############################################################################
-from AlexRobotics.dynamic  import integrator
-from AlexRobotics.control  import linear
+from pyro.dynamic  import integrator
+from pyro.control  import linear
 ############################################################################
 
 # Double integrator

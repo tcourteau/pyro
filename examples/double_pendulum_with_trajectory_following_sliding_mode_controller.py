@@ -7,19 +7,16 @@ Created on Fri Nov 16 12:05:08 2018
 ###############################################################################
 import numpy as np
 ###############################################################################
-from AlexRobotics.dynamic  import pendulum
-from AlexRobotics.control  import nonlinear
-from AlexRobotics.planning import plan
+from pyro.dynamic  import pendulum
+from pyro.control  import nonlinear
+from pyro.planning import plan
 ###############################################################################
 
 sys  = pendulum.DoublePendulum()
 
 
-
 # Controller
-
 traj = plan.load_trajectory('double_pendulum_rrt.npy')
-
 ctl  = nonlinear.SlidingModeController( sys , traj )
 
 # goal

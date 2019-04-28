@@ -7,17 +7,16 @@ Created on Fri Nov 16 12:05:08 2018
 ###############################################################################
 import numpy as np
 ###############################################################################
-from AlexRobotics.dynamic import pendulum
-from AlexRobotics.control import nonlinear
+from pyro.dynamic import pendulum
+from pyro.control import nonlinear
 ###############################################################################
 
 sys = pendulum.DoublePendulum()
-ctl  = nonlinear.SlidingModeController( sys )
+ctl  = nonlinear.ComputedTorqueController( sys )
 
-ctl.lam = 2
-
-ctl.gain = 5
-
+ctl.w0   = 1.5
+ctl.zeta = 0.5 
+ctl.rbar = np.array([0,0])
 
 # New cl-dynamic
 cl_sys = ctl + sys

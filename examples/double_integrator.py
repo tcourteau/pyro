@@ -9,8 +9,8 @@ Created on Fri Nov 16 10:17:36 2018
 import numpy as np
 
 ###############################################################################
-from AlexRobotics.dynamic  import integrator
-from AlexRobotics.analysis import costfunction
+from pyro.dynamic  import integrator
+from pyro.analysis import costfunction
     
 ###################################
 # Simple integrator

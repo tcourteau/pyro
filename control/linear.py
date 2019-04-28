@@ -7,7 +7,7 @@ Created on Mon Oct 22 11:37:48 2018
 
 import numpy as np
 
-from AlexRobotics.control import controller
+from pyro.control import controller
 
 ###############################################################################
 # Simple proportionnal controller
@@ -85,9 +85,9 @@ class ProportionnalSingleVariableController( controller.StaticController ) :
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.analysis import phaseanalysis
-    from AlexRobotics.dynamic import integrator
-    from AlexRobotics.control import controller
+    from pyro.analysis import phaseanalysis
+    from pyro.dynamic import integrator
+    from pyro.control import controller
     
     # Double integrator
     si = integrator.SimpleIntegrator()

@@ -17,7 +17,8 @@ from pyro.analysis import graphical
         
 class KinematicBicyleModel( system.ContinuousDynamicSystem ):
     """ 
-    
+    Equations of Motion
+    -------------------------
     dx   = V cos ( phi )
     dy   = V sin ( phi )
     dphi = V/l tan ( beta )
@@ -337,7 +338,9 @@ class HolonomicMobileRobotwithObstacles( HolonomicMobileRobot ):
     #############################
     def isavalidstate(self , x ):
         """ check if x is in the state domain """
+        
         ans = False
+        
         for i in range(self.n):
             ans = ans or ( x[i] < self.x_lb[i] )
             ans = ans or ( x[i] > self.x_ub[i] )

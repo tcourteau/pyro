@@ -8,7 +8,7 @@ Created on Fri Nov 16 10:13:40 2018
 import numpy as np
 
 ###############################################################################
-from AlexRobotics.dynamic  import integrator
+from pyro.dynamic  import integrator
     
 ###################################
 # Simple integrator

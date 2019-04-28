@@ -5,11 +5,16 @@ Created on Fri Nov  9 10:46:14 2018
 @author: alxgr
 """
 
+###############################################################################
 import numpy as np
 from scipy.interpolate import interp1d
+###############################################################################
+from pyro.control import controller
+from pyro.dynamic import mechanical
+###############################################################################
 
-from AlexRobotics.control import controller
-from AlexRobotics.dynamic import mechanical
+
+
 
 ###############################################################################
 # Computed Torque
@@ -289,7 +294,8 @@ class SlidingModeController( ComputedTorqueController ):
         
         ddq_d , dq_d , q_d    = self.get_traj( t )
 
-        [ s , dq_r , ddq_r ]  = self.compute_sliding_variables( ddq_d , dq_d , q_d , dq , q )
+        [ s , dq_r , ddq_r ]  = self.compute_sliding_variables( ddq_d , dq_d , 
+                                                                q_d , dq , q )
         
         u                     = self.sliding_torque( ddq_r , s , dq , q , t )
         
@@ -309,7 +315,8 @@ class SlidingModeController( ComputedTorqueController ):
         ddq_d          =   np.zeros( self.model.dof )
         dq_d           =   np.zeros( self.model.dof )
 
-        [ s , dq_r , ddq_r ]  = self.compute_sliding_variables( ddq_d , dq_d , q_d , dq , q )
+        [ s , dq_r , ddq_r ]  = self.compute_sliding_variables( ddq_d , dq_d , 
+                                                                q_d , dq , q )
         
         u                     = self.sliding_torque( ddq_r , s , dq , q , t )
         
@@ -325,7 +332,7 @@ class SlidingModeController( ComputedTorqueController ):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.dynamic import pendulum
+    from pyro.dynamic import pendulum
     
     sp = pendulum.SinglePendulum()
     c  = ComputedTorqueController( sp )

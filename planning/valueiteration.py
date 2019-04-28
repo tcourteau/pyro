@@ -11,7 +11,7 @@ from scipy.interpolate import RectBivariateSpline as interpol2D
 from scipy.interpolate import griddata
 from scipy.interpolate import LinearNDInterpolator
 
-from AlexRobotics.control import controller
+from pyro.control import controller
 
 
 '''

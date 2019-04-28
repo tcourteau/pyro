@@ -335,7 +335,7 @@ class GridDynamicSystem3D(GridDynamicSystem):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.dynamic import Manipulator   as M
+    from pyro.dynamic import Manipulator   as M
 
     # Define dynamic system
     R  =  M.OneLinkManipulator()

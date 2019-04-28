@@ -7,11 +7,11 @@ Created on Mon Nov 12 20:28:17 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic  import vehicle
-from AlexRobotics.planning import discretizer
-from AlexRobotics.analysis import costfunction
-from AlexRobotics.planning import valueiteration
-from AlexRobotics.control  import controller
+from pyro.dynamic  import vehicle
+from pyro.planning import discretizer
+from pyro.analysis import costfunction
+from pyro.planning import valueiteration
+from pyro.control  import controller
 
 sys  = vehicle.KinematicBicyleModel()
 
@@ -41,8 +41,8 @@ vi = valueiteration.ValueIteration_3D( grid_sys , cf )
 
 vi.uselookuptable = True
 vi.initialize()
-#vi.load_data('parking_vi')
-vi.compute_steps(200) 
+vi.load_data('parking_vi')
+#vi.compute_steps(200) 
 vi.save_data('parking_vi')
 
 vi.assign_interpol_controller()

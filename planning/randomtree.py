@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 
 ###############################################################################
-from AlexRobotics.dynamic  import system
-from AlexRobotics.analysis import simulation
-from AlexRobotics.signal   import timefiltering
-from AlexRobotics.planning import plan
+from pyro.dynamic  import system
+from pyro.analysis import simulation
+from pyro.signal   import timefiltering
+from pyro.planning import plan
 
 
 ###############################################################################
@@ -634,8 +634,8 @@ class RRT:
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.dynamic import pendulum
-    from AlexRobotics.dynamic import vehicle
+    from pyro.dynamic import pendulum
+    from pyro.dynamic import vehicle
     
 
     sys  = pendulum.SinglePendulum()

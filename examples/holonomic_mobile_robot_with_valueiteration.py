@@ -7,10 +7,10 @@ Created on Mon Nov 12 20:28:17 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic  import vehicle
-from AlexRobotics.planning import discretizer
-from AlexRobotics.analysis import costfunction
-from AlexRobotics.planning import valueiteration
+from pyro.dynamic  import vehicle
+from pyro.planning import discretizer
+from pyro.analysis import costfunction
+from pyro.planning import valueiteration
 
 sys  = vehicle.HolonomicMobileRobotwithObstacles()
 
@@ -28,7 +28,7 @@ vi = valueiteration.ValueIteration_2D( grid_sys , cf )
 vi.initialize()
 vi.load_data('holonomic_vi')
 vi.compute_steps(1)
-vi.plot_J(40000)
+vi.plot_cost2go(40000)
 vi.assign_interpol_controller()
 vi.plot_policy(0)
 vi.plot_policy(1)
@@ -40,6 +40,6 @@ cl_sys = vi.ctl + sys
 # Simulation and animation
 x0   = [9,0]
 tf   = 20
-cl_sys.plot_trajectory_CL( x0 , tf )
+cl_sys.plot_trajectory( x0 , tf )
 cl_sys.sim.plot('xu')
 cl_sys.animate_simulation()

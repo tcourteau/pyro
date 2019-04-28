@@ -16,8 +16,8 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype']  = 42
 
 
-from AlexRobotics.analysis import costfunction 
-from AlexRobotics.analysis import phaseanalysis
+from pyro.analysis import costfunction 
+from pyro.analysis import phaseanalysis
 
        
 ##################################################################### #####
@@ -127,7 +127,7 @@ class Simulation:
         self.J_sol[-1] = self.J
        
         
-    ##############################
+    ###########################################################################
     def plot(self, plot = 'x' , show = True ):
         """
         Create a figure with trajectories for states, inputs, outputs and cost
@@ -172,11 +172,11 @@ class Simulation:
         simfig , plots = plt.subplots(l, sharex=True, figsize=self.figsize, 
                                       dpi=self.dpi, frameon=True)
         
-        ###############################################
+        #######################################################################
         #Fix bug for single variable plotting
         if l == 1:
             plots = [plots]
-        ###############################################
+        #######################################################################
         
         simfig.canvas.set_window_title('Trajectory for ' + self.cds.name)
         
@@ -236,7 +236,7 @@ class Simulation:
         self.plots = plots
         
         
-    #############################
+    ###########################################################################
     def phase_plane_trajectory(self , x_axis , y_axis ):
         """ """
         self.pp = phaseanalysis.PhasePlot( self.cds , x_axis , y_axis )
@@ -249,7 +249,7 @@ class Simulation:
         self.pp.phasefig.tight_layout()
         
         
-    #############################
+    ###########################################################################
     def phase_plane_trajectory_3d(self , x_axis , y_axis , z_axis):
         """ """
         self.pp = phaseanalysis.PhasePlot3( self.cds , x_axis, y_axis, z_axis)
@@ -278,9 +278,9 @@ class Simulation:
         
         self.pp.phasefig.tight_layout()
 
-##########################################################################
+###############################################################################
 # Closed Loop Simulation
-##########################################################################
+###############################################################################
     
 class CLosedLoopSimulation( Simulation ):
     """ 
@@ -294,7 +294,7 @@ class CLosedLoopSimulation( Simulation ):
     Use this class instead of Simulation() in order to access
     internal control inputs
     """
-    #######################################################################
+    ###########################################################################
     def __init__(self, CLSystem , tf = 10 , n = 10001 , solver = 'ode' ):
         
         Simulation.__init__(self, CLSystem , tf, n, solver) 
@@ -306,14 +306,14 @@ class CLosedLoopSimulation( Simulation ):
         self.cf = costfunction.QuadraticCostFunction( self.sys )
         
         
-    ##############################
+    ###########################################################################
     def compute(self):
         
         Simulation.compute(self)
         
         self.compute_inputs()
         
-    ##############################
+    ###########################################################################
     def compute_inputs(self):
         """ Compute internal control signal of the closed-loop system """
         
@@ -330,7 +330,7 @@ class CLosedLoopSimulation( Simulation ):
             self.u_sol[i,:] = self.ctl.c( y , r , t )
             
             
-    #############################
+    ###########################################################################
     def phase_plane_trajectory_closed_loop(self , x_axis , y_axis ):
         """ """
         self.pp = phaseanalysis.PhasePlot( self.cds , x_axis , y_axis )

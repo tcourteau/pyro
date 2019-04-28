@@ -18,9 +18,9 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype']  = 42
         
 
-##########################################################################
+###############################################################################
 # Phase Plot Object for phase plane analysis
-##########################################################################
+###############################################################################
         
 class PhasePlot:
     """ 
@@ -62,7 +62,7 @@ class PhasePlot:
         self.headlength = 4.5
         self.fontsize   = 6
         
-    ##############################
+    ###########################################################################
     def compute_grid(self):
         
         x = np.linspace( self.x_axis_min , self.x_axis_max , self.x_axis_n )
@@ -71,7 +71,7 @@ class PhasePlot:
         self.X, self.Y = np.meshgrid( x, y)
             
         
-    ##############################
+    ###########################################################################
     def compute_vector_field(self):
         
         self.v = np.zeros(self.X.shape)
@@ -92,7 +92,7 @@ class PhasePlot:
                 self.v[i,j] = dx[ self.x_axis ]
                 self.w[i,j] = dx[ self.y_axis ]
                        
-    ##############################
+    ###########################################################################
     def plot_init(self):
         
         
@@ -101,7 +101,7 @@ class PhasePlot:
         self.phasefig.canvas.set_window_title('Phase plane of ' + 
                                                 self.cds.name )
         
-    ##############################
+    ###########################################################################
     def plot_vector_field(self):
         
         self.ax = self.phasefig.add_subplot(111, autoscale_on=False )
@@ -118,7 +118,7 @@ class PhasePlot:
                                 linewidth = self.linewidth)
                                 #, headlength = self.headlength )
         
-    ##############################
+    ###########################################################################
     def plot_finish(self):
         
         self.ax.set_xlabel(self.cds.state_label[ self.x_axis ] + ' ' + 
@@ -133,7 +133,7 @@ class PhasePlot:
         self.ax.grid(True)
         self.phasefig.tight_layout()
         
-    ##############################
+    ###########################################################################
     def plot(self):
         """ Plot phase plane """
         
@@ -145,9 +145,9 @@ class PhasePlot:
         
         
         
-##########################################################################
+###############################################################################
 # 3D Phase Plot Object for phase plane analysis
-##########################################################################
+###############################################################################
         
         
 class PhasePlot3( PhasePlot ):
@@ -159,7 +159,7 @@ class PhasePlot3( PhasePlot ):
     z_axis : index of state to display as z axis
     
     """
-    ############################
+    ###########################################################################
     def __init__(self, ContinuousDynamicSystem, x_axis=0,  y_axis=1, z_axis=2):
         
         PhasePlot.__init__(self, ContinuousDynamicSystem, x_axis, y_axis)
@@ -182,7 +182,7 @@ class PhasePlot3( PhasePlot ):
         self.arrowstyle = '->'
         self.fontsize   = 6
         
-    ##############################
+    ###########################################################################
     def compute_grid(self):
         
         x = np.linspace( self.x_axis_min , self.x_axis_max , self.x_axis_n )
@@ -191,7 +191,7 @@ class PhasePlot3( PhasePlot ):
         
         self.X, self.Y, self.Z = np.meshgrid( x, y, z)
             
-    ##############################
+    ###########################################################################
     def compute_vector_field(self):
         
         self.v = np.zeros(self.X.shape)
@@ -216,7 +216,7 @@ class PhasePlot3( PhasePlot ):
                     self.w[i,j,k] = dx[ self.y_axis ]
                     self.u[i,j,k] = dx[ self.z_axis ]
                        
-    ##############################
+    ###########################################################################
     def plot_vector_field(self):
         
         self.ax = self.phasefig.add_subplot(111,projection='3d')
@@ -226,7 +226,7 @@ class PhasePlot3( PhasePlot ):
                        length = self.length)
                        #, headlength = self.headlength, normalize = True )
         
-    ##############################
+    ###########################################################################
     def plot_finish(self):
         
         self.ax.set_xlabel(self.cds.state_label[ self.x_axis ] + ' ' +
