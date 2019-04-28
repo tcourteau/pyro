@@ -7,7 +7,7 @@ Created on Thu Oct 18 20:54:31 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic import system
+from pyro.dynamic import system
 
 
 ##############################################################################
@@ -249,7 +249,23 @@ class TripleIntegrator( system.ContinuousDynamicSystem ):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.analysis import costfunction
+    from pyro.analysis import costfunction
+    
+    ###################################
+    # Simple integrator
+    ###################################
+    
+    si = SimpleIntegrator()
+    
+    # Phase plane
+    si.ubar = np.array([1])
+    si.plot_phase_plane(0,0) # only one state for two axis!
+    
+    # Simulation
+    si.plot_trajectory( np.array([2]) )
+    si.sim.compute_cost()
+    si.sim.plot('xuj')
+    si.sim.phase_plane_trajectory(0,0)
     
     ###################################
     # Double integrator
@@ -277,23 +293,7 @@ if __name__ == "__main__":
     
     # Phase plane trajectory
     di.plot_phase_plane_trajectory( x0 )
-    
-    ###################################
-    # Simple integrator
-    ###################################
-    
-    si = SimpleIntegrator()
-    
-    # Phase plane
-    si.ubar = np.array([1])
-    si.plot_phase_plane(0,0) # only one state for two axis!
-    
-    # Simulation
-    si.plot_trajectory( np.array([2]) )
-    si.sim.compute_cost()
-    si.sim.plot('xuj')
-    si.sim.phase_plane_trajectory(0,0)
-    
+
     ###################################
     # Simple integrator
     ###################################

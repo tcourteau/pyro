@@ -9,15 +9,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from AlexRobotics.dynamic import system
-from AlexRobotics.analysis import graphical
+from pyro.dynamic import system
+from pyro.analysis import graphical
 
 
 ##############################################################################
         
 class KinematicBicyleModel( system.ContinuousDynamicSystem ):
     """ 
-    
+    Equations of Motion
+    -------------------------
     dx   = V cos ( phi )
     dy   = V sin ( phi )
     dphi = V/l tan ( beta )
@@ -337,7 +338,9 @@ class HolonomicMobileRobotwithObstacles( HolonomicMobileRobot ):
     #############################
     def isavalidstate(self , x ):
         """ check if x is in the state domain """
+        
         ans = False
+        
         for i in range(self.n):
             ans = ans or ( x[i] < self.x_lb[i] )
             ans = ans or ( x[i] > self.x_ub[i] )
@@ -430,5 +433,5 @@ if __name__ == "__main__":
     sys.ubar = np.array([1,0.01])
     sys.plot_trajectory( np.array([0,0,0]) , 1000 )
     
-    sys.animate_simulation( 10 )
+    sys.animate_simulation( 100 )
         

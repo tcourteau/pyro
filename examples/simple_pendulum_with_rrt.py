@@ -7,11 +7,13 @@ Created on Mon Nov 12 20:28:17 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic import pendulum
-from AlexRobotics.planning import randomtree
+from pyro.dynamic  import pendulum
+from pyro.planning import randomtree
 
+# Dynamic sysem
 sys  = pendulum.SinglePendulum()
 
+# Define planning problem
 x_start = np.array([0.1,0])
 x_goal  = np.array([-3.14,0])
 
@@ -27,10 +29,14 @@ planner.u_options = [
             np.array([ 5])
             ]
 
+planner.goal_radius = 0.2
+
+# Solve Planning Problem
 planner.find_path_to_goal( x_goal )
 
-planner.goal_radius = 0.01
-
+# Print solution
+planner.save_solution('pendulum_rrt.npy')
 planner.plot_tree()
 planner.plot_open_loop_solution()
 sys.animate_simulation()
+

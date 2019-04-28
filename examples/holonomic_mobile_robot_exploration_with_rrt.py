@@ -7,8 +7,8 @@ Created on Tue Nov 13 11:05:07 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic import vehicle
-from AlexRobotics.planning import randomtree
+from pyro.dynamic import vehicle
+from pyro.planning import randomtree
 
 sys  = vehicle.HolonomicMobileRobot()
 

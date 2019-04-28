@@ -7,7 +7,7 @@ Created on Mon Oct 22 11:37:48 2018
 
 import numpy as np
 
-from AlexRobotics.control import controller
+from pyro.control import controller
 
 ###############################################################################
 # Simple proportionnal controller
@@ -85,9 +85,9 @@ class ProportionnalSingleVariableController( controller.StaticController ) :
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.analysis import phaseanalysis
-    from AlexRobotics.dynamic import integrator
-    from AlexRobotics.control import controller
+    from pyro.analysis import phaseanalysis
+    from pyro.dynamic import integrator
+    from pyro.control import controller
     
     # Double integrator
     si = integrator.SimpleIntegrator()
@@ -100,15 +100,15 @@ if __name__ == "__main__":
     
     # New cl-dynamic
     clsi = controller.ClosedLoopSystem( si ,  psvc )
-    clsi.plot_phase_plane_trajectory_CL([10],10,0,0)
+    clsi.plot_phase_plane_trajectory([10],10,0,0)
     clsi.sim.plot('xu')
     
     cldi = controller.ClosedLoopSystem( di ,  psvc )
-    cldi.plot_phase_plane_trajectory_CL([10,0],10,0,1)
+    cldi.plot_phase_plane_trajectory([10,0],10,0,1)
     cldi.sim.plot('xu')
     
     clti = controller.ClosedLoopSystem( ti ,  psvc )
-    clti.plot_trajectory_CL([10,0,0],10)
+    clti.plot_trajectory([10,0,0],10)
     clti.sim.plot('xu')
     
     pp = phaseanalysis.PhasePlot3( clti )
