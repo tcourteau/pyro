@@ -7,8 +7,9 @@ Created on Fri Nov 16 12:05:08 2018
 ###############################################################################
 import numpy as np
 ###############################################################################
-from pyro.dynamic import pendulum
-from pyro.control import linear
+from pyro.dynamic  import pendulum
+from pyro.control  import linear
+from pyro.analysis import simulation
 ###############################################################################
 
 sys  = pendulum.SinglePendulum()
@@ -28,6 +29,8 @@ cl_sys = ctl + sys
 
 # Simultation
 x_start  = np.array([0,0])
-cl_sys.plot_phase_plane_trajectory( x_start , 10 )
+
+cl_sys.sim = simulation.CLosedLoopSimulation( cl_sys , 20 , 20001 , 'euler' )
+cl_sys.sim.compute()
 cl_sys.sim.plot('xu')
 cl_sys.animate_simulation()
