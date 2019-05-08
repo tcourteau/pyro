@@ -125,9 +125,13 @@ class Manipulator( mechanical.MechanicalSystem ):
         C = self.C( q , dq )
         g = self.g( q )
         d = self.d( q , dq )
+        
+        f_ext = self.f_ext( q , dq , t )
+        J     = self.J( q )
                 
         # Generalized forces
-        forces = np.dot( H , ddq ) + np.dot( C , dq ) + g + d
+        forces = ( np.dot( H , ddq ) + np.dot( C , dq ) + g + d 
+                   - np.dot( J.T , f_ext ) )
         
         return forces
     
@@ -156,39 +160,16 @@ class Manipulator( mechanical.MechanicalSystem ):
         d = self.d( q , dq)
         B = self.B( q )
         
-        ddq = np.dot( np.linalg.inv( H ) ,  ( np.dot( B , u )  
-                                            - np.dot( C , dq ) - g - d ) )
+        f_ext = self.f_ext( q , dq , t )
+        J     = self.J( q )
+        
+        ddq = np.dot( np.linalg.inv( H ) ,  ( + np.dot( B , u )
+                                              + np.dot( J.T , f_ext )
+                                              - np.dot( C , dq ) 
+                                              - g 
+                                              - d ) )
         
         return ddq
-    
-    
-    ###########################################################################
-    def f(self, x , u , t = 0 ):
-        """ 
-        Continuous time foward dynamics evaluation
-        
-        dx = f(x,u,t)
-        
-        INPUTS
-        x  : state vector             n x 1
-        u  : control inputs vector    m x 1
-        t  : time                     1 x 1
-        
-        OUPUTS
-        dx : state derivative vectror n x 1
-        
-        """
-        
-        # from state vector (x) to angle and speeds (q,dq)
-        [ q , dq ] = self.x2q( x )       
-        
-        # compute joint acceleration 
-        ddq = self.ddq( q , dq , u , t ) 
-        
-        # from angle and speeds diff (dq,ddq) to state vector diff (dx)
-        dx = self.q2x( dq , ddq )        
-        
-        return dx
         
         
         
