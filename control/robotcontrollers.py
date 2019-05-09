@@ -127,8 +127,7 @@ class JointPID( RobotController ) :
         
 class EndEffectorPID( RobotController ) :
     """ 
-    Linear controller for mechanical system with full state feedback (y=x)
-    Independent PID for each DOF
+    PID in effector coordinates, using the Jacobian of the system
     ---------------------------------------
     r  : reference signal vector  e   x 1
     y  : sensor signal vector     n   x 1
@@ -151,7 +150,7 @@ class EndEffectorPID( RobotController ) :
         RobotController.__init__( manipulator.dof )
         
         # Label
-        self.name = 'Effector PID Controller'
+        self.name = 'End-Effector PID Controller'
         
         # Gains
         self.kp = np.ones( self.dof  ) * kp
