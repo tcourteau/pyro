@@ -5,15 +5,15 @@ Created on Tue Oct 23 20:45:37 2018
 @author: Alexandre
 """
 
+
+###############################################################################
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-
-from pyro.dynamic import system
-from pyro.analysis import graphical
-
-
 ##############################################################################
+from pyro.dynamic import system
+###############################################################################
+
+
+###############################################################################
         
 class KinematicBicyleModel( system.ContinuousDynamicSystem ):
     """ 
@@ -22,7 +22,6 @@ class KinematicBicyleModel( system.ContinuousDynamicSystem ):
     dx   = V cos ( phi )
     dy   = V sin ( phi )
     dphi = V/l tan ( beta )
-    
     """
     
     ############################

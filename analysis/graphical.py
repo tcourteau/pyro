@@ -150,6 +150,9 @@ class Animator:
             q               = self.sys.xut2q(self.sys.sim.x_sol[i,:] ,
                                              self.sys.sim.u_sol[i,:] , 
                                              self.sys.sim.t[i] )
+            
+            #TODO fix dependency on sys.sim
+            
             # Compute graphical forward kinematic
             lines_pts       = self.sys.forward_kinematic_lines( q )
             domain          = self.sys.forward_kinematic_domain( q )

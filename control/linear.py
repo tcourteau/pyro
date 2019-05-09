@@ -4,10 +4,13 @@ Created on Mon Oct 22 11:37:48 2018
 
 @author: alxgr
 """
-
+###############################################################################
 import numpy as np
-
+###############################################################################
 from pyro.control import controller
+###############################################################################
+
+
 
 ###############################################################################
 # Simple proportionnal controller
@@ -70,7 +73,6 @@ class ProportionnalSingleVariableController( controller.StaticController ) :
         u = e * self.gain
         
         return u
-
 
 
 
