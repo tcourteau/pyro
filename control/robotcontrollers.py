@@ -368,7 +368,7 @@ if __name__ == "__main__":
     
     kin_closed_loop5 = kin_ctl5 + kin_robot5
     
-    x0              = np.array([0.1,0.1,0.1,0.1,0.1])
+    x0              = np.array([-0.1,0.1,0.1,-0.1,0])
     
     kin_closed_loop5.compute_trajectory( x0 , 5 ) # , 1001 , 'euler')
     kin_closed_loop5.animate_simulation()
