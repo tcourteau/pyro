@@ -240,7 +240,7 @@ class EndEffectorKinematicController( RobotController ) :
         
         # Dimensions
         self.dof = manipulator.dof
-        self.k   = self.dof 
+        self.k   = self.e 
         self.m   = self.dof
         self.p   = self.dof
         
@@ -250,7 +250,7 @@ class EndEffectorKinematicController( RobotController ) :
         self.name = 'End Effector Kinematic Controller'
         
         # Gains
-        self.gains = np.ones( self.dof  ) * k
+        self.gains = np.ones( self.e  ) * k
         
     
     #############################
@@ -289,6 +289,11 @@ class EndEffectorKinematicController( RobotController ) :
         # From effector force to joint torques
         if self.dof == self.e:
             dq_r = np.dot( np.linalg.inv( J ) , dr_r )
+            
+        elif self.dof > self.e:
+            J_pinv = np.linalg.pinv( J )
+            dq_r   = np.dot( J_pinv , dr_r )
+            
         else:
             #TODO
             pass
@@ -348,4 +353,24 @@ if __name__ == "__main__":
     kin_closed_loop.compute_trajectory( x0 )
     kin_closed_loop.animate_simulation()
     kin_closed_loop.sim.plot('xu')
+    
+    
+    ##############################################################
+    
+    robot5 = manipulator.FiveLinkPlanarManipulator()
+    
+    kin_robot5 = manipulator.SpeedControlledManipulator( robot5 )
+    
+    k = 1
+    kin_ctl5 = EndEffectorKinematicController( kin_robot5 , k )
+    
+    kin_ctl5.rbar = np.array([1,1])
+    
+    kin_closed_loop5 = kin_ctl5 + kin_robot5
+    
+    x0              = np.array([0.1,0.1,0.1,0.1,0.1])
+    
+    kin_closed_loop5.compute_trajectory( x0 , 5 ) # , 1001 , 'euler')
+    kin_closed_loop5.animate_simulation()
+    kin_closed_loop5.sim.plot('xu')
     
