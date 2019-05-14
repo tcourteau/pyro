@@ -8,8 +8,8 @@ Created on Fri Nov 16 12:05:08 2018
 import numpy as np
 ###############################################################################
 from pyro.dynamic  import pendulum
-from pyro.control  import linear
 from pyro.control  import nonlinear
+from pyro.control  import robotcontrollers
 from pyro.planning import plan
 from pyro.analysis import simulation
 ###############################################################################
@@ -20,7 +20,7 @@ sys  = pendulum.SinglePendulum()
 
 # Planning
 
-traj   = plan.load_trajectory('pendulum_rrt.npy')
+traj   = plan.load_trajectory('rrt.npy')
 q_goal = np.array([-3.14])
 
 ###############################################################################
@@ -29,21 +29,21 @@ q_goal = np.array([-3.14])
 kp = 5
 kd = 0
 ki = 0
-p_ctl      = linear.JointPID(sys, kp , ki, kd)
+p_ctl      = robotcontrollers.JointPID( 1 , kp , ki, kd)
 p_ctl.rbar = q_goal
 
 # PD
 kp = 5
 kd = 2
 ki = 0
-pd_ctl      = linear.JointPID(sys, kp , ki, kd)
+pd_ctl      = robotcontrollers.JointPID( 1 , kp , ki, kd)
 pd_ctl.rbar = q_goal
 
 # PID
 kp = 5
 kd = 2
 ki = 1
-pid_ctl      = linear.JointPID(sys, kp , ki, kd)
+pid_ctl      = robotcontrollers.JointPID( 1 , kp , ki, kd)
 pid_ctl.rbar = q_goal
 
 # Computed Torque
@@ -83,8 +83,8 @@ traj_sld_ctl.rbar = q_goal
 #ctl = ctc_ctl
 #ctl = sld_ctl
 #ctl = traj_ctl
-ctl = traj_ctc_ctl 
-#ctl = traj_sld_ctl
+#ctl = traj_ctc_ctl 
+ctl = traj_sld_ctl
 
 
 ###############################################################################

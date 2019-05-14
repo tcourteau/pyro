@@ -773,7 +773,589 @@ class TwoLinkManipulator( Manipulator ):
         lines_pts.append( pts )
                 
         return lines_pts
+
+
+
+
+###############################################################################
+# Five Planar Link Manipulator
+###############################################################################
         
+class FiveLinkPlanarManipulator( Manipulator ):
+    """ 
+
+    """
+    
+    ############################
+    def __init__(self):
+        """ """
+        
+        # Dimensions
+        dof = 5
+        m   = 5
+        e   = 2
+               
+        # initialize standard params
+        Manipulator.__init__(self, dof , m , e)
+        
+        # Name
+        self.name = 'Two Link Manipulator'
+        
+        # params
+        self.setparams()
+                
+            
+    #############################
+    def setparams(self):
+        """ Set model parameters here """
+        
+        l1  = 0.5
+        l2  = 0.5
+        l3  = 0.5
+        l4  = 0.5
+        l5  = 0.5
+        
+        self.l = np.array([l1,l2,l3,l4,l5])
+        
+    ##############################
+    def trig(self, q ):
+        """ 
+        Compute cos and sin usefull in other computation 
+        ------------------------------------------------
+        """
+        
+        c1  = np.cos( q[0] )
+        s1  = np.sin( q[0] )
+        c2  = np.cos( q[1] )
+        s2  = np.sin( q[1] )
+        c3  = np.cos( q[2] )
+        s3  = np.sin( q[2] )
+        c4  = np.cos( q[3] )
+        s4  = np.sin( q[3] )
+        c5  = np.cos( q[4] )
+        s5  = np.sin( q[4] )
+        
+        cos_rel = np.array( [ c1 , c2 , c3 , c4 , c5 ])
+        sin_rel = np.array( [ s1 , s2 , s3 , s4 , s5 ])
+        
+        c12    = np.cos( q[0] + q[1] )
+        s12    = np.sin( q[0] + q[1] )
+        c123   = np.cos( q[0] + q[1] + q[2])
+        s123   = np.sin( q[0] + q[1] + q[2])
+        c1234  = np.cos( q[0] + q[1] + q[2] + q[3])
+        s1234  = np.sin( q[0] + q[1] + q[2] + q[3])
+        c12345 = np.cos( q[0] + q[1] + q[2] + q[3] + q[4])
+        s12345 = np.sin( q[0] + q[1] + q[2] + q[3] + q[4])
+        
+        cos_abs = np.array( [ c1 , c12 , c123 , c1234 , c12345 ])
+        sin_abs = np.array( [ s1 , s12 , s123 , s1234 , s12345 ])
+        
+        return [cos_rel,sin_rel,cos_abs,sin_abs]
+    
+    
+    ##############################
+    def forward_kinematic_effector(self, q ):
+        """ """
+        
+        [cos_rel,sin_rel,cos_abs,sin_abs] = self.trig( q )
+        
+        x = (self.l * sin_abs).sum()
+        y = (self.l * cos_abs).sum()
+        
+        r = np.array([x,y])
+        
+        return r
+    
+    ##############################
+    def J(self, q ):
+        """ """
+        
+        [cos_rel,sin_rel,cos_abs,sin_abs] = self.trig( q )
+        
+        J = np.zeros( ( self.e  , self.dof ) ) # Place holder
+        
+        J[0,0] = self.l[4] * cos_abs[4] + self.l[3] * cos_abs[3] + self.l[2] * cos_abs[2] + self.l[1] * cos_abs[1]  + self.l[0] * cos_abs[0] 
+        J[0,1] = self.l[4] * cos_abs[4] + self.l[3] * cos_abs[3] + self.l[2] * cos_abs[2] + self.l[1] * cos_abs[1]             
+        J[0,2] = self.l[4] * cos_abs[4] + self.l[3] * cos_abs[3] + self.l[2] * cos_abs[2]           
+        J[0,3] = self.l[4] * cos_abs[4] + self.l[3] * cos_abs[3]                
+        J[0,4] = self.l[4] * cos_abs[4] 
+        
+        J[1,0] = - self.l[4] * sin_abs[4] - self.l[3] * sin_abs[3] - self.l[2] * sin_abs[2] - self.l[1] * sin_abs[1]  - self.l[0] * sin_abs[0] 
+        J[1,1] = - self.l[4] * sin_abs[4] - self.l[3] * sin_abs[3] - self.l[2] * sin_abs[2] - self.l[1] * sin_abs[1]             
+        J[1,2] = - self.l[4] * sin_abs[4] - self.l[3] * sin_abs[3] - self.l[2] * sin_abs[2]           
+        J[1,3] = - self.l[4] * sin_abs[4] - self.l[3] * sin_abs[3]                
+        J[1,4] = - self.l[4] * sin_abs[4] 
+        
+        return J
+        
+    ###########################################################################
+    # Graphical output
+    ###########################################################################
+    
+    ###########################################################################
+    def forward_kinematic_domain(self, q ):
+        """ 
+        """
+        l = 3
+        
+        domain  = [ (-l,l) , (-l,l) , (-l,l) ]#  
+                
+        return domain
+    
+    ###########################################################################
+    def forward_kinematic_lines(self, q ):
+        """ 
+        Compute points p = [x;y;z] positions given config q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        
+        Outpus:
+        lines_pts = [] : a list of array (n_pts x 3) for each lines
+        
+        """
+        
+        lines_pts = [] # list of array (n_pts x 3) for each lines
+        
+        ###############################
+        # ground line
+        ###############################
+        
+        pts      = np.zeros(( 2 , 3 ))
+        pts[0,:] = np.array([-10,0,0])
+        pts[1,:] = np.array([+10,0,0])
+        
+        lines_pts.append( pts )
+        
+        ###########################
+        # pendulum kinematic
+        ###########################
+        
+        pts      = np.zeros(( 6 , 3 ))
+        pts[0,:] = np.array([0,0,0])
+        
+        [cos_rel,sin_rel,cos_abs,sin_abs] = self.trig( q )
+        
+        pts[1,0] = self.l[0] * sin_abs[0]
+        pts[2,0] = self.l[1] * sin_abs[1] + pts[1,0]
+        pts[3,0] = self.l[2] * sin_abs[2] + pts[2,0]
+        pts[4,0] = self.l[3] * sin_abs[3] + pts[3,0]
+        pts[5,0] = self.l[4] * sin_abs[4] + pts[4,0]
+        
+        pts[1,1] = self.l[0] * cos_abs[0]
+        pts[2,1] = self.l[1] * cos_abs[1] + pts[1,1]
+        pts[3,1] = self.l[2] * cos_abs[2] + pts[2,1]
+        pts[4,1] = self.l[3] * cos_abs[3] + pts[3,1]
+        pts[5,1] = self.l[4] * cos_abs[4] + pts[4,1]
+        
+        lines_pts.append( pts )
+                
+        return lines_pts
+    
+    
+    
+    
+
+
+###############################################################################
+# Three Link Manipulator
+###############################################################################
+        
+class ThreeLinkManipulator3D( Manipulator ):
+    """ 
+    Three link Manipulator Class 
+    -------------------------------
+    
+    base:     revolute arround z
+    shoulder: revolute arround y
+    elbow:    revolute arround y
+    
+    see Example 4.3 in
+    http://www.cds.caltech.edu/~murray/books/MLS/pdf/mls94-manipdyn_v1_2.pdf
+    """
+    
+    ############################
+    def __init__(self):
+        """ """
+        
+        # Dimensions
+        dof = 3
+        m   = 3
+        e   = 3
+               
+        # initialize standard params
+        Manipulator.__init__(self, dof , m , e)
+        
+        # Name
+        self.name = 'Three Link Manipulator'
+        
+        # params
+        self.setparams()
+                
+            
+    #############################
+    def setparams(self):
+        """ Set model parameters here """
+        
+        # Kinematic
+        self.l1  = 1 
+        self.l2  = 1
+        self.l3  = 1
+        self.lc1 = 1
+        self.lc2 = 1
+        self.lc3 = 1
+        
+        # Inertia
+        self.m1 = 1
+        self.m2 = 1
+        self.m3 = 1
+        
+        self.I1z = 1
+        
+        self.I2x = 1
+        self.I2y = 1
+        self.I2z = 1
+        
+        self.I3x = 1
+        self.I3y = 1
+        self.I3z = 1
+        
+        # Gravity
+        self.gravity = 9.81
+        
+        # Joint damping
+        self.d1 = 1
+        self.d2 = 1
+        self.d3 = 1
+        
+        # Total length
+        self.lw  = (self.l1+self.l2+self.l3)
+        
+        
+    ##############################
+    def trig(self, q ):
+        """ 
+        Compute cos and sin usefull in other computation 
+        ------------------------------------------------
+        """
+        
+        c1  = np.cos( q[0] )
+        s1  = np.sin( q[0] )
+        c2  = np.cos( q[1] )
+        s2  = np.sin( q[1] )
+        c3  = np.cos( q[2] )
+        s3  = np.sin( q[2] )
+        c12 = np.cos( q[0] + q[1] )
+        s12 = np.sin( q[0] + q[1] )
+        c23 = np.cos( q[2] + q[1] )
+        s23 = np.sin( q[2] + q[1] )
+        
+        return [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23]
+    
+    
+    ##############################
+    def forward_kinematic_effector(self, q ):
+        """ """
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        # Three robot points
+        
+        # Base of the robot
+        p0 = [0,0,0]
+        
+        # Shperical point 
+        p1 = [ 0, 0, self.l1 ]
+        
+        # Elbow
+        z2 = self.l1 - self.l2 * s2
+        
+        r2 = self.l2 * c2
+        x2 = r2 * c1
+        y2 = r2 * s1
+        
+        p2 = [ x2, y2, z2 ]
+        
+        # End-effector
+        z3 = self.l1 - self.l2 * s2 - self.l3 * s23
+        
+        r3 = self.l2 * c2 + self.l3 * c23
+        x3 = r3 * c1
+        y3 = r3 * s1
+                
+        r = np.array([x3, y3, z3])
+        
+        return r
+    
+    ##############################
+    def J(self, q ):
+        """ """
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        J = np.zeros((3,3))
+        
+        J[0,0] =  -( self.l2 * c2 + self.l3 * c23 ) * s1
+        J[0,1] =  -( self.l2 * s2 + self.l3 * s23 ) * c1
+        J[0,2] =  - self.l3 * s23 * c1
+        J[1,0] =   ( self.l2 * c2 + self.l3 * c23 ) * c1
+        J[1,1] =  -( self.l2 * s2 + self.l3 * s23 ) * s1
+        J[1,2] =  - self.l3 * s23 * s1
+        J[2,0] =  0
+        J[2,1] =  -( self.l2 * c2 + self.l3 * c23 )
+        J[2,2] =  - self.l3 * c23
+        
+        return J
+    
+    ##############################
+    def f_ext(self, q , dq , t = 0 ):
+        """ """
+        
+        f_ext = np.zeros( self.e ) # Default is zero vector
+        
+        return f_ext
+        
+    
+    ###########################################################################
+    def H(self, q ):
+        """ 
+        Inertia matrix 
+        ----------------------------------
+        dim( H ) = ( dof , dof )
+        
+        such that --> Kinetic Energy = 0.5 * dq^T * H(q) * dq
+        
+        """  
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        # variable to match the book notation
+        
+        m1 = self.m1
+        m2 = self.m2
+        m3 = self.m3
+        
+        Iz1 = self.I1z
+        Ix2 = self.I2x
+        Iy2 = self.I2y
+        Iz2 = self.I2z
+        Ix3 = self.I3x
+        Iy3 = self.I3y
+        Iz3 = self.I3z
+        
+        l1 = self.l2
+        r1 = self.lc2
+        l2 = self.l3
+        r2 = self.lc3
+        
+        
+        H = np.zeros((3,3))
+        
+        H[0,0] = (Iy2 * s2 **2 + Iy3 * s23 **2 + Iz1 
+                 + Iz2 * c2 **2 + Iz3 * c23 **2 + m2 * ( r1 * c2 ) **2 
+                 + m3 * ( l1 * c2 + r2 * c23 ) **2 )
+        H[0,1] = 0
+        H[0,2] = 0
+        H[1,0] = 0
+        H[1,1] = (Ix2 + Ix3 + m3 * l1 **2 + m2 * r1 **2 
+                 + m3 * r2 **2 + 2 * m3 *l1 * r2 * c3)
+        H[1,2] = Ix3 + m3 * r2 **2 + m3 * l1 * r2 * c3
+        H[2,0] = 0
+        H[2,1] = H[1,2]
+        H[2,2] = Ix3 + m3 * r2 ** 2
+        
+        return H
+    
+    ###########################################################################
+    def C(self, q , dq ):
+        """ 
+        Corriolis and Centrifugal Matrix 
+        ------------------------------------
+        dim( C ) = ( dof , dof )
+        
+        such that --> d H / dt =  C + C^T
+        
+        
+        """ 
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        # variable to match the book notation
+        
+        m1 = self.m1
+        m2 = self.m2
+        m3 = self.m3
+        
+        Iz1 = self.I1z
+        Ix2 = self.I2x
+        Iy2 = self.I2y
+        Iz2 = self.I2z
+        Ix3 = self.I3x
+        Iy3 = self.I3y
+        Iz3 = self.I3z
+        
+        l1 = self.l2
+        r1 = self.lc2
+        l2 = self.l3
+        r2 = self.lc3
+        
+        
+        T112 = (( Iy2 - Iz2 - m2 * r1 **2 ) * c2 * s2 
+                 + ( Iy3 - Iz3 ) * c23 * s23
+                 - m3 * ( l1 * c2 + r2 * c23 ) * ( l1 * s2 + r2 * s23 ) )
+        T113 = (( Iy3 - Iz3 ) * c23 * s23 
+               - m3 * r2 * s23 * ( l1 * c2 + r2 * c23 ))
+        T121 = T112
+        T131 = T113
+        T211 = (( Iz2 - Iy2 + m2 * r1 **2 ) * c2 * s2 
+               + ( Iz3 - Iy3 ) * c23 * s23 + m3 * 
+                ( l1 * c2 + r2 * c23 ) * ( l1 * s2 + r2 * s23 ))
+        T223 = - l1 * m3 * r2 * s3
+        T232 = T223
+        T233 = T223
+        T311 = (( Iz3 - Iy3 ) * c23 * s23 
+                + m3 * r2 * s23 * ( l1 * c2 + r2 * c23 ))
+        T322 = l1 * m3 * r2 * s3
+                
+        C = np.zeros((3,3))
+        
+        C[0,0] = T112 * dq[1] + T113 * dq[2]
+        C[0,1] = T121 * dq[0]
+        C[0,2] = T131 * dq[0]
+        
+        C[1,0] = T211 * dq[0]
+        C[1,1] = T223 * dq[2]
+        C[1,2] = T232 * dq[1] + T233 * dq[2]
+        
+        C[2,0] = T311 * dq[0]
+        C[2,1] = T322 * dq[1]
+        C[2,2] = 0 
+        
+        return C
+    
+    ###########################################################################
+    def B(self, q ):
+        """ 
+        Actuator Matrix  : dof x m
+        """
+        
+        B = np.diag( np.ones( self.dof ) ) #  identity matrix
+        
+        return B
+    
+    ###########################################################################
+    def g(self, q ):
+        """ 
+        Gravitationnal forces vector : dof x 1
+        """
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        G = np.zeros(3)
+        
+        g = self.gravity
+        
+        G[0] = 0
+        G[1] = -(self.m2 * g * self.lc2 + self.m3 * g * self.l2 ) * c2 - self.m3 * g * self.lc3 * c23
+        G[2] = - self.m3 * g * self.lc3 * c23
+
+        return G
+        
+    ###########################################################################
+    def d(self, q , dq ):
+        """ 
+        State-dependent dissipative forces : dof x 1
+        """
+        
+        D = np.zeros((3,3))
+        
+        D[0,0] = self.d1
+        D[1,1] = self.d2
+        D[2,2] = self.d3
+        
+        d = np.dot( D , dq )
+        
+        return d
+        
+    ###########################################################################
+    # Graphical output
+    ###########################################################################
+    
+    ###########################################################################
+    def forward_kinematic_domain(self, q ):
+        """ 
+        """
+        l = 2
+        
+        domain  = [ (-2,2) , (-2,2) , (0,3) ]#  
+                
+        return domain
+    
+    ###########################################################################
+    def forward_kinematic_lines(self, q ):
+        """ 
+        Compute points p = [x;y;z] positions given config q 
+        ----------------------------------------------------
+        - points of interest for ploting
+        
+        Outpus:
+        lines_pts = [] : a list of array (n_pts x 3) for each lines
+        
+        """
+        
+        lines_pts = [] # list of array (n_pts x 3) for each lines
+        
+        ###############################
+        # ground line
+        ###############################
+        
+        pts      = np.zeros(( 2 , 3 ))
+        pts[0,:] = np.array([-10,0,0])
+        pts[1,:] = np.array([+10,0,0])
+        
+        lines_pts.append( pts )
+        
+        ###########################
+        # pendulum kinematic
+        ###########################
+        
+        pts      = np.zeros(( 4 , 3 ))
+        pts[0,:] = np.array([0,0,0])
+        
+        [c1,s1,c2,s2,c3,s3,c12,s12,c23,s23] = self.trig( q )
+        
+        # Three robot points
+
+        # Shperical point 
+        pts[1,0] = 0
+        pts[1,1] = 0
+        pts[1,2] = self.l1 
+        
+        # Elbow
+        z2 = self.l1 - self.l2 * s2
+        
+        r2 = self.l2 * c2
+        x2 = r2 * c1
+        y2 = r2 * s1
+        
+        pts[2,0] = x2
+        pts[2,1] = y2
+        pts[2,2] = z2
+        
+        # End-effector
+        z3 = self.l1 - self.l2 * s2 - self.l3 * s23
+        
+        r3 = self.l2 * c2 + self.l3 * c23
+        x3 = r3 * c1
+        y3 = r3 * s1
+                
+        pts[3,0] = x3
+        pts[3,1] = y3
+        pts[3,2] = z3 
+        
+        lines_pts.append( pts )
+                
+        return lines_pts
+
     
 '''
 #################################################################
@@ -785,6 +1367,9 @@ class TwoLinkManipulator( Manipulator ):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
+    sys = FiveLinkPlanarManipulator()
+    dsys = SpeedControlledManipulator( sys )
+    dsys.show([0.1,0.1,0.1,0.1,0.1])
     
     #sys1 = OneLinkManipulator()
     #x0 = np.array([0.1,0])
@@ -806,5 +1391,9 @@ if __name__ == "__main__":
     dsys2.plot_animation( x02 )
     dsys2.sim.plot('xu')
     dsys2.sim.phase_plane_trajectory(0,1)
+    
+    robot3 = ThreeLinkManipulator3D()
+    
+    
     
     
