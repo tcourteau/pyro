@@ -415,8 +415,115 @@ class HolonomicMobileRobotwithObstacles( HolonomicMobileRobot ):
             
                 
         return lines_pts
+
+
+##############################################################################
+
+class QuadcopterWithMass( system.ContinuousDynamicSystem ):
+    """
+    Equations of Motion
+    -------------------------
+    dx   = xd
+    dxd  = (dot(p , f R n_z) - mq l dot(pd , pd))p / (mQ + mL) - g n_z
+    dp   = pd
+    dpd  = cross() / mQl - dot(pd , pd)p
+    dR   = R O
+    dO   = II^-1 (M - cross(O , IIO))
+    """
+
+    ############################
+    def __init__(self):
+        """ """
+
+        # Dimensions
+        self.n = 24
+        self.m = 4
+        self.p = 24
+
+        # initialize standard params
+        system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
+
+        # Labels
+        self.name = 'Kinematic Quadcopter with mass Model'
+        self.state_label = ['xLx','xLy','xLz','xdLx','xdLy','xdLz','px','py','pz','pdx','pdy','pdz','R1','R2','R3','R4','R5','R6','R7','R8','R9','Omegax','Omegay','Omegaz']
+        self.input_label = ['f', 'Mx', 'My', 'Mz']
+        self.output_label = ['xLx','xLy','xLz','xdLx','xdLy','xdLz','px','py','pz','pdx','pdy','pdz','R1','R2','R3','R4','R5','R6','R7','R8','R9','Omegax','Omegay','Omegaz']
+
+        # Units
+        self.state_units = ['[m]','[m]','[m]','[m/s]','[m/s]','[m/s]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[rad/s]','[rad/s]','[rad/s]']
+        self.input_units = ['[N]', '[Nm]', '[Nm]', '[Nm]']
+        self.output_units = ['[m]','[m]','[m]','[m/s]','[m/s]','[m/s]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[]','[rad/s]','[rad/s]','[rad/s]']
+
+        # State working range
+        x_range = np.ones(3) * 10
+        xd_range = np.ones(3) * 100
+        p_range = np.ones(3)
+        pd_range = np.ones(3) * 5
+        R_range = np.ones(9)
+        Omega_range = np.ones(3) * 10
+        self.x_ub = np.concatenate((x_range,xd_range,p_range,pd_range,R_range,Omega_range))
+        self.x_lb = np.concatenate((-x_range,-xd_range,-p_range,-pd_range,-R_range,-Omega_range))
+
+        # Model param
+        self.lenght = 1
+        self.mQ = 1
+        self.mL = 0.5
+        self.inertia = np.array([[0.011,0,0] , [0,0.015,0] , [0,0,0.021]])
+        self.gravity = 9.81 # [m/s^2]
+        self.n_z = np.array([0,0,1])
+
+        # Graphic output parameters
+        self.dynamic_domain = True
+
+    #############################
+    def f(self, x = np.zeros(24) , u = np.zeros(4) , t = 0 ):
+        """
+        Continuous time foward dynamics evaluation
+
+        dx = f(x,u,t)
+
+        INPUTS
+        x  : state vector             n x 1
+        u  : control inputs vector    m x 1
+        t  : time                     1 x 1
+
+        OUPUTS
+        dx : state derivative vectror n x 1
+
+        """
+
+        xdL = x[3:6]
+        p = x[6:9]
+        pd = x[9:12]
+        R = x[12:21].reshape(3,3)
+        Omega = x[21:24]
+
+        f = u[0]
+        M = u[1:4]
+
+        dx = np.zeros(self.n) # State derivative vector
+
+        dx[0:3] = xdL
+
+        dx[3:6] = (np.dot(p , f * np.dot(R , self.n_z)) - self.mQ * self.lenght * np.dot(pd,pd))*p / (self.mQ + self.mL) - self.gravity * self.n_z
+        dx[6:9] = pd
+        dx[9:12] = np.cross(p , np.cross(p , f*np.dot(R , self.n_z))) / (self.mQ * self.lenght) - np.dot(pd , pd)*p
+
+        Omega_skew = np.zeros(9).reshape(3,3)
+        Omega_skew[0,1] = -Omega[2]
+        Omega_skew[0,2] = Omega[1]
+        Omega_skew[1,0] = Omega[2]
+        Omega_skew[1,2] = -Omega[0]
+        Omega_skew[2,0] = -Omega[1]
+        Omega_skew[2,1] = Omega[0]
+        Rd = np.dot(R , Omega_skew)
+        dx[12:21] = Rd.flatten()
+
+        dx[21:24] = np.dot(np.linalg.inv(self.inertia) , (M - np.cross(Omega , np.dot(self.inertia , Omega))))
+
+        return dx
         
-    
+
 '''
 #################################################################
 ##################          Main                         ########
@@ -426,11 +533,20 @@ class HolonomicMobileRobotwithObstacles( HolonomicMobileRobot ):
 
 if __name__ == "__main__":     
     """ MAIN TEST """
-    
-    sys = KinematicBicyleModel()
-    
-    sys.ubar = np.array([1,0.01])
-    sys.plot_trajectory( np.array([0,0,0]) , 1000 )
-    
-    sys.animate_simulation( 100 )
-        
+
+    ## Quad exemple
+    quad = QuadcopterWithMass()
+
+    # Initiales conditions
+    xL = np.array([0,0,5]) # [m]
+    xdL = np.array([0,0,0]) # [m/s]
+    p = np.array([0,0,-1])
+    pd = np.array([0,0,0])
+    R = np.identity(3)
+    Omega = np.array([0,0,0])
+    ci = np.concatenate((xL,xdL,p,pd,R.flatten(),Omega))
+
+    f_ini = (quad.mQ + quad.mL) * quad.gravity
+
+    quad.ubar = np.array([f_ini,0,0,0])
+    quad.plot_trajectory( ci , 1000 )
