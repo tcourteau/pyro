@@ -10,16 +10,15 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import mpl_toolkits.mplot3d.axes3d as p3
 
-
-##############################################################################
+###############################################################################
         
 class Animator:
     """ 
 
     """
     
-    ############################
-    def __init__(self, sys, linestyle):
+    ###########################################################################
+    def __init__(self, sys ):
         """
         
         sys = system.ContinuousDynamicSystem()
@@ -48,11 +47,11 @@ class Animator:
         # Params
         self.figsize   = (4, 3)
         self.dpi       = 300
-        self.linestyle = linestyle
+        self.linestyle = 'o-'
         self.fontsize  = 5
         
     
-    #############################################
+    ###########################################################################
     def show(self, q , x_axis = 0 , y_axis = 1 ):
         """ Plot figure of configuration q """
         
@@ -86,7 +85,7 @@ class Animator:
         plt.show()
         
     
-    #############################################
+    ###########################################################################
     def show3(self, q ):
         """ Plot figure of configuration q """
         
@@ -119,8 +118,9 @@ class Animator:
         plt.show()
         
     
-    #############################
-    def plot_animation(self, x0 , tf = 10 , n = 10001 , solver = 'ode',  save = False , file_name = 'Ani'  ):
+    ###########################################################################
+    def plot_animation(self, x0 , tf = 10 , n = 10001 , solver = 'ode',  
+                             save = False , file_name = 'Ani'  ):
         """ Simulate and animate system """
         
         self.sys.compute_trajectory( x0 , tf , n , solver )
@@ -129,8 +129,9 @@ class Animator:
         
         
                 
-    ##############################
-    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'Animation' ):
+    ###########################################################################
+    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, 
+                                 save = False , file_name = 'Animation' ):
         """ 
         Show Animation of the simulation 
         ----------------------------------
@@ -149,6 +150,9 @@ class Animator:
             q               = self.sys.xut2q(self.sys.sim.x_sol[i,:] ,
                                              self.sys.sim.u_sol[i,:] , 
                                              self.sys.sim.t[i] )
+            
+            #TODO fix dependency on sys.sim
+            
             # Compute graphical forward kinematic
             lines_pts       = self.sys.forward_kinematic_lines( q )
             domain          = self.sys.forward_kinematic_domain( q )
@@ -184,6 +188,7 @@ class Animator:
                 
         # Plot lines at t=0
         self.lines = []
+        
         # for each lines of the t=0 data point
         for j, line_pts in enumerate(self.ani_lines_pts[0]):
             if is_3d:
@@ -192,13 +197,15 @@ class Animator:
                 thisz = line_pts[:,2]
                 line, = self.ani_ax.plot(thisx, thisy, thisz, self.linestyle)
                 self.time_text = self.ani_ax.text(0, 0, 0, 'time =', 
-                                                  transform=self.ani_ax.transAxes)
+                                                  transform=
+                                                  self.ani_ax.transAxes)
             else:
                 thisx = line_pts[:,self.x_axis]
                 thisy = line_pts[:,self.y_axis]
                 line, = self.ani_ax.plot(thisx, thisy, self.linestyle)
                 self.time_text = self.ani_ax.text(0.05, 0.9, 'time =', 
-                                                  transform=self.ani_ax.transAxes)
+                                                  transform=self.
+                                                  ani_ax.transAxes)
                 self.ani_fig.tight_layout()
             self.lines.append( line )
         
@@ -210,23 +217,37 @@ class Animator:
         
         if ( frame_dt * time_factor_video )  < self.sys.sim.dt :
             # Simulation is slower than video
-            self.skip_steps = 1                                         # don't skip steps
-            inter           = self.sys.sim.dt * 1000. / time_factor_video   # adjust frame speed to simulation
+            
+            # don't skip steps
+            self.skip_steps = 1
+            
+            # adjust frame speed to simulation                                    
+            inter           = self.sys.sim.dt * 1000. / time_factor_video 
+            
             n_frame         = self.sys.sim.n
             
         else:
             # Simulation is faster than video
-            self.skip_steps =  int( frame_dt / self.sys.sim.dt * time_factor_video ) # --> number of simulation frame to skip between video frames
-            n_frame         =  int( self.sys.sim.n / self.skip_steps )               # --> number of video frames
+            
+            # --> number of simulation frame to skip between video frames
+            factor          =  frame_dt / self.sys.sim.dt * time_factor_video
+            self.skip_steps =  int( factor  ) 
+            
+            # --> number of video frames
+            n_frame         =  int( self.sys.sim.n / self.skip_steps )               
         
         # ANIMATION
         # blit=True option crash on mac
-        #self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ , blit=True )
-        if self.is_3d:
-            self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter )
-        else:
-            self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, n_frame , interval = inter , init_func=self.__ani_init__ )
+        #self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, 
+        # n_frame , interval = inter , init_func=self.__ani_init__ , blit=True)
         
+        if self.is_3d:
+            self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__, 
+                                                n_frame , interval = inter )
+        else:
+            self.ani = animation.FuncAnimation( self.ani_fig, self.__animate__,
+                                                n_frame , interval = inter, 
+                                                init_func=self.__ani_init__ )
         if save:
             self.ani.save( file_name + '.mp4' ) # , writer = 'mencoder' )
         
@@ -249,21 +270,25 @@ class Animator:
                 line.set_data(thisx, thisy)
                 line.set_3d_properties(thisz)
             else:
-                thisx = self.ani_lines_pts[i * self.skip_steps][j][:,self.x_axis]
-                thisy = self.ani_lines_pts[i * self.skip_steps][j][:,self.y_axis]
+                thisx = self.ani_lines_pts[i*self.skip_steps][j][:,self.x_axis]
+                thisy = self.ani_lines_pts[i*self.skip_steps][j][:,self.y_axis]
                 line.set_data(thisx, thisy)
             
         # Update time
-        self.time_text.set_text(self.time_template % ( i * self.skip_steps * self.sys.sim.dt ))
+        self.time_text.set_text(self.time_template % 
+                                ( i * self.skip_steps * self.sys.sim.dt )
+                                )
         
         # Update domain
         if self.is_3d:
-            self.ani_ax.set_xlim3d(self.ani_domains[i * self.skip_steps][0])
-            self.ani_ax.set_ylim3d(self.ani_domains[i * self.skip_steps][1])
-            self.ani_ax.set_zlim3d(self.ani_domains[i * self.skip_steps][2])
+            self.ani_ax.set_xlim3d( self.ani_domains[i * self.skip_steps][0] )
+            self.ani_ax.set_ylim3d( self.ani_domains[i * self.skip_steps][1] )
+            self.ani_ax.set_zlim3d( self.ani_domains[i * self.skip_steps][2] )
         else:
-            self.ani_ax.set_xlim(  self.ani_domains[i * self.skip_steps][self.x_axis] )
-            self.ani_ax.set_ylim(  self.ani_domains[i * self.skip_steps][self.y_axis] )
+            i_x = self.x_axis
+            i_y = self.y_axis
+            self.ani_ax.set_xlim( self.ani_domains[i * self.skip_steps][i_x] )
+            self.ani_ax.set_ylim( self.ani_domains[i * self.skip_steps][i_y] )
         
         return self.lines, self.time_text, self.ani_ax
     
@@ -272,17 +297,17 @@ class Animator:
     
     
 '''
-#################################################################
-##################          Main                         ########
-#################################################################
+###############################################################################
+##################          Main                         ######################
+###############################################################################
 '''
 
 
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    from AlexRobotics.dynamic import pendulum
-    from AlexRobotics.dynamic import vehicle
+    from pyro.dynamic import pendulum
+    from pyro.dynamic import vehicle
     
     #sys  = SinglePendulum()
     #x0   = np.array([0,1])

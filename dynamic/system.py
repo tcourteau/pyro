@@ -7,9 +7,9 @@ Created on Fri Aug 07 11:51:55 2015
 
 import numpy as np
 
-from AlexRobotics.analysis import simulation
-from AlexRobotics.analysis import phaseanalysis
-from AlexRobotics.analysis import graphical
+from pyro.analysis import simulation
+from pyro.analysis import phaseanalysis
+from pyro.analysis import graphical
        
 '''
 ###############################################################################
@@ -282,7 +282,7 @@ class ContinuousDynamicSystem:
         self.sim.compute()
         
     #############################
-    def plot_trajectory(self , x0 , tf = 10 ):
+    def plot_trajectory(self , x0 , tf = 10 , n = 10001 , solver = 'ode'):
         """ 
         Simulation of time evolution of the system
         ------------------------------------------------
@@ -291,7 +291,7 @@ class ContinuousDynamicSystem:
         
         """
 
-        self.compute_trajectory( x0 , tf )
+        self.compute_trajectory( x0 , tf , n , solver )
         
         self.sim.plot()
         
@@ -315,6 +315,26 @@ class ContinuousDynamicSystem:
         self.sim.phase_plane_trajectory( x_axis , y_axis )
         
     
+    #############################
+    def plot_phase_plane_trajectory_3d(self , x0, tf=10,
+                                       x_axis=0, y_axis=1, z_axis=2):
+        """ 
+        Simulates the system and plot the trajectory in the Phase Plane 
+        ---------------------------------------------------------------
+        x0 : initial time
+        tf : final time
+        x_axis : index of state on x axis
+        y_axis : index of state on y axis
+        
+        """
+        
+        self.sim = simulation.Simulation( self , tf )
+        
+        self.sim.x0 = x0
+        self.sim.compute()
+        self.sim.phase_plane_trajectory_3d( x_axis , y_axis , z_axis )
+        
+    
     #############################################
     def show(self, q , x_axis = 0 , y_axis = 1 ):
         """ Plot figure of configuration q """
@@ -335,7 +355,7 @@ class ContinuousDynamicSystem:
         self.ani.show3( q )
     
     #############################
-    def animate(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
+    def plot_animation(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
         """ Simulate and animate system """
         
         self.compute_trajectory( x0 , tf , n , solver )
@@ -344,15 +364,14 @@ class ContinuousDynamicSystem:
         self.ani.animate_simulation( 1.0 )
         
     ##############################
-    def animate_simulation(self,linestyle = 'o-', time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'RobotSim' ):
+    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'RobotSim' ):
         """ 
         Show Animation of the simulation 
         ----------------------------------
         time_factor_video < 1 --> Slow motion video        
         
         """  
-        self.linestyle = linestyle
-        self.ani = graphical.Animator( self ,self.linestyle)
+        self.ani = graphical.Animator( self )
         self.ani.animate_simulation( time_factor_video , is_3d, save , file_name )
 
 

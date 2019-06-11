@@ -16,8 +16,8 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype']  = 42
 
 
-from AlexRobotics.analysis import costfunction 
-from AlexRobotics.analysis import phaseanalysis
+from pyro.analysis import costfunction 
+from pyro.analysis import phaseanalysis
 
        
 ##################################################################### #####
@@ -46,6 +46,8 @@ class Simulation:
         
         # Ploting
         self.fontsize = 5
+        self.figsize  = (4,3)
+        self.dpi      = 300
         
         # Cost computing
         self.cf = costfunction.QuadraticCostFunction( ContinuousDynamicSystem )
@@ -114,18 +116,18 @@ class Simulation:
             y = self.y_sol[i,:] 
             t = self.t[i]
             
-            dJ = self.cf.g(x, u, y, t)
+            dJ = self.cf.g(x, u, t)
             self.J  = dJ * self.dt + self.J
             
             self.dJ_sol[i] = dJ
             self.J_sol[i]  = self.J
         
         # Final cost
-        self.J = self.cf.h(x, y, t) + self.J
+        self.J = self.cf.h(x, t) + self.J
         self.J_sol[-1] = self.J
        
         
-    ##############################
+    ###########################################################################
     def plot(self, plot = 'x' , show = True ):
         """
         Create a figure with trajectories for states, inputs, outputs and cost
@@ -146,10 +148,7 @@ class Simulation:
             sys = self.cds # sys is the global system
         else:
             pass
-        
-        #matplotlib.rc('xtick', labelsize=self.fontsize )
-        #matplotlib.rc('ytick', labelsize=self.fontsize )
-        
+                
         # Number of subplots
         if plot == 'All':
             l = sys.n + sys.m + sys.p + 2
@@ -170,14 +169,14 @@ class Simulation:
         else:
             raise ValueError('not a valid ploting argument')
             
-        simfig , plots = plt.subplots(l, sharex=True, figsize=(4, 3), dpi=300, 
-                                      frameon=True)
+        simfig , plots = plt.subplots(l, sharex=True, figsize=self.figsize, 
+                                      dpi=self.dpi, frameon=True)
         
-        ###############################################
+        #######################################################################
         #Fix bug for single variable plotting
         if l == 1:
             plots = [plots]
-        ###############################################
+        #######################################################################
         
         simfig.canvas.set_window_title('Trajectory for ' + self.cds.name)
         
@@ -237,7 +236,7 @@ class Simulation:
         self.plots = plots
         
         
-    #############################
+    ###########################################################################
     def phase_plane_trajectory(self , x_axis , y_axis ):
         """ """
         self.pp = phaseanalysis.PhasePlot( self.cds , x_axis , y_axis )
@@ -247,13 +246,41 @@ class Simulation:
         plt.plot([self.x_sol[0,x_axis]], [self.x_sol[0,y_axis]], 'o') # start
         plt.plot([self.x_sol[-1,x_axis]], [self.x_sol[-1,y_axis]], 's') # end
         
-        plt.tight_layout()
+        self.pp.phasefig.tight_layout()
         
         
+    ###########################################################################
+    def phase_plane_trajectory_3d(self , x_axis , y_axis , z_axis):
+        """ """
+        self.pp = phaseanalysis.PhasePlot3( self.cds , x_axis, y_axis, z_axis)
+        
+        self.pp.plot()
+        
+        self.pp.ax.plot(self.x_sol[:,x_axis], 
+                        self.x_sol[:,y_axis], 
+                        self.x_sol[:,z_axis], 
+                        'b-') # path
+        self.pp.ax.plot([self.x_sol[0,x_axis]],
+                        [self.x_sol[0,y_axis]], 
+                        [self.x_sol[0,z_axis]], 
+                        'o') # start
+        self.pp.ax.plot([self.x_sol[-1,x_axis]],
+                        [self.x_sol[-1,y_axis]], 
+                        [self.x_sol[-1,z_axis]], 
+                        's') # start # end
+        
+        self.pp.ax.set_xlim( self.cds.x_lb[ x_axis ] , 
+                             self.cds.x_ub[ x_axis ])
+        self.pp.ax.set_ylim( self.cds.x_lb[ y_axis ] , 
+                             self.cds.x_ub[ y_axis ])
+        self.pp.ax.set_zlim( self.cds.x_lb[ z_axis ] , 
+                             self.cds.x_ub[ z_axis ])
+        
+        self.pp.phasefig.tight_layout()
 
-##########################################################################
+###############################################################################
 # Closed Loop Simulation
-##########################################################################
+###############################################################################
     
 class CLosedLoopSimulation( Simulation ):
     """ 
@@ -267,7 +294,7 @@ class CLosedLoopSimulation( Simulation ):
     Use this class instead of Simulation() in order to access
     internal control inputs
     """
-    #######################################################################
+    ###########################################################################
     def __init__(self, CLSystem , tf = 10 , n = 10001 , solver = 'ode' ):
         
         Simulation.__init__(self, CLSystem , tf, n, solver) 
@@ -279,20 +306,21 @@ class CLosedLoopSimulation( Simulation ):
         self.cf = costfunction.QuadraticCostFunction( self.sys )
         
         
-    ##############################
+    ###########################################################################
     def compute(self):
         
         Simulation.compute(self)
         
         self.compute_inputs()
         
-    ##############################
+    ###########################################################################
     def compute_inputs(self):
         """ Compute internal control signal of the closed-loop system """
         
         self.r_sol = self.u_sol.copy() # reference is input of combined sys
         self.u_sol = np.zeros((self.n,self.sys.m))
         
+        # Compute internal input signal
         for i in range(self.n):
             
             r = self.r_sol[i,:] 
@@ -302,8 +330,8 @@ class CLosedLoopSimulation( Simulation ):
             self.u_sol[i,:] = self.ctl.c( y , r , t )
             
             
-    #############################
-    def phase_plane_trajectory_CL(self , x_axis , y_axis ):
+    ###########################################################################
+    def phase_plane_trajectory_closed_loop(self , x_axis , y_axis ):
         """ """
         self.pp = phaseanalysis.PhasePlot( self.cds , x_axis , y_axis )
         

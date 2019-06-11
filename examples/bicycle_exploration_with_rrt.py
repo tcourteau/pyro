@@ -5,12 +5,18 @@ Created on Tue Nov 13 11:05:07 2018
 @author: Alexandre
 """
 
+###############################################################################
 import numpy as np
-
-from AlexRobotics.dynamic import vehicle
-from AlexRobotics.planning import randomtree
+###############################################################################
+from pyro.dynamic import vehicle
+from pyro.planning import randomtree
+###############################################################################
 
 sys  = vehicle.KinematicBicyleModel()
+
+###############################################################################
+
+# Planning
 
 # Set domain
 sys.x_ub = np.array([+10,+10,+6.28])
@@ -41,8 +47,7 @@ planner.plot_tree()
 planner.plot_tree_3d()
 planner.plot_open_loop_solution()
 
+###############################################################################
+
 sys.dynamic_domain = False
 sys.animate_simulation()
-
-import matplotlib.pyplot as plt
-plt.ion()

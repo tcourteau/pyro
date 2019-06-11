@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Nov 15 13:02:28 2018
-
 @author: nvidia
 """
 
 import numpy as np
 
-from AlexRobotics.dynamic import vehicle
-from AlexRobotics.planning import randomtree
-from AlexRobotics.analysis import graphical
+from pyro.dynamic import vehicle
+from pyro.planning import randomtree
+from pyro.analysis import graphical
 
 sys  = vehicle.KinematicBicyleModelwithObstacles()
 
@@ -26,7 +25,7 @@ x_goal  = np.array([10,0,0])
 planner = randomtree.RRT( sys , x_start )
 
 speed    = 1
-steering = 0.1
+steering = 0.2
 
 planner.u_options = [
         np.array([ speed,-steering]),
@@ -46,4 +45,5 @@ planner.find_path_to_goal( x_goal )
 planner.plot_tree()
 planner.plot_open_loop_solution()
 
-sys.animate_simulation('-',1.0,False,False,'RobotSim')
+sys.dynamic_domain = False
+sys.animate_simulation()

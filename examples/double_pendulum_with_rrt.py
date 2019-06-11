@@ -5,10 +5,13 @@ Created on Mon Nov 12 20:28:17 2018
 @author: Alexandre
 """
 
+###############################################################################
 import numpy as np
+###############################################################################
+from pyro.dynamic import pendulum
+from pyro.planning import randomtree
+###############################################################################
 
-from AlexRobotics.dynamic import pendulum
-from AlexRobotics.planning import randomtree
 
 sys  = pendulum.DoublePendulum()
 

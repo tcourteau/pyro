@@ -18,9 +18,9 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype']  = 42
         
 
-##########################################################################
+###############################################################################
 # Phase Plot Object for phase plane analysis
-##########################################################################
+###############################################################################
         
 class PhasePlot:
     """ 
@@ -62,7 +62,7 @@ class PhasePlot:
         self.headlength = 4.5
         self.fontsize   = 6
         
-    ##############################
+    ###########################################################################
     def compute_grid(self):
         
         x = np.linspace( self.x_axis_min , self.x_axis_max , self.x_axis_n )
@@ -71,7 +71,7 @@ class PhasePlot:
         self.X, self.Y = np.meshgrid( x, y)
             
         
-    ##############################
+    ###########################################################################
     def compute_vector_field(self):
         
         self.v = np.zeros(self.X.shape)
@@ -92,45 +92,48 @@ class PhasePlot:
                 self.v[i,j] = dx[ self.x_axis ]
                 self.w[i,j] = dx[ self.y_axis ]
                        
-    ##############################
+    ###########################################################################
     def plot_init(self):
         
-        matplotlib.rc('xtick', labelsize = self.fontsize )
-        matplotlib.rc('ytick', labelsize = self.fontsize ) 
         
         self.phasefig = plt.figure( figsize = self.figsize , dpi = self.dpi,
                                    frameon=True)
         self.phasefig.canvas.set_window_title('Phase plane of ' + 
                                                 self.cds.name )
         
-    ##############################
+    ###########################################################################
     def plot_vector_field(self):
+        
+        self.ax = self.phasefig.add_subplot(111, autoscale_on=False )
                        
         if self.streamplot:
-            self.Q = plt.streamplot( self.X, self.Y, self.v, self.w, 
+            self.ax.streamplot( self.X, self.Y, self.v, self.w, 
                                     color      =self.color,  
                                     linewidth  = self.linewidth, 
                                     arrowstyle = self.arrowstyle, 
                                     arrowsize  = self.headlength )
         else:
-            self.Q = plt.quiver( self.X, self.Y, self.v, self.w, 
+            self.ax.quiver( self.X, self.Y, self.v, self.w, 
                                 color     = self.color,  
                                 linewidth = self.linewidth)
                                 #, headlength = self.headlength )
         
-    ##############################
+    ###########################################################################
     def plot_finish(self):
         
-        plt.xlabel(self.cds.state_label[ self.x_axis ] + ' ' + 
-        self.cds.state_units[ self.x_axis ] , fontsize = self.fontsize)
-        plt.ylabel(self.cds.state_label[ self.y_axis ] + ' ' + 
-        self.cds.state_units[ self.y_axis ] , fontsize = self.fontsize)
-        plt.xlim([ self.x_axis_min , self.x_axis_max ])
-        plt.ylim([ self.y_axis_min , self.y_axis_max ])
-        plt.grid(True)
-        plt.tight_layout()
+        self.ax.set_xlabel(self.cds.state_label[ self.x_axis ] + ' ' + 
+                           self.cds.state_units[ self.x_axis ] , 
+                           fontsize = self.fontsize)
+        self.ax.set_ylabel(self.cds.state_label[ self.y_axis ] + ' ' + 
+                           self.cds.state_units[ self.y_axis ] , 
+                           fontsize = self.fontsize)
         
-    ##############################
+        self.ax.set_xlim([ self.x_axis_min , self.x_axis_max ])
+        self.ax.set_ylim([ self.y_axis_min , self.y_axis_max ])
+        self.ax.grid(True)
+        self.phasefig.tight_layout()
+        
+    ###########################################################################
     def plot(self):
         """ Plot phase plane """
         
@@ -142,9 +145,9 @@ class PhasePlot:
         
         
         
-##########################################################################
+###############################################################################
 # 3D Phase Plot Object for phase plane analysis
-##########################################################################
+###############################################################################
         
         
 class PhasePlot3( PhasePlot ):
@@ -156,7 +159,7 @@ class PhasePlot3( PhasePlot ):
     z_axis : index of state to display as z axis
     
     """
-    ############################
+    ###########################################################################
     def __init__(self, ContinuousDynamicSystem, x_axis=0,  y_axis=1, z_axis=2):
         
         PhasePlot.__init__(self, ContinuousDynamicSystem, x_axis, y_axis)
@@ -175,11 +178,11 @@ class PhasePlot3( PhasePlot ):
         self.color      = 'r'
         self.dpi        = 200
         self.linewidth  = 0.5
-        self.length     = 2.0
+        self.length     = 0.2
         self.arrowstyle = '->'
         self.fontsize   = 6
         
-    ##############################
+    ###########################################################################
     def compute_grid(self):
         
         x = np.linspace( self.x_axis_min , self.x_axis_max , self.x_axis_n )
@@ -188,7 +191,7 @@ class PhasePlot3( PhasePlot ):
         
         self.X, self.Y, self.Z = np.meshgrid( x, y, z)
             
-    ##############################
+    ###########################################################################
     def compute_vector_field(self):
         
         self.v = np.zeros(self.X.shape)
@@ -213,17 +216,17 @@ class PhasePlot3( PhasePlot ):
                     self.w[i,j,k] = dx[ self.y_axis ]
                     self.u[i,j,k] = dx[ self.z_axis ]
                        
-    ##############################
+    ###########################################################################
     def plot_vector_field(self):
         
-        self.ax = self.phasefig.gca(projection='3d')
+        self.ax = self.phasefig.add_subplot(111,projection='3d')
         
         self.ax.quiver( self.X, self.Y, self.Z, self.v, self.w, self.u, 
                        color=self.color,  linewidth = self.linewidth,
                        length = self.length)
                        #, headlength = self.headlength, normalize = True )
         
-    ##############################
+    ###########################################################################
     def plot_finish(self):
         
         self.ax.set_xlabel(self.cds.state_label[ self.x_axis ] + ' ' +

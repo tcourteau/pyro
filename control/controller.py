@@ -7,10 +7,10 @@ Created on Mon Oct 22 08:40:31 2018
 
 import numpy as np
 
-from AlexRobotics.dynamic import system
-from AlexRobotics.analysis import phaseanalysis
-from AlexRobotics.analysis import simulation
-from AlexRobotics.analysis import graphical
+from pyro.dynamic import system
+from pyro.analysis import phaseanalysis
+from pyro.analysis import simulation
+from pyro.analysis import graphical
 
 ###############################################################################
 # Mother Controller class
@@ -107,6 +107,16 @@ class StaticController:
         
         return u
     
+    #############################
+    def __add__(self, sys):
+        """ 
+        closed_loop_system = controller + dynamic_system
+        """
+        
+        cl_sys = ClosedLoopSystem( sys , self )
+        
+        return cl_sys
+    
     
 ###############################################################################
 # Mother "Static controller + dynamic system" class
@@ -166,7 +176,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         self.ubar = self.ctl.rbar
         
     
-    #############################
+    ###########################################################################
     def f( self , x , u , t ):
         """ 
         Continuous time foward dynamics evaluation dx = f(x,u,t)
@@ -192,7 +202,7 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         return dx
     
 
-    #############################
+    ###########################################################################
     def h( self , x , u , t ):
         """ 
         Output fonction y = h(x,u,t)
@@ -213,8 +223,8 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         return y
     
-    #############################
-    def plot_phase_plane_CL(self , x_axis = 0 , y_axis = 1 ):
+    ###########################################################################
+    def plot_phase_plane_closed_loop(self , x_axis = 0 , y_axis = 1 ):
         """ 
         Plot Phase Plane vector field of the system
         ------------------------------------------------
@@ -243,10 +253,24 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         self.pp.plot_finish()
         
-        
     
-    #############################
-    def plot_trajectory_CL(self , x0 , tf = 10 ):
+    ###########################################################################
+    def compute_trajectory(self , x0 , tf = 10 , n = 10001 , solver = 'ode'):
+        """ 
+        Simulation of time evolution of the system
+        ------------------------------------------------
+        x0 : initial time
+        tf : final time
+        
+        """
+        
+        self.sim = simulation.CLosedLoopSimulation( self , tf , n , solver )
+        self.sim.x0 = x0
+        self.sim.compute()
+        
+        
+    ###########################################################################
+    def plot_trajectory(self , x0 , tf = 10 , n = 10001 , solver = 'ode'):
         """ 
         Simulation of time evolution of the system
         ------------------------------------------------
@@ -255,16 +279,13 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         """
 
-        self.sim = simulation.CLosedLoopSimulation( self , tf )
+        self.compute_trajectory( x0 , tf , n , solver )
         
-        self.sim.x0 = x0
-        self.sim.compute()
-        
-        self.sim.plot()
+        self.sim.plot('xu')
         
         
-    #############################
-    def plot_phase_plane_trajectory_CL(self, x0, tf=10, x_axis=0, y_axis=1):
+    ###########################################################################
+    def plot_phase_plane_trajectory(self, x0, tf=10, x_axis=0, y_axis=1):
         """ 
         Simulates the system and plot the trajectory in the Phase Plane 
         ------------------------------------------------
@@ -279,30 +300,49 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         self.sim.x0 = x0
         self.sim.compute()
-        self.sim.phase_plane_trajectory_CL( x_axis , y_axis )
+        self.sim.phase_plane_trajectory_closed_loop( x_axis , y_axis )
+        
+    
+    ###########################################################################
+    def plot_phase_plane_trajectory_3d(self , x0, tf=10,
+                                     x_axis=0, y_axis=1, z_axis=2):
+        """ 
+        Simulates the system and plot the trajectory in the Phase Plane 
+        ---------------------------------------------------------------
+        x0 : initial time
+        tf : final time
+        x_axis : index of state on x axis
+        y_axis : index of state on y axis
+        
+        """
+        
+        self.sim = simulation.CLosedLoopSimulation( self , tf )
+        
+        self.sim.x0 = x0
+        self.sim.compute()
+        self.sim.phase_plane_trajectory_3d( x_axis , y_axis , z_axis )
         
     #############################################
     # Make graph function use the internal sys
     #############################################
         
-    #############################################
+    ###########################################################################
     def show(self, q , x_axis = 0 , y_axis = 1 ):
         """ Plot figure of configuration q """
         
-        system.ContinuousDynamicSystem.show( self.sys , q , x_axis = 0 , y_axis = 1  )
+        system.ContinuousDynamicSystem.show( self.sys , q , 
+                                            x_axis = 0 , y_axis = 1  )
         
     
-    #############################################
+    ###########################################################################
     def show3(self, q ):
         """ Plot figure of configuration q """
         
         system.ContinuousDynamicSystem.show3(self.sys, q)
     
-    #############################
-    def animate(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
+    ###########################################################################
+    def plot_animation(self, x0 , tf = 10 , n = 10001 , solver = 'ode' ):
         """ Simulate and animate system """
-        
-        system.ContinuousDynamicSystem.animate(self.sys, x0 , tf , n , solver)
         
         self.compute_trajectory( x0 , tf , n , solver )
         
@@ -310,8 +350,9 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         self.ani.sys.sim = self.sim
         self.ani.animate_simulation( 1.0 )
         
-    ##############################
-    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, save = False , file_name = 'RobotSim' ):
+    ###########################################################################
+    def animate_simulation(self, time_factor_video =  1.0 , is_3d = False, 
+                           save = False , file_name = 'RobotSim' ):
         """ 
         Show Animation of the simulation 
         ----------------------------------
@@ -321,7 +362,8 @@ class ClosedLoopSystem( system.ContinuousDynamicSystem ):
         
         self.ani = graphical.Animator( self.sys )
         self.ani.sys.sim = self.sim
-        self.ani.animate_simulation( time_factor_video , is_3d, save , file_name )
+        self.ani.animate_simulation( time_factor_video , is_3d, 
+                                     save , file_name )
 
         
         

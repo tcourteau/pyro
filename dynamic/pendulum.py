@@ -4,13 +4,16 @@ Created on Wed Oct 24 13:07:39 2018
 
 @author: nvidia
 """
-
+###############################################################################
 import numpy as np
+###############################################################################
+from pyro.dynamic import mechanical
+###############################################################################
 
 
-from AlexRobotics.dynamic import mechanical
 
-##############################################################################
+
+###############################################################################
         
 class SinglePendulum( mechanical.MechanicalSystem ):
     """ 
@@ -122,7 +125,7 @@ class SinglePendulum( mechanical.MechanicalSystem ):
         
         d    = np.zeros( self.dof ) 
         
-        d[0] = self.d1 * q[0]
+        d[0] = self.d1 * dq[0]
         
         return d
         
