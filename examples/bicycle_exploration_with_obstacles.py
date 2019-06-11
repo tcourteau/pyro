@@ -26,7 +26,7 @@ x_goal  = np.array([10,0,0])
 planner = randomtree.RRT( sys , x_start )
 
 speed    = 1
-steering = 0.2
+steering = 0.1
 
 planner.u_options = [
         np.array([ speed,-steering]),
