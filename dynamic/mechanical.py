@@ -37,7 +37,7 @@ class MechanicalSystem( system.ContinuousDynamicSystem ):
     """
     
     ############################
-    def __init__(self, dof = 1 , m = 1):
+    def __init__(self, dof = 1 ):
         """ """
         
         # Degree of Freedom

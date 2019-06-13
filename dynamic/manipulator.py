@@ -68,7 +68,7 @@ class Manipulator( mechanical.MechanicalSystem ):
         self.e = e
                
         # initialize standard params
-        mechanical.MechanicalSystem.__init__(self, dof , m )
+        mechanical.MechanicalSystem.__init__(self, dof )
         
         # Name
         self.name = str(dof) + 'Joint Manipulator Robot'
@@ -1308,9 +1308,12 @@ class ThreeLinkManipulator3D( Manipulator ):
         # ground line
         ###############################
         
-        pts      = np.zeros(( 2 , 3 ))
-        pts[0,:] = np.array([-10,0,0])
-        pts[1,:] = np.array([+10,0,0])
+        pts      = np.zeros(( 5 , 3 ))
+        pts[0,:] = np.array([-1,-1,0])
+        pts[1,:] = np.array([+1,-1,0])
+        pts[2,:] = np.array([+1,+1,0])
+        pts[3,:] = np.array([-1,+1,0])
+        pts[4,:] = np.array([-1,-1,0])
         
         lines_pts.append( pts )
         
