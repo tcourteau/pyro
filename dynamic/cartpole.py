@@ -8,9 +8,8 @@ Created on Wed Oct 24 13:07:39 2018
 import numpy as np
 ###############################################################################
 from pyro.dynamic import mechanical
+from pyro.dynamic import system
 ###############################################################################
-
-
 
 
 ###############################################################################
@@ -225,6 +224,77 @@ class RotatingCartPole( mechanical.MechanicalSystem ):
         lines_pts.append( pts )
                 
         return lines_pts
+    
+    
+    
+###############################################################################
+        
+class UnderActuatedRotatingCartPole( RotatingCartPole ):
+    
+    ############################
+    def __init__(self, ):
+        """ """
+        
+        # Degree of Freedom
+        dof      = 2
+        self.dof = dof 
+        
+        # Dimensions
+        n = dof * 2 
+        m = 1  
+        p = dof * 2
+        
+        # initialize standard params
+        system.ContinuousDynamicSystem.__init__(self, n, m, p)
+        
+        # Name
+        self.name = str(dof) + 'DoF Mechanical System'
+        
+        # Labels, bounds and units
+        self.x_ub[0] = + np.pi * 2
+        self.x_lb[0] = - np.pi * 2
+        self.state_label[0] = 'Angle '+ str(1)
+        self.state_units[0] = '[rad]'
+        self.x_ub[1] = + np.pi * 2
+        self.x_lb[1] = - np.pi * 2
+        self.state_label[1] = 'Angle '+ str(2)
+        self.state_units[1] = '[rad]'
+            
+        # joint velocity states
+        self.x_ub[2] = + np.pi * 2
+        self.x_lb[2] = - np.pi * 2
+        self.state_label[2] = 'Velocity ' + str(1)
+        self.state_units[2] = '[rad/sec]'
+        self.x_ub[3] = + np.pi * 2
+        self.x_lb[3] = - np.pi * 2
+        self.state_label[3] = 'Velocity ' + str(2)
+        self.state_units[3] = '[rad/sec]'
+        
+        #actuators
+        self.u_ub[0] = + 5
+        self.u_lb[0] = - 5
+        self.input_label[0] = 'Torque ' + str(1)
+        self.input_units[0] ='[Nm]'
+        
+        
+        # Name
+        self.name = 'Rotating Cart Pole'
+        
+        # params
+        self.setparams()
+    
+    ###########################################################################
+    def B(self, q ):
+        """ 
+        Actuator Matrix  : dof x m
+        """
+        
+        B = np.zeros((2,1))
+        
+        B[0] = 1
+        B[1] = 0
+        
+        return B
         
         
         
@@ -238,7 +308,8 @@ class RotatingCartPole( mechanical.MechanicalSystem ):
 if __name__ == "__main__":     
     """ MAIN TEST """
     
-    sys = RotatingCartPole()
+#    sys = RotatingCartPole()
+    sys = UnderActuatedRotatingCartPole()
     x0 = np.array([0,0.1,0,0])
     
     #sys.show3(np.array([0.3,0.2]))
