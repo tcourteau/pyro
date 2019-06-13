@@ -75,25 +75,43 @@ class CartPoleController( controller.StaticController ) :
         A = H12 - H11 * H22 / H12
         B = phi[0] - H11 / H12 * phi[1]
         
-        ddq_r = - self.kd * dq[1] - self.kp * q[1]
-        
+        # Energy
         T = 0.5 * H22 * dq[1]**2
         V = self.sys.m2 * self.sys.gravity * self.sys.l2 * np.cos( q[1] ) 
         E = T + V
-        
         Ed = self.sys.m2 * self.sys.gravity * self.sys.l2
         
         Ee = E-Ed
-    
+        
+        #Energy shaping swing up
         if ( np.abs(H12) > 0.01 ) & ( dq[1] > 0.1 ):
             
             mgl = self.sys.m2 * self.sys.gravity * self.sys.l2 * np.sin( q[1])
             
-            ddq_r = (mgl - Ee / dq[1] ) / H22
+            gain_e = 5
             
-            u[0] = A * ddq_r + B - 5 * dq[0]
-                
- 
+            ddq_r = (mgl - Ee * gain_e / dq[1] ) / H22
+            
+            damping_base = 5
+            
+            u[0] = A * ddq_r + B - damping_base * dq[0]
+            
+            
+        # On target stabilization
+        if (q[1]**2 < 0.2 ) & ( dq[1]**2 < 0.6 ):
+            
+            u[0] = +100 * q[1] + 22 * dq[1] + 1 * q[0]  + 2 * dq[0]
+            
+        
+        # Saturation
+        umax = 50
+        
+        if u[0] > umax:
+            
+            u[0] = umax
+        elif u[0] < -umax:
+            u[0] = -umax
+
         
         return u
 
@@ -112,7 +130,7 @@ ctl = CartPoleController( sys )
 cl_sys = ctl + sys
 
 # Simultation
-x0 = np.array([0,-1.14,0,0])
+x0 = np.array([0,-2,0,-1])
 cl_sys.plot_trajectory( x0 , 10 , 10001, 'euler')
 cl_sys.sim.plot('xu')
 cl_sys.animate_simulation(1.0,True)
