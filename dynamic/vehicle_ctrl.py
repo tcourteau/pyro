@@ -492,6 +492,103 @@ class KinematicBicyleModelwithObstacles( KinematicBicyleModel ):
                 
             return lines_pts   
 
+###############################################################################
+        
+class LateralDynamicBicyleModel( KinematicBicyleModel ):
+    """ 
+    Equations of Motion
+    -------------------------
+    dv_y    = (F_yf*cos(delta)+F_yr)/m - v_x*dtheta         "lateral force sum (F_y = m*dv_y) gives lateral acceleration ddv_y"
+    ddtheta = (a*F_yf*cos(delta)-b*F_yr)/Iz                 "Torque sum at mass center (T = I*ddtheta) gives the angular acceleration of the vehicle ddtheta"
+    dtheta  = dtheta                                        "dtheta is already a state which is the yaw rate"
+    dX      = v_x*cos(theta)-v_y*sin(theta)                 "To obtain cartesian position"
+    dY      = v_x*sin(theta)+v_y*cos(theta)
+
+    Where 
+    F_yf is the lateral force applied perpendicularly with the front wheel (N)
+    F_yr is the lateral force applied perpendicularly with the rear wheel (N)
+    v_y  is the lateral velocity of the mass center (m/s)
+    v_x  is the longitudinal velocity of the mass center (m/s)
+    delta is the steering angle (rad)
+    theta is the yaw angle of the vehicle (rad)
+    m     is the mass of the vehicle (kg)
+    Iz    is the inertia for a rotation along the z-axis (kg*m^2)
+    a     is the distance from the front axle to the mass centre (m)
+    b     is the distance from the rear axle to the mass centre (m)
+    (X,Y) is the cartesian position of the vehicle
+    """
+    
+    ############################
+    def __init__(self):
+        """ """
+    
+        # Dimensions
+        self.n = 5   
+        self.m = 2   
+        self.p = 5
+        
+        # initialize standard params
+        system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
+        
+        # Labels
+        self.name = 'Lateral Dynamic Bicyle Model'
+        self.state_label = ['v_y','dtheta','theta','X','Y']
+        self.input_label = ['delta', 'v_x']
+        self.output_label = ['v_y','dtheta','theta','X','Y']
+        
+        # Units
+        self.state_units = ['[m/s]','[rad/s]','[rad]','[m]','[m]']
+        self.input_units = ['[m/sec]', '[rad]']
+        self.output_units = ['[m/s]','[rad/s]','[rad]','[m]','[m]']
+        
+        # State working range
+        self.x_ub = np.array([+5,+2,+3.14])
+        self.x_lb = np.array([-5,-2,-3.14])
+        
+        # Model param (used for animation purposes only change the values)
+        self.width  = 1.00
+        self.a      = 0.75
+        self.b      = 0.35
+        self.lenght = self.a+self.b    
+        self.lenght_tire = 0.40
+        self.width_tire = 0.15
+        
+        # Graphic output parameters 
+        self.dynamic_domain  = True
+        
+    #############################
+    def f(self, x = np.zeros(3) , u = np.zeros(2) , t = 0 ):
+        """ 
+        Continuous time foward dynamics evaluation
+        
+        dx = f(x,u,t)
+        
+        INPUTS
+        x  : state vector             n x 1
+        u  : control inputs vector    m x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        dx : state derivative vectror n x 1
+        
+        """
+        m = 1000
+        a = self.a
+        b = self.b
+        Iz = 30
+        F_yf, F_yr  self.linearTireModel(a,b,m)
+        
+        
+        dx = np.zeros(self.n) # State derivative vector
+
+        dx[0] = (F_yf*np.cos(u[0])+F_yr)/m-u[1]*x[1]
+        dx[1] = (a*F_yf*np.cos(u[0])-b*F_yr)/Iz
+        dx[2] = x[1]
+        dx[3] = u[1]*np.cos(x[2])-x[0]*np.sin(x[2])
+        dx[4] = u[1]*np.sin(x[2])-x[0]*np.cos(x[2])
+        
+        return dx
+
 ##############################################################################
         
 class HolonomicMobileRobot( system.ContinuousDynamicSystem ):

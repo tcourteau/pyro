@@ -13,13 +13,13 @@ from pyro.dynamic  import vehicle
 
 
 # Vehicule dynamical system
-sys = vehicle.KinematicBicyleModel()
+sys = vehicle.FullDynamicWithoutSlipBicycleModel()
 
-# Set default wheel velocity and steering angle
-sys.ubar = np.array([15,0.2])
+# Set default steering angle and longitudinal velocity v_x
+sys.ubar = np.array([0.5,0,1000])
 
 # Plot open-loop behavior
-sys.plot_trajectory( np.array([0,0,0]) , 100 )
+sys.plot_trajectory( np.array([1,0,0,0,0,0]) , 50 )
 
 
 # Animate the simulation
