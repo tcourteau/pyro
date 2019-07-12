@@ -12,7 +12,6 @@ from pyro.dynamic import pendulum
 from pyro.planning import randomtree
 ###############################################################################
 
-
 sys  = pendulum.DoublePendulum()
 
 x_start = np.array([-3.14,0,0,0])
