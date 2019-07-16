@@ -12,21 +12,19 @@ from pyro.control  import robotcontrollers
 from pyro.dynamic  import manipulator
 ###############################################################################
 
-torque_controlled_robot = manipulator.TwoLinkManipulator()
+torque_controlled_robot = manipulator.ThreeLinkManipulator3D()
 speed_controlled_robot  = manipulator.SpeedControlledManipulator( 
                                              torque_controlled_robot )
 
 
 kinematic_controller = robotcontrollers.EndEffectorKinematicController( speed_controlled_robot , 1 )
-kinematic_controller.rbar = np.array([1,1])
+kinematic_controller.rbar = np.array([1.0,1.0,1.0])
     
 closed_loop_robot = kinematic_controller + speed_controlled_robot
     
-x0        = np.array([-0.5,0.2])
+x0        = np.array([0.1,0.1,0.1])
     
 closed_loop_robot.plot_animation( x0, 5 )
 closed_loop_robot.sim.plot('xu')
 
-#closed_loop_robot.rbar = np.array([1.5,0.5])
-#closed_loop_robot.plot_animation( x0, 5 )
-closed_loop_robot.animate_simulation(0.01)
+closed_loop_robot.animate_simulation(2,True)
