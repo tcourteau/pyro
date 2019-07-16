@@ -137,12 +137,12 @@ sys = DoubleIntegrator2()
 
 ctl = OptmimalDoubleIntegratorController()
 
-ctl.xd = 5
+ctl.xd = 2
 
 # New cl-dynamic
 cl_sys = ctl + sys
 
-x0 = np.array([-2,0])
+x0 = np.array([-2,-2])
 cl_sys.plot_trajectory( x0 , 10 , 10001, 'euler')
 cl_sys.sim.plot('xu')
 cl_sys.sim.phase_plane_trajectory(0,1)
