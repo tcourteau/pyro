@@ -13,9 +13,8 @@ import mpl_toolkits.mplot3d.axes3d as p3
 ###############################################################################
 from pyro.dynamic  import system
 from pyro.analysis import simulation
-from pyro.signal   import timefiltering
+from pyro.filters   import timefiltering
 from pyro.planning import plan
-
 
 ###############################################################################
 class Node:

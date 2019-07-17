@@ -10,7 +10,7 @@ import numpy as np
 ###############################################################################
 from pyro.analysis import simulation
 from pyro.control  import controller
-from pyro.signal   import timefiltering
+from pyro.filters   import timefiltering
 
 
 ###############################################################################
