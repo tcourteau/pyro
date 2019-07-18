@@ -559,7 +559,7 @@ class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
         self.dynamic_domain  = True
         
     #############################
-    def linearTireModel(self,x,u):
+    def linearLateralTireModel(self,x,u):
         
         F_nf = self.mass*self.g*self.b/(self.b+self.a)
         F_nr = self.mass*self.g*self.a/(self.b+self.a)
@@ -567,9 +567,45 @@ class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
         slip_r = (x[0]-self.b*x[1])/u[1]
         F_yf = -F_nf*0.15*180/np.pi*slip_f
         F_yr = -F_nr*0.15*180/np.pi*slip_r
+        print(slip_f,slip_r)
+        print(F_yf,F_yr)
+
         
         return F_yf,F_yr
+    
+           #############################
+    def pieceWiseTireModel(self,x,u):
         
+        
+        F_nf = self.mass*self.g*self.b/(self.b+self.a)
+        F_nr = self.mass*self.g*self.a/(self.b+self.a)
+        max_F_f = F_nf*0.9
+        max_F_r = F_nr*0.9
+        slip_ratio_f = max_F_f/(0.12)
+        slip_ratio_r = max_F_r/(0.12)
+        if (u[1] == 0):
+            slip_f = 0
+            slip_r = 0
+            F_yf   = 0
+            F_yr   = 0
+        else:
+            slip_f = np.arctan((x[0]+self.a*x[1])/u[1])-u[0]
+            slip_r = np.arctan((x[0]-self.b*x[1])/u[1])
+            if (slip_f<-0.12):
+                F_yf = max_F_f
+            elif (slip_f > 0.12):
+                F_yf = -max_F_f
+            else:
+                F_yf = -slip_ratio_f*slip_f
+            
+            if (slip_r<-0.12):
+                F_yr = max_F_r
+            elif (slip_r > 0.12):
+                F_yr = -max_F_r
+            else:
+                F_yr = -slip_ratio_r*slip_r
+
+        return F_yf,F_yr   
         
     #############################
         
@@ -588,8 +624,9 @@ class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
         dx : state derivative vectror n x 1
         
         """
+        
         dx = np.zeros(self.n) # State derivative vector
-        F_yf,F_yr = self.linearTireModel(x,u)
+        F_yf,F_yr = self.pieceWiseTireModel(x,u)
         
         dx[0] = (F_yf*np.cos(u[0])+F_yr)/self.mass-u[1]*x[1]
         dx[1] = (self.a*F_yf*np.cos(u[0])-self.b*F_yr)/self.Iz
@@ -607,7 +644,6 @@ class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
     #############################
     def xut2q( self, x , u , t ):
         """ compute config q """
-        
         q   = np.append(  x , u[0] ) # steering angle is part of the config
         
         return q
@@ -793,15 +829,15 @@ class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
         return x1,y1,x2,y2
 ##############################################################################
         
-class FullDynamicWithoutSlipBicycleModel( LateralDynamicBicycleModel ):
+class FullDynamicBicycleModelForceInput( LateralDynamicBicycleModel ):
     
     """ 
     Equations of Motion
     -------------------------
     STATES_DERIVATIVE
-    dv_x    = (-F_xf*cos(delta)-F_yf*sin(delta)+F_xr)/m-v_y*dtheta  "longitudinal force sum (F_x = m*dv_x) gives longitudinal acceleration dv_x"
-    dv_y    = (F_yf*cos(delta)+F_yr)/m - v_x*dtheta                 "lateral force sum (F_y = m*dv_y) gives lateral acceleration dv_y"
-    ddtheta = (a*F_yf*cos(delta)-b*F_yr)/Iz                         "Torque sum at mass center (T = I*ddtheta) gives the angular acceleration of the vehicle ddtheta"
+    dv_x    = (F_xf*cos(delta)-F_yf*sin(delta)+F_xr)/m-v_y*dtheta   "longitudinal force sum (F_x = m*dv_x) gives longitudinal acceleration dv_x"
+    dv_y    = (F_yf*cos(delta)+F_xf*sin(delta)+F_yr)/m - v_x*dtheta "lateral force sum (F_y = m*dv_y) gives lateral acceleration dv_y"
+    ddtheta = (a*(F_yf*cos(delta)+F_xf*sin(delta))-b*F_yr)/Iz       "Torque sum at mass center (T = I*ddtheta) gives the angular acceleration of the vehicle ddtheta"
     dtheta  = dtheta                                                "dtheta is already a state which is the yaw rate"
     dX      = v_x*cos(theta)-v_y*sin(theta)                         "To obtain cartesian position"
     dY      = v_x*sin(theta)+v_y*cos(theta)
@@ -865,21 +901,52 @@ class FullDynamicWithoutSlipBicycleModel( LateralDynamicBicycleModel ):
         # Graphic output parameters 
         self.dynamic_domain  = True
         
-       #############################
-    def linearTireModel(self,x,u):
+    #############################
+    def linearLateralTireModel(self,x,u):
         
         F_nf = self.mass*self.g*self.b/(self.b+self.a)
         F_nr = self.mass*self.g*self.a/(self.b+self.a)
+        slip_f = ((x[1]+self.a*x[2])/x[0]-u[0])
+        slip_r = (x[1]-self.b*x[2])/x[0]
+        F_yf = -F_nf*0.15*180/np.pi*slip_f
+        F_yr = -F_nr*0.15*180/np.pi*slip_r
+        print(slip_f,slip_r)
+        print(F_yf,F_yr)
+        
+        return F_yf,F_yr
+       #############################
+    def pieceWiseTireModel(self,x,u):
+        
+        F_nf = self.mass*self.g*self.b/(self.b+self.a)
+        F_nr = self.mass*self.g*self.a/(self.b+self.a)
+        max_F_f = F_nf*0.9
+        max_F_r = F_nr*0.9
+        slip_ratio_f = max_F_f/(0.12)
+        slip_ratio_r = max_F_r/(0.12)
         if x[0] == 0:
             slip_f = 0
             slip_r = 0
+        elif(x[0]>0):
+            slip_f = np.arctan((x[1]+self.a*x[2])/x[0])-u[0]
+            slip_r = np.arctan((x[1]-self.b*x[2])/x[0])
         else:
-            slip_f = ((x[1]+self.a*x[2])/x[0]-u[0])
-            slip_r = (x[1]-self.b*x[2])/x[0]
-        F_yf = -F_nf*0.15*180/np.pi*slip_f
-        F_yr = -F_nr*0.15*180/np.pi*slip_r
+            slip_f = -(np.arctan((x[1]+self.a*x[2])/x[0])-u[0])
+            slip_r = -np.arctan((x[1]-self.b*x[2])/x[0])            
+        if (slip_f<-0.12):
+            F_yf = max_F_f
+        elif (slip_f > 0.12):
+            F_yf = -max_F_f
+        else:
+            F_yf = -slip_ratio_f*slip_f
+            
+        if (slip_r<-0.12):
+            F_yr = max_F_r
+        elif (slip_r > 0.12):
+            F_yr = -max_F_r
+        else:
+            F_yr = -slip_ratio_r*slip_r
         
-        return F_yf,F_yr           
+        return F_yf,F_yr         
     #############################
         
     def f(self, x = np.zeros(6) , u = np.zeros(3) , t = 0 ):
@@ -898,7 +965,7 @@ class FullDynamicWithoutSlipBicycleModel( LateralDynamicBicycleModel ):
         
         """
         dx = np.zeros(self.n) # State derivative vector
-        F_yf,F_yr = self.linearTireModel(x,u)
+        F_yf,F_yr = self.pieceWiseTireModel(x,u)
         
         dx[0] = (u[1]*np.cos(u[0])-F_yf*np.sin(u[0])+u[2])/self.mass-x[1]*x[2]
         dx[1] = (F_yf*np.cos(u[0])+u[1]*np.sin(u[0])+F_yr)/self.mass-x[0]*x[2]
@@ -1081,25 +1148,27 @@ class FullDynamicWithoutSlipBicycleModel( LateralDynamicBicycleModel ):
     
 ##############################################################################
         
-class FullDynamicBicycleModel( FullDynamicWithoutSlipBicycleModel ):
+class FullDynamicBicycleModel( LateralDynamicBicycleModel ):
     
     """ 
     Equations of Motion
     -------------------------
     STATES_DERIVATIVE
-    dv_x    = (-F_xf*cos(delta)-F_yf*sin(delta)+F_xr)/m-v_y*dtheta  "longitudinal force sum (F_x = m*dv_x) gives longitudinal acceleration dv_x"
-    dv_y    = (F_yf*cos(delta)+F_yr)/m - v_x*dtheta                 "lateral force sum (F_y = m*dv_y) gives lateral acceleration dv_y"
-    ddtheta = (a*F_yf*cos(delta)-b*F_yr)/Iz                         "Torque sum at mass center (T = I*ddtheta) gives the angular acceleration of the vehicle ddtheta"
+    dv_x    = (F_xf*cos(delta)-F_yf*sin(delta)+F_xr)/m-v_y*dtheta   "longitudinal force sum (F_x = m*dv_x) gives longitudinal acceleration dv_x"
+    dv_y    = (F_yf*cos(delta)+F_xf*sin(delta)+F_yr)/m - v_x*dtheta "lateral force sum (F_y = m*dv_y) gives lateral acceleration dv_y"
+    ddtheta = (a*(F_yf*cos(delta)+F_xf*sin(delta))-b*F_yr)/Iz       "Torque sum at mass center (T = I*ddtheta) gives the angular acceleration of the vehicle ddtheta"
     dtheta  = dtheta                                                "dtheta is already a state which is the yaw rate"
     dX      = v_x*cos(theta)-v_y*sin(theta)                         "To obtain cartesian position"
     dY      = v_x*sin(theta)+v_y*cos(theta)
-    domega_f= T_f/I_wheel
-    domega_r= T_r/I_wheel
+    domega_f = (T_F-F_xf*R)/I_propf
+    domega_r = (T_r-F_xr*R)/I_propr
+    
+    ***** DEPENDS DU MODELE DE TIRE COMPLET EX: S=omega/v_x et F_x,F_y = f(F_z,alpha,S et mu) *****
     
     INPUTS 
     delta is the steering angle (rad)
-    T_f is the torque of the front propulsion/break (Nm)
-    T_r is the torque of the rear propulsion (Nm)
+    T_f is the front wheel torque (N)
+    T_r is the rear wheel torque (N)
     
     
     Where 
@@ -1129,7 +1198,7 @@ class FullDynamicBicycleModel( FullDynamicWithoutSlipBicycleModel ):
         system.ContinuousDynamicSystem.__init__(self, self.n, self.m, self.p)
         
         # Labels
-        self.name = 'Full Dynamic Bicyle Model'
+        self.name = 'Full Dynamic Bicyle Model with slip'
         self.state_label = ['v_x','v_y','dtheta','theta','X','Y','omega_f','omega_r']
         self.input_label = ['delta', 'T_f','T_r']
         self.output_label = ['v_x','v_y','dtheta','theta','X','Y','omega_f','omega_r']
@@ -1151,28 +1220,101 @@ class FullDynamicBicycleModel( FullDynamicWithoutSlipBicycleModel ):
         self.g = 9.81
         self.mass = 1000
         self.Iz = 1.00/12.00*self.mass*((self.a+self.b)**2+self.width**2) 
+        self.Iprop_f = 20
+        self.Iprop_r = 20
+        self.r = 0.3
         
         # Graphic output parameters 
         self.dynamic_domain  = True
         
-       #############################
-    def linearTireModel(self,x,u):
+    #############################
+    def linearLateralTireModel(self,x,u):
         
         F_nf = self.mass*self.g*self.b/(self.b+self.a)
         F_nr = self.mass*self.g*self.a/(self.b+self.a)
+        slip_f = ((x[1]+self.a*x[2])/x[0]-u[0])
+        slip_r = (x[1]-self.b*x[2])/x[0]
+        F_yf = -F_nf*0.15*180/np.pi*slip_f
+        F_yr = -F_nr*0.15*180/np.pi*slip_r
+        print(slip_f,slip_r)
+        print(F_yf,F_yr)
+        
+        return F_yf,F_yr
+       #############################
+    def combinedSlipTireModel(self,x,u):
+        
+        # Compute normal forces on each tire
+        F_nf = self.mass*self.g*self.b/(self.b+self.a)
+        F_nr = self.mass*self.g*self.a/(self.b+self.a)
+        max_F_f = F_nf*0.9
+        max_F_r = F_nr*0.9
+        # Simulation of road-tire behavior according to slip angles 
+        slip_ratio_f = max_F_f/(0.12) # Start slipping at 7 degrees
+        slip_ratio_r = max_F_r/(0.12)
+        # Compute slip angles and lateral forces for both tires (depends on Vx (x[0]),Vy (x[1]) and delta (u[0]))
         if x[0] == 0:
             slip_f = 0
             slip_r = 0
+        elif(x[0]>0):
+            slip_f = np.arctan((x[1]+self.a*x[2])/x[0])-u[0]
+            slip_r = np.arctan((x[1]-self.b*x[2])/x[0])
         else:
-            slip_f = ((x[1]+self.a*x[2])/x[0]-u[0])
-            slip_r = (x[1]-self.b*x[2])/x[0]
-        F_yf = -F_nf*0.15*180/np.pi*slip_f
-        F_yr = -F_nr*0.15*180/np.pi*slip_r
+            slip_f = -(np.arctan((x[1]+self.a*x[2])/x[0])-u[0])
+            slip_r = -np.arctan((x[1]-self.b*x[2])/x[0])
+        if (slip_f<-0.12):
+            F_yf = max_F_f
+        elif (slip_f > 0.12):
+            F_yf = -max_F_f
+        else:
+            F_yf = -slip_ratio_f*slip_f
+            
+        if (slip_r<-0.1):
+            F_yr = max_F_r
+        elif (slip_r > 0.1):
+            F_yr = -max_F_r
+        else:
+            F_yr = -slip_ratio_r*slip_r
+        # Simulation of road-tire behavior according to slip-ratios
+        slip_slope_f = max_F_f/0.03
+        slip_slope_r = max_F_r/0.03
+        # Compute slip ratios and longitudinal forces for both tires (depend on Vx (x[0]), omega_f (x[6]), omega_r (x[7]))
+        if(x[0] == 0 and x[6] == 0):
+            long_slip_f = 0
+            F_xf = 0
+        elif(u[1] == 0):
+            long_slip_f = 0
+            F_xf = 0
+        else:
+            long_slip_f = (x[6]*self.r-x[0])/np.maximum(np.absolute(x[0]),np.absolute(x[6]*self.r))  
+            if (long_slip_f<-0.03):
+                F_xf = -max_F_f
+            elif(long_slip_f>0.03):
+                F_xf = max_F_f
+            else:
+                F_xf = slip_slope_f*long_slip_f
+        if(x[0] == 0 and x[7] == 0):
+            F_xr = 0
+            long_slip_r = 0
+        elif(u[2] == 0):
+            long_slip_r = 0
+            F_xr = 0
+        else:
+            long_slip_r = (x[7]*self.r-x[0])/max(x[0],x[7]*self.r)
+            if (long_slip_r<-0.03):
+                F_xr = -max_F_r
+            elif(long_slip_r>0.03):
+                F_xr = max_F_r
+            else:
+                F_xr = slip_slope_r*long_slip_r
         
-        return F_yf,F_yr           
+        print(F_xf,F_xr)
+        print(F_yf,F_yr)
+        print(max_F_f,max_F_r)
+        
+        return F_yf,F_yr,F_xf,F_xr  
     #############################
         
-    def f(self, x = np.zeros(6) , u = np.zeros(3) , t = 0 ):
+    def f(self, x = np.zeros(8) , u = np.zeros(3) , t = 0 ):
         """ 
         Continuous time foward dynamics evaluation
         
@@ -1188,14 +1330,16 @@ class FullDynamicBicycleModel( FullDynamicWithoutSlipBicycleModel ):
         
         """
         dx = np.zeros(self.n) # State derivative vector
-        F_yf,F_yr = self.linearTireModel(x,u)
+        F_yf,F_yr,F_xf,F_xr = self.combinedSlipTireModel(x,u)
         
-        dx[0] = (u[1]*np.cos(u[0])-F_yf*np.sin(u[0])+u[2])/self.mass-x[1]*x[2]
-        dx[1] = (F_yf*np.cos(u[0])+u[1]*np.sin(u[0])+F_yr)/self.mass-x[0]*x[2]
-        dx[2] = (self.a*(F_yf*np.cos(u[0])+u[1]*np.sin(u[0]))-self.b*F_yr)/self.Iz
+        dx[0] = (F_xf*np.cos(u[0])-F_yf*np.sin(u[0])+F_xr)/self.mass-x[1]*x[2]
+        dx[1] = (F_yf*np.cos(u[0])+F_xf*np.sin(u[0])+F_yr)/self.mass-x[0]*x[2]
+        dx[2] = (self.a*(F_yf*np.cos(u[0])+F_xf*np.sin(u[0]))-self.b*F_yr)/self.Iz
         dx[3] = x[2]
         dx[4] = x[0]*np.cos(x[3])-x[1]*np.sin(x[3])
-        dx[5] = x[0]*np.sin(x[3])-x[1]*np.cos(x[3])
+        dx[5] = x[0]*np.sin(x[3])+x[1]*np.cos(x[3])
+        dx[6] = (u[1]-self.r*F_xf)/self.Iprop_f
+        dx[7] = (u[2]-self.r*F_xr)/self.Iprop_r
         
         return dx
     
@@ -1322,10 +1466,10 @@ class FullDynamicBicycleModel( FullDynamicWithoutSlipBicycleModel ):
         d  = np.sqrt((self.lenght_tire/2)**2+(self.width_tire/2)**2)
         
         # Angles of the four lines of a tire               
-        steer1 = np.pi+np.arctan(self.width/2/self.a)+q[6]+q[3]
-        steer2 = np.pi-np.arctan(self.width/2/self.a)+q[6]+q[3]
-        steer3 = np.arctan(self.width/2/(self.lenght-self.a))+q[6]+q[3]
-        steer4 = 2*np.pi-np.arctan(self.width/2/(self.lenght-self.a))+q[6]+q[3]
+        steer1 = np.pi+np.arctan(self.width/2/self.a)+q[8]+q[3]
+        steer2 = np.pi-np.arctan(self.width/2/self.a)+q[8]+q[3]
+        steer3 = np.arctan(self.width/2/(self.lenght-self.a))+q[8]+q[3]
+        steer4 = 2*np.pi-np.arctan(self.width/2/(self.lenght-self.a))+q[8]+q[3]
         
         # Build first line of the left tire 
         pts = np.zeros((2,10))

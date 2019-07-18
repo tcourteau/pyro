@@ -74,8 +74,217 @@ class ProportionnalSingleVariableController( controller.StaticController ) :
         
         return u
 
+class inputController( controller.StaticController ) :
+    """ 
+    Simple proportionnal compensator
+    ---------------------------------------
+    r  : reference signal vector  k x 1
+    y  : sensor signal vector     k x 1
+    u  : control inputs vector    k x 1
+    t  : time                     1 x 1
+    ---------------------------------------
+    u = c( y , r , t ) = (r - y) * gain
 
+    """
+    
+    ###########################################################################
+    # The two following functions needs to be implemented by child classes
+    ###########################################################################
+    
+    
+    ############################
+    def __init__(self, k = 1):
+        """ """
+        
+        # Dimensions
+        self.k = 5   
+        self.m = 2   
+        self.p = 5
+        
+        controller.StaticController.__init__(self, self.k, self.m, self.p)
+        
+        # Label
+        self.name = 'Proportionnal Controller'
+        
+        # Gains
+        self.gain = 1
+        
+    
+    #############################
+    def c( self , y , r , t = 0 ):
+        """ 
+        Feedback static computation u = c(y,r,t)
+        
+        INPUTS
+        y  : sensor signal vector     p x 1
+        r  : reference signal vector  k x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        u  : control inputs vector    m x 1
+        
+        """
+        max_steer = 0.4
+        max_speed = 15.0000
+        u = np.zeros(self.m) # State derivative vector
+        
+        if t<10:
+            u[0] = 0
+            #u[0] = max_steer
+            u[1] = max_speed
+            #u[1] = 0
+        elif(t>=10 and t<=50):
+            u[0] = float(max_steer/40.0000*(t-10.0000))
+            #u[0] = max_steer
+            #u[1] = float(max_speed/40.0000*(t-10.0000))
+            u[1] = max_speed
+        elif(t>50 and t<=90):
+            u[0] = float(max_steer-max_steer/40.0000*(t-50.0000))
+            #u[0] = max_steer
+            u[1] = max_speed
+        else:
+            u[0] = 0
+            #u[0] = max_steer
+            u[1] = max_speed
+        
+        
+        return u
 
+class inputControllerFI( controller.StaticController ) :
+    """ 
+    Simple proportionnal compensator
+    ---------------------------------------
+    r  : reference signal vector  k x 1
+    y  : sensor signal vector     k x 1
+    u  : control inputs vector    k x 1
+    t  : time                     1 x 1
+    ---------------------------------------
+    u = c( y , r , t ) = (r - y) * gain
+
+    """
+    
+    ###########################################################################
+    # The two following functions needs to be implemented by child classes
+    ###########################################################################
+    
+    
+    ############################
+    def __init__(self, k = 1):
+        """ """
+        
+        # Dimensions
+        self.k = 6 
+        self.m = 3   
+        self.p = 6
+        
+        controller.StaticController.__init__(self, self.k, self.m, self.p)
+        
+        # Label
+        self.name = 'Proportionnal Controller'
+        
+        # Gains
+        self.gain = 1
+        
+    
+    #############################
+    def c( self , y , r , t = 0 ):
+        """ 
+        Feedback static computation u = c(y,r,t)
+        
+        INPUTS
+        y  : sensor signal vector     p x 1
+        r  : reference signal vector  k x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        u  : control inputs vector    m x 1
+        
+        """
+        
+        u = np.zeros(self.m) # State derivative vector
+        steer_max = 0.3
+        
+        if (t>=0 and t<25):
+            u[0] = steer_max/25*t
+            u[2] = 2000
+        elif(t>=25 and t<50):
+            u[0] = steer_max-steer_max/25*(t-25)
+            u[2] = -2000
+        else:
+            u[0] = 0
+            u[2] = 0
+        u[1] = 0
+        
+        
+        return u
+    
+class inputControllerTI( controller.StaticController ) :
+    """ 
+    Simple proportionnal compensator
+    ---------------------------------------
+    r  : reference signal vector  k x 1
+    y  : sensor signal vector     k x 1
+    u  : control inputs vector    k x 1
+    t  : time                     1 x 1
+    ---------------------------------------
+    u = c( y , r , t ) = (r - y) * gain
+
+    """
+    
+    ###########################################################################
+    # The two following functions needs to be implemented by child classes
+    ###########################################################################
+    
+    
+    ############################
+    def __init__(self, k = 1):
+        """ """
+        
+        # Dimensions
+        self.k = 8  
+        self.m = 3   
+        self.p = 8
+        
+        controller.StaticController.__init__(self, self.k, self.m, self.p)
+        
+        # Label
+        self.name = 'Proportionnal Controller'
+        
+        # Gains
+        self.gain = 1
+        
+    
+    #############################
+    def c( self , y , r , t = 0 ):
+        """ 
+        Feedback static computation u = c(y,r,t)
+        
+        INPUTS
+        y  : sensor signal vector     p x 1
+        r  : reference signal vector  k x 1
+        t  : time                     1 x 1
+        
+        OUPUTS
+        u  : control inputs vector    m x 1
+        
+        """
+        
+        u = np.zeros(self.m) # State derivative vector
+        steer_max = 0.3
+        torque_max = 1000
+        if t<10:
+            u[0] = 0
+            u[2] = 0
+        elif(t>=10 and t<50):
+            u[0] = steer_max/40*(t-10)
+            u[2] = torque_max/40*(t-10)   
+        else:
+            u[0] = steer_max
+            u[2] = 0
+        u[1] = 0
+        
+        
+        return u
 
 '''
 #################################################################
