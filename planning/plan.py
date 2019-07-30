@@ -13,6 +13,7 @@ from pyro.control  import controller
 from pyro.filters   import timefiltering
 
 
+
 ###############################################################################
 class OpenLoopController( controller.StaticController ) :
     """  Open-loop controller based on trajectory solution  """

@@ -15,11 +15,11 @@ from pyro.dynamic  import vehicle
 # Vehicule dynamical system
 sys = vehicle.KinematicBicyleModel()
 
-# Set default wheel velocity and steering angle
-sys.ubar = np.array([1,0.01])
+# Set default wheel steering angle and velocity
+sys.ubar = np.array([0.01,15])
 
 # Plot open-loop behavior
-sys.plot_trajectory( np.array([0,0,0]) , 1000 )
+sys.plot_trajectory( np.array([0,0,0]) , 10 )
 
 # Animate the simulation
-sys.animate_simulation( 100 )
+sys.animate_simulation( )

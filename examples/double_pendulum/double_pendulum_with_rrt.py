@@ -11,6 +11,10 @@ import numpy as np
 from pyro.dynamic import pendulum
 from pyro.planning import randomtree
 ###############################################################################
+<<<<<<< HEAD:examples/double_pendulum/double_pendulum_with_rrt.py
+=======
+
+>>>>>>> Will:examples/double_pendulum_with_rrt.py
 
 sys  = pendulum.DoublePendulum()
 

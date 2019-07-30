@@ -6,7 +6,6 @@ Created on Sun Mar  6 15:09:12 2016
 """
 ###############################################################################
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 
@@ -15,6 +14,7 @@ from pyro.dynamic  import system
 from pyro.analysis import simulation
 from pyro.filters   import timefiltering
 from pyro.planning import plan
+
 
 ###############################################################################
 class Node:

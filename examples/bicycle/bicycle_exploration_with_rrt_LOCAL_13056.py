@@ -31,10 +31,10 @@ speed    = 1
 steering = 0.5
 
 planner.u_options = [
-        np.array([ -steering, 0]),
-        np.array([ +steering, 0]),
-        np.array([ 0 , speed]),
-        np.array([ 0 , -speed])
+        np.array([ speed,-steering]),
+        np.array([ speed,+steering]),
+        np.array([ speed,0]),
+        np.array([-speed,0])
         ]
 
 planner.goal_radius = 1.0
