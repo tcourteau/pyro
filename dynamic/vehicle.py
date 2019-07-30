@@ -80,9 +80,9 @@ class KinematicBicyleModel( system.ContinuousDynamicSystem ):
         
         dx = np.zeros(self.n) # State derivative vector
 
-        dx[0] = u[0] * np.cos( x[2] )
-        dx[1] = u[0] * np.sin( x[2] )
-        dx[2] = u[0] * np.tan( u[1] ) * ( 1. / self.lenght) 
+        dx[0] = u[1] * np.cos( x[2] )
+        dx[1] = u[1] * np.sin( x[2] )
+        dx[2] = u[1] * np.tan( u[0] ) * ( 1. / self.lenght) 
         
         return dx
     
@@ -96,7 +96,7 @@ class KinematicBicyleModel( system.ContinuousDynamicSystem ):
     def xut2q( self, x , u , t ):
         """ compute config q """
         
-        q   = np.append(  x , u[1] ) # steering angle is part of the config
+        q   = np.append(  x , u[0] ) # steering angle is part of the config
         
         return q
     
@@ -495,7 +495,7 @@ class KinematicBicyleModelwithObstacles( KinematicBicyleModel ):
 
 ###############################################################################
         
-class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
+class LateralDynamicBicycleModelVI( system.ContinuousDynamicSystem ):
     """ 
     Equations of Motion
     -------------------------
@@ -552,58 +552,49 @@ class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
         self.width_tire = 0.15
         
         self.g = 9.81
-        self.mass = 1000
+        self.mass = 2000
         self.Iz = 1.00/12.00*self.mass*((self.a+self.b)**2+self.width**2) 
         
         # Graphic output parameters 
         self.dynamic_domain  = True
-        
-    #############################
-    def linearLateralTireModel(self,x,u):
-        
-        F_nf = self.mass*self.g*self.b/(self.b+self.a)
-        F_nr = self.mass*self.g*self.a/(self.b+self.a)
-        slip_f = ((x[0]+self.a*x[1])/u[1]-u[0])
-        slip_r = (x[0]-self.b*x[1])/u[1]
-        F_yf = -F_nf*0.15*180/np.pi*slip_f
-        F_yr = -F_nr*0.15*180/np.pi*slip_r
-        print(slip_f,slip_r)
-        print(F_yf,F_yr)
-
-        
-        return F_yf,F_yr
     
-           #############################
+        #############################
     def pieceWiseTireModel(self,x,u):
         
-        
+        #Tire-road friction coefficient
+        self.mu = 0.9
+        #Compute normal forces on the tires
         F_nf = self.mass*self.g*self.b/(self.b+self.a)
         F_nr = self.mass*self.g*self.a/(self.b+self.a)
-        max_F_f = F_nf*0.9
-        max_F_r = F_nr*0.9
-        slip_ratio_f = max_F_f/(0.12)
-        slip_ratio_r = max_F_r/(0.12)
+        #Compute the max forces available
+        max_F_f = F_nf*self.mu
+        max_F_r = F_nr*self.mu
+        #Compute the lateral "slip-slope"
+        self.max_alpha_stat = 0.12
+        slip_ratio_f = max_F_f/(self.max_alpha_stat)
+        slip_ratio_r = max_F_r/(self.max_alpha_stat)
         if (u[1] == 0):
             slip_f = 0
             slip_r = 0
             F_yf   = 0
             F_yr   = 0
         else:
-            slip_f = np.arctan((x[0]+self.a*x[1])/u[1])-u[0]
-            slip_r = np.arctan((x[0]-self.b*x[1])/u[1])
-            if (slip_f<-0.12):
-                F_yf = max_F_f
-            elif (slip_f > 0.12):
-                F_yf = -max_F_f
-            else:
-                F_yf = -slip_ratio_f*slip_f
+            slip_f = u[0]-np.arctan((x[0]+self.a*x[1])/u[1])
+            slip_r = np.arctan((self.b*x[1]-x[0])/u[1])
             
-            if (slip_r<-0.12):
-                F_yr = max_F_r
-            elif (slip_r > 0.12):
-                F_yr = -max_F_r
-            else:
-                F_yr = -slip_ratio_r*slip_r
+        if (slip_f<-0.12):
+            F_yf = -max_F_f
+        elif (slip_f > 0.12):
+            F_yf = max_F_f
+        else:
+            F_yf = slip_ratio_f*slip_f
+            
+        if (slip_r<-0.12):
+            F_yr = -max_F_r
+        elif (slip_r > 0.12):
+            F_yr = max_F_r
+        else:
+            F_yr = slip_ratio_r*slip_r
 
         return F_yf,F_yr   
         
@@ -829,7 +820,7 @@ class LateralDynamicBicycleModel( system.ContinuousDynamicSystem ):
         return x1,y1,x2,y2
 ##############################################################################
         
-class FullDynamicBicycleModelForceInput( LateralDynamicBicycleModel ):
+class LateralDynamicBicycleModelFI( LateralDynamicBicycleModelVI ):
     
     """ 
     Equations of Motion
@@ -902,27 +893,19 @@ class FullDynamicBicycleModelForceInput( LateralDynamicBicycleModel ):
         self.dynamic_domain  = True
         
     #############################
-    def linearLateralTireModel(self,x,u):
-        
-        F_nf = self.mass*self.g*self.b/(self.b+self.a)
-        F_nr = self.mass*self.g*self.a/(self.b+self.a)
-        slip_f = ((x[1]+self.a*x[2])/x[0]-u[0])
-        slip_r = (x[1]-self.b*x[2])/x[0]
-        F_yf = -F_nf*0.15*180/np.pi*slip_f
-        F_yr = -F_nr*0.15*180/np.pi*slip_r
-        print(slip_f,slip_r)
-        print(F_yf,F_yr)
-        
-        return F_yf,F_yr
-       #############################
     def pieceWiseTireModel(self,x,u):
         
+        #Tire-road friction coefficient
+        self.mu = 0.9
         F_nf = self.mass*self.g*self.b/(self.b+self.a)
         F_nr = self.mass*self.g*self.a/(self.b+self.a)
-        max_F_f = F_nf*0.9
-        max_F_r = F_nr*0.9
-        slip_ratio_f = max_F_f/(0.12)
-        slip_ratio_r = max_F_r/(0.12)
+        #Compute the max forces available
+        max_F_f = F_nf*self.mu
+        max_F_r = F_nr*self.mu
+        #Compute the lateral "slip-slope"
+        self.max_alpha_stat = 0.12
+        slip_ratio_f = max_F_f/(self.max_alpha_stat)
+        slip_ratio_r = max_F_r/(self.max_alpha_stat)
         if x[0] == 0:
             slip_f = 0
             slip_r = 0
@@ -930,7 +913,7 @@ class FullDynamicBicycleModelForceInput( LateralDynamicBicycleModel ):
             slip_f = np.arctan((x[1]+self.a*x[2])/x[0])-u[0]
             slip_r = np.arctan((x[1]-self.b*x[2])/x[0])
         else:
-            slip_f = -(np.arctan((x[1]+self.a*x[2])/x[0])-u[0])
+            slip_f = -(np.arctan((x[1]+self.a*x[2])/x[0])+u[0])
             slip_r = -np.arctan((x[1]-self.b*x[2])/x[0])            
         if (slip_f<-0.12):
             F_yf = max_F_f
@@ -1148,7 +1131,7 @@ class FullDynamicBicycleModelForceInput( LateralDynamicBicycleModel ):
     
 ##############################################################################
         
-class FullDynamicBicycleModel( LateralDynamicBicycleModel ):
+class FullDynamicBicycleModelTI( LateralDynamicBicycleModelVI ):
     
     """ 
     Equations of Motion
@@ -1228,57 +1211,25 @@ class FullDynamicBicycleModel( LateralDynamicBicycleModel ):
         self.dynamic_domain  = True
         
     #############################
-    def linearLateralTireModel(self,x,u):
-        
-        F_nf = self.mass*self.g*self.b/(self.b+self.a)
-        F_nr = self.mass*self.g*self.a/(self.b+self.a)
-        slip_f = ((x[1]+self.a*x[2])/x[0]-u[0])
-        slip_r = (x[1]-self.b*x[2])/x[0]
-        F_yf = -F_nf*0.15*180/np.pi*slip_f
-        F_yr = -F_nr*0.15*180/np.pi*slip_r
-        print(slip_f,slip_r)
-        print(F_yf,F_yr)
-        
-        return F_yf,F_yr
-       #############################
     def combinedSlipTireModel(self,x,u):
         
-        # Compute normal forces on each tire
+        #Tire-road friction coefficient
+        self.mu = 0.9
         F_nf = self.mass*self.g*self.b/(self.b+self.a)
         F_nr = self.mass*self.g*self.a/(self.b+self.a)
-        max_F_f = F_nf*0.9
-        max_F_r = F_nr*0.9
-        # Simulation of road-tire behavior according to slip angles 
-        slip_ratio_f = max_F_f/(0.12) # Start slipping at 7 degrees
-        slip_ratio_r = max_F_r/(0.12)
-        # Compute slip angles and lateral forces for both tires (depends on Vx (x[0]),Vy (x[1]) and delta (u[0]))
-        if x[0] == 0:
-            slip_f = 0
-            slip_r = 0
-        elif(x[0]>0):
-            slip_f = np.arctan((x[1]+self.a*x[2])/x[0])-u[0]
-            slip_r = np.arctan((x[1]-self.b*x[2])/x[0])
-        else:
-            slip_f = -(np.arctan((x[1]+self.a*x[2])/x[0])-u[0])
-            slip_r = -np.arctan((x[1]-self.b*x[2])/x[0])
-        if (slip_f<-0.12):
-            F_yf = max_F_f
-        elif (slip_f > 0.12):
-            F_yf = -max_F_f
-        else:
-            F_yf = -slip_ratio_f*slip_f
-            
-        if (slip_r<-0.1):
-            F_yr = max_F_r
-        elif (slip_r > 0.1):
-            F_yr = -max_F_r
-        else:
-            F_yr = -slip_ratio_r*slip_r
+        #Compute the max forces available
+        max_F_f = F_nf*self.mu
+        max_F_r = F_nr*self.mu
+        #Compute the lateral "slip-slope"
+        self.max_alpha_stat = 0.12
+        slip_ratio_f = max_F_f/(self.max_alpha_stat)
+        slip_ratio_r = max_F_r/(self.max_alpha_stat)
         # Simulation of road-tire behavior according to slip-ratios
-        slip_slope_f = max_F_f/0.03
-        slip_slope_r = max_F_r/0.03
+        self.max_slip_stat = 0.03
+        slip_slope_f = max_F_f/self.max_slip_stat
+        slip_slope_r = max_F_r/self.max_slip_stat
         # Compute slip ratios and longitudinal forces for both tires (depend on Vx (x[0]), omega_f (x[6]), omega_r (x[7]))
-        if(x[0] == 0 and x[6] == 0):
+        if(x[0] == 0 or x[6] == 0):
             long_slip_f = 0
             F_xf = 0
         elif(u[1] == 0):
@@ -1306,10 +1257,29 @@ class FullDynamicBicycleModel( LateralDynamicBicycleModel ):
                 F_xr = max_F_r
             else:
                 F_xr = slip_slope_r*long_slip_r
-        
-        print(F_xf,F_xr)
-        print(F_yf,F_yr)
-        print(max_F_f,max_F_r)
+        # Compute slip angles and lateral forces for both tires (depends on Vx (x[0]),Vy (x[1]) and delta (u[0]))
+        if x[0] == 0:
+            slip_f = 0
+            slip_r = 0
+        elif(x[0]>0):
+            slip_f = np.arctan((x[1]+self.a*x[2])/x[0])-u[0]
+            slip_r = np.arctan((x[1]-self.b*x[2])/x[0])
+        else:
+            slip_f = -(np.arctan((x[1]+self.a*x[2])/x[0])-u[0])
+            slip_r = -np.arctan((x[1]-self.b*x[2])/x[0])
+        if (slip_f<-0.12):
+            F_yf = max_F_f
+        elif (slip_f > 0.12):
+            F_yf = -max_F_f
+        else:
+            F_yf = -slip_ratio_f*slip_f
+            
+        if (slip_r<-0.1):
+            F_yr = max_F_r
+        elif (slip_r > 0.1):
+            F_yr = -max_F_r
+        else:
+            F_yr = -slip_ratio_r*slip_r
         
         return F_yf,F_yr,F_xf,F_xr  
     #############################
