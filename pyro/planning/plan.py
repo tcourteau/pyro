@@ -10,7 +10,7 @@ import numpy as np
 ###############################################################################
 from pyro.analysis import simulation
 from pyro.control  import controller
-from pyro.filters   import timefiltering
+from pyro.signal   import timefiltering
 
 
 
@@ -167,7 +167,7 @@ class Trajectory() :
 ###############################################################################
 def load_trajectory( name = 'trajectory_solution.npy' ):
     
-        data = np.load( name )
+        data = np.load( name, allow_pickle=True )
         
         return Trajectory( data[0] , data[1], data[2] , data[3] , data[4] )
     
