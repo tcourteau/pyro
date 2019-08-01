@@ -18,8 +18,8 @@ sys.obstacles = [
                 [ (-8,-8),(-1,8)]
                 ]
         
-x_start = np.array([0,0])
-x_goal  = np.array([8.0,0])
+x_start = np.array([8.0,0])
+x_goal  = np.array([0.0,0])
 
 planner = randomtree.RRT( sys , x_start )
 

@@ -11,8 +11,6 @@ from pyro.dynamic import mechanical
 ###############################################################################
 
 
-
-
 ###############################################################################
         
 class SinglePendulum( mechanical.MechanicalSystem ):
@@ -25,7 +23,7 @@ class SinglePendulum( mechanical.MechanicalSystem ):
         """ """
                
         # initialize standard params
-        mechanical.MechanicalSystem.__init__(self, 1)
+        mechanical.MechanicalSystem.__init__(self, 1 )
         
         # Name
         self.name = 'Single Pendulum'
