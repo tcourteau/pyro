@@ -56,7 +56,7 @@ planner.plot_tree()
 
 traj = planner.trajectory
 
-ctl  = nonlinear.TrajectoryFollowingComputedTorqueController( sys , traj )
+ctl  = nonlinear.ComputedTorqueController( sys , traj )
 
 ctl.w0   = 1.0
 ctl.zeta = 0.7

@@ -47,7 +47,7 @@ planner.plot_tree()
 
 planner.save_solution('fullyactuatedcartpole_rrt')
 
-planner.plot_open_loop_solution()
+#planner.plot_open_loop_solution()
 sys.animate_simulation(1.0,True)
 
 ###############################################################################
@@ -71,4 +71,4 @@ cl_sys = ctl + sys
 # Simultation
 cl_sys.plot_phase_plane_trajectory( x_start  )
 cl_sys.sim.plot('xu')
-cl_sys.animate_simulation(1.0,True)
+cl_sys.animate_simulation(1.2,True)
