@@ -5,6 +5,7 @@ Created on Fri Nov 16 12:05:08 2018
 @author: Alexandre
 """
 ###############################################################################
+from pathlib import Path
 import numpy as np
 ###############################################################################
 from pyro.dynamic  import pendulum
@@ -16,10 +17,12 @@ sys  = pendulum.DoublePendulum()
 
 
 
+# Load pre-computed trajectory from file
+this_file_dir = Path(__file__).parent
+traj_file = this_file_dir.joinpath(Path('double_pendulum_rrt.npy'))
+traj = plan.load_trajectory(str(traj_file))
+
 # Controller
-
-traj = plan.load_trajectory('double_pendulum_rrt.npy')
-
 ctl  = nonlinear.ComputedTorqueController( sys , traj )
 
 
