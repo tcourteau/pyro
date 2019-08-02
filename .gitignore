@@ -1,7 +1,17 @@
-# Compiled source #
+# Python-related ignores #
 ###################
-*.pyc
+*.py[cod]
+*.egg-info/
+__pycache__/
 
 # Output fig or video, etc #
 ############################
 output/
+
+# Editor Config #
+.vscode/
+.spyproject/
+.spyderproject/
+
+# OS Files #
+.DS_Store

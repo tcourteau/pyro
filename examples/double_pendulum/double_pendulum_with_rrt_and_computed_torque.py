@@ -8,10 +8,10 @@ Created on Mon Nov 12 20:28:17 2018
 ###############################################################################
 import numpy as np
 ###############################################################################
-from AlexRobotics.dynamic  import pendulum
-from AlexRobotics.control  import nonlinear
-from AlexRobotics.planning import randomtree
-from AlexRobotics.planning import plan
+from pyro.dynamic  import pendulum
+from pyro.control  import nonlinear
+from pyro.planning import randomtree
+
 ###############################################################################
 
 
@@ -56,7 +56,7 @@ planner.plot_tree()
 
 traj = planner.trajectory
 
-ctl  = nonlinear.TrajectoryFollowingComputedTorqueController( sys , traj )
+ctl  = nonlinear.ComputedTorqueController( sys , traj )
 
 ctl.w0   = 1.0
 ctl.zeta = 0.7
