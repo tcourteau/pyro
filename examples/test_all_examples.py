@@ -28,7 +28,7 @@ from matplotlib import pyplot as plt
 
 _all_examples = [
     "./bicycle/bicycle.py",
-    #"./bicycle/bicycle_exploration_with_rrt.py", # Broken, seems to run forever
+    "./bicycle/bicycle_exploration_with_rrt.py", 
     "./bicycle/bicycle_parallel_parking_with_rrt.py",
     "./cartpole/cartpole_natural_behavior.py",
     "./cartpole/cartpole_with_computed_torque.py",
@@ -39,7 +39,7 @@ _all_examples = [
     "./double_pendulum/double_pendulum.py",
     "./double_pendulum/double_pendulum_with_computed_torque.py",
     "./double_pendulum/double_pendulum_with_rrt.py",
-    #"./double_pendulum/double_pendulum_with_rrt_and_computed_torque.py", # Missing class
+    "./double_pendulum/double_pendulum_with_rrt_and_computed_torque.py",
     "./double_pendulum/double_pendulum_with_sliding_mode.py",
     "./double_pendulum/double_pendulum_with_trajectory_following_computed_torque.py",
     "./double_pendulum/double_pendulum_with_trajectory_following_open_loop_controller.py",
@@ -64,7 +64,7 @@ _all_examples = [
     "./simple_pendulum/custom_simple_pendulum.py",
     "./simple_pendulum/simple_pendulum_with_computed_torque.py",
     "./simple_pendulum/simple_pendulum_with_open_loop_controller.py",
-    #"./simple_pendulum/simple_pendulum_with_pid.py", # Missing class
+    "./simple_pendulum/simple_pendulum_with_pid.py",
     "./simple_pendulum/simple_pendulum_with_rrt.py",
     "./simple_pendulum/simple_pendulum_with_sliding_mode_controller.py",
     "./simple_pendulum/simple_pendulum_with_trajectory_following_computed_torque.py",

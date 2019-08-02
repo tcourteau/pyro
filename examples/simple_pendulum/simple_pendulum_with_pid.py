@@ -8,17 +8,19 @@ Created on Fri Nov 16 12:05:08 2018
 import numpy as np
 ###############################################################################
 from pyro.dynamic  import pendulum
-from pyro.control  import linear
+from pyro.control  import robotcontrollers
 from pyro.analysis import simulation
 ###############################################################################
 
 sys  = pendulum.SinglePendulum()
 
-kp = 200 # 2,4
-kd = 100 # 1
-ki = 0
+dof = 1
 
-ctl  = linear.JointPID(sys, kp , ki, kd)
+kp = 2 # 2,4
+kd = 1 # 1
+ki = 1
+
+ctl  = robotcontrollers.JointPID( dof, kp , ki, kd)
 
 # Set Point
 q_target = np.array([3.14])
