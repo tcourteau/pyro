@@ -12,6 +12,7 @@ output/
 .vscode/
 .spyproject/
 .spyderproject/
+.idea/
 
 # OS Files #
 .DS_Store
