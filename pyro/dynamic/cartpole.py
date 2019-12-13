@@ -3,6 +3,7 @@
 Created on Wed Oct 24 13:07:39 2018
 
 @author: nvidia
+@author: Thomas Courteau
 """
 ###############################################################################
 import numpy as np
@@ -356,9 +357,6 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         self.input_label[0] = 'Torque'
         self.input_units[0] = '[Nm]'
 
-        # Name
-        self.name = 'Rotating Cart Pole'
-
         # params
         self.setparams()
 
@@ -375,13 +373,14 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         self.wheel_radius = 0.1
 
         self.I1 = 1.0
-        self.I2 = 0.1
 
         # Dissipative constantes
         self.d1 = 0
         self.d2 = 0
 
         self.gravity = 9.81
+
+        self.k = 0.
 
     ##############################
     def trig(self, q):
@@ -414,7 +413,7 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         H[0, 0] = self.m_base + self.m_load
         H[1, 0] = self.m_load * self.lenght * c1
         H[0, 1] = H[1, 0]
-        H[1, 1] = self.m_load * self.lenght ** 2
+        H[1, 1] = self.m_load * self.lenght ** 2 + self.I1
 
         return H
 
@@ -451,6 +450,10 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
 
         B[0] = 1 / self.wheel_radius
         B[1] = 0
+        # B[0, 0] = 1 / self.wheel_radius
+        # B[0, 1] = 0
+        # B[1, 0] = 0
+        # B[1, 1] = 0
 
         return B
 
@@ -465,7 +468,7 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         G = np.zeros(self.dof)
 
         G[0] = 0
-        G[1] = - self.m_load * self.gravity * self.lenght * s1
+        G[1] = - self.m_load * self.gravity * self.lenght * s1 + self.k * q[0]
 
         return G
 
@@ -508,6 +511,26 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
 
         return y
 
+    # ##############################
+    # def actuator_forces(self, q, dq, ddq, t=0):
+    #     """ Computed actuator forces given a trajectory (inverse dynamic) """
+    #     #
+    #     # B = self.B(q)
+    #     #
+    #     # # Generalized forces
+    #     # forces = self.generalized_forces(q, dq, ddq, t)
+    #
+    #     # Actuator forces
+    #     # u = np.dot(np.linalg.inv(B), forces)
+    #
+    #     u = np.zeros((self.m))
+    #
+    #     # u[0] = self.wheel_radius*((self.m_base + self.m_load)*ddq[0] + self.m_load*self.lenght*(np.cos(q[1])*ddq[1] - np.sin(q[1])*dq[1]))
+    #     u[0] = 0
+    #     u[1] = 0
+    #
+    #     return u
+
     ###########################################################################
     # Graphical output
     ###########################################################################
@@ -516,7 +539,7 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
     def forward_kinematic_domain(self, q):
         """
         """
-        l = 2
+        l = 5
 
         domain = [(-l, l), (-l, l), (-l, l)]  #
 
@@ -589,9 +612,9 @@ if __name__ == "__main__":
     x0 = np.array([0, 0.08, 0, 0])
 
     # Initiale input
-    sys.ubar = np.array([0])
+    # sys.ubar = np.array([0,0])
     
     #sys.show3(np.array([0.3,0.2]))
     
     sys.plot_trajectory( x0 , 10 ) #5, 50001, 'euler' )
-    sys.animate_simulation(1.0, save=True)
+    sys.animate_simulation(1.0)
