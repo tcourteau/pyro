@@ -330,13 +330,13 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         self.name = 'Self Balance Robot 2D'
 
         # Labels, bounds and units
-        position_bound = 10     # [m]
+        position_bound = 5     # [m]
         self.x_ub[0] = + position_bound
         self.x_lb[0] = - position_bound
         self.state_label[0] = 'Position'
         self.state_units[0] = '[m]'
-        self.x_ub[1] = + np.pi * 2
-        self.x_lb[1] = - np.pi * 2
+        self.x_ub[1] = + np.pi
+        self.x_lb[1] = - np.pi
         self.state_label[1] = 'Angle'
         self.state_units[1] = '[rad]'
 
@@ -364,23 +364,21 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
     def setparams(self):
         """ Set model parameters here """
 
-        self.lenght = 0.5
+        self.lenght = 0.31
 
         # Masses of the system
-        self.m_load = 1
-        self.m_base = 1
+        self.m_load = 0.164
+        self.m_wheel = 0.053
 
-        self.wheel_radius = 0.1
+        self.wheel_radius = 0.0425
 
-        self.I1 = 1.0
+        self.I1 = 0.0001  # Inertia of the body
+        self.J = 0.0001   # Inertia of the wheels
 
         # Dissipative constantes
-        self.d1 = 0
-        self.d2 = 0
+        self.viscosity = 0.025  # Viscosity friction
 
         self.gravity = 9.81
-
-        self.k = 0.
 
     ##############################
     def trig(self, q):
@@ -410,7 +408,7 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
 
         H = np.zeros((self.dof, self.dof))
 
-        H[0, 0] = self.m_base + self.m_load
+        H[0, 0] = self.m_wheel + self.m_load + self.J / self.wheel_radius ** 2
         H[1, 0] = self.m_load * self.lenght * c1
         H[0, 1] = H[1, 0]
         H[1, 1] = self.m_load * self.lenght ** 2 + self.I1
@@ -449,11 +447,7 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         B = np.zeros((self.dof, self.m))
 
         B[0] = 1 / self.wheel_radius
-        B[1] = 0
-        # B[0, 0] = 1 / self.wheel_radius
-        # B[0, 1] = 0
-        # B[1, 0] = 0
-        # B[1, 1] = 0
+        B[1] = -1
 
         return B
 
@@ -468,7 +462,7 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         G = np.zeros(self.dof)
 
         G[0] = 0
-        G[1] = - self.m_load * self.gravity * self.lenght * s1 + self.k * q[0]
+        G[1] = - self.m_load * self.gravity * self.lenght * s1
 
         return G
 
@@ -480,10 +474,10 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
 
         D = np.zeros((self.dof, self.dof))
 
-        D[0, 0] = self.d1
-        D[1, 0] = 0
-        D[0, 1] = 0
-        D[1, 1] = self.d2
+        D[0, 0] = self.viscosity / (self.wheel_radius**2)
+        D[1, 0] = - self.viscosity / self.wheel_radius
+        D[0, 1] = D[1, 0]
+        D[1, 1] = self.viscosity
 
         d = np.dot(D, dq)
 
@@ -511,25 +505,6 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
 
         return y
 
-    # ##############################
-    # def actuator_forces(self, q, dq, ddq, t=0):
-    #     """ Computed actuator forces given a trajectory (inverse dynamic) """
-    #     #
-    #     # B = self.B(q)
-    #     #
-    #     # # Generalized forces
-    #     # forces = self.generalized_forces(q, dq, ddq, t)
-    #
-    #     # Actuator forces
-    #     # u = np.dot(np.linalg.inv(B), forces)
-    #
-    #     u = np.zeros((self.m))
-    #
-    #     # u[0] = self.wheel_radius*((self.m_base + self.m_load)*ddq[0] + self.m_load*self.lenght*(np.cos(q[1])*ddq[1] - np.sin(q[1])*dq[1]))
-    #     u[0] = 0
-    #     u[1] = 0
-    #
-    #     return u
 
     ###########################################################################
     # Graphical output
@@ -539,7 +514,7 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
     def forward_kinematic_domain(self, q):
         """
         """
-        l = 5
+        l = 0.5
 
         domain = [(-l, l), (-l, l), (-l, l)]  #
 
@@ -566,9 +541,9 @@ class SelfBalanceRobot2D(mechanical.MechanicalSystem):
         pts = np.zeros((2, 3))
 
         pts[0, 0] = -10000
-        pts[0, 1] = 1
+        pts[0, 1] = 0
         pts[1, 0] = 10000
-        pts[1, 1] = 1
+        pts[1, 1] = 0
 
         lines_pts.append(pts)
 
@@ -609,12 +584,13 @@ if __name__ == "__main__":
     # x0[1] : Angle of the rigid link
     # x0[2] : Speed of the cart
     # x0[3] : Angulare speed of the rigid link
-    x0 = np.array([0, 0.08, 0, 0])
+    x0 = np.array([0, 0.12, 0, 0])
 
     # Initiale input
     # sys.ubar = np.array([0,0])
     
     #sys.show3(np.array([0.3,0.2]))
     
-    sys.plot_trajectory( x0 , 10 ) #5, 50001, 'euler' )
-    sys.animate_simulation(1.0)
+    sys.plot_trajectory( x0 , 0.64 ) #5, 50001, 'euler' )
+#    sys.plot_phase_plane_trajectory( x0 , tf=0.64)
+    sys.animate_simulation(0.1 , save=True)
